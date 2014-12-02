@@ -15,10 +15,7 @@
 package com.microsoft.azure.storage.core;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.net.*;
 import java.security.InvalidKeyException;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -29,6 +26,7 @@ import com.microsoft.azure.storage.OperationContext;
 import com.microsoft.azure.storage.RequestOptions;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.StorageKey;
+import com.microsoft.azure.storage.http.AzureStreamHandlerFactory;
 
 /**
  * RESERVED FOR INTERNAL USE. The Base Request class for the protocol layer.
@@ -179,7 +177,22 @@ public final class BaseRequest {
             builder = new UriQueryBuilder();
         }
 
-        final URL resourceUrl = builder.addToURI(uri).toURL();
+        /**
+         * This section is modified for use with HCP to enable piping an explicit local address through the HttpURLConnection
+         */
+        final URI requestUri = builder.addToURI(uri);
+        InetAddress localAddress = options.getLocalAddress();
+        URLStreamHandler customHandler = null;
+        // If there's an explicit local address set, retrieve a stream handler for it and set it on the URL
+        if (localAddress != null) {
+            customHandler = AzureStreamHandlerFactory.getInstance().createURLStreamHandler(requestUri.getScheme(), localAddress);
+        }
+        final URL resourceUrl = (customHandler != null)
+                ? new URL(null, requestUri.toString(), customHandler)
+                : requestUri.toURL();
+        /**
+         * End HCP modified section
+         */
 
         final HttpURLConnection retConnection = (HttpURLConnection) resourceUrl.openConnection();
 
