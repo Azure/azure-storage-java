@@ -17,6 +17,7 @@
  */
 package com.microsoft.azure.storage;
 
+import java.net.InetAddress;
 import java.util.Date;
 
 import com.microsoft.azure.storage.core.Utility;
@@ -52,6 +53,11 @@ public abstract class RequestOptions {
     private Long operationExpiryTime;
 
     /**
+     * The optional local address to bind connections to.
+     */
+    private InetAddress localAddress;
+
+    /**
      * Creates an instance of the <code>RequestOptions</code> class.
      */
     public RequestOptions() {
@@ -72,13 +78,14 @@ public abstract class RequestOptions {
             this.setLocationMode(other.getLocationMode());
             this.setMaximumExecutionTimeInMs(other.getMaximumExecutionTimeInMs());
             this.setOperationExpiryTimeInMs(other.getOperationExpiryTimeInMs());
+            this.setLocalAddress(other.getLocalAddress());
         }
     }
 
     /**
      * Populates the default timeout, retry policy, and location mode from client if they are null.
      * 
-     * @param options
+     * @param modifiedOptions
      *            The input options to copy from when applying defaults
      */
     protected static final RequestOptions applyBaseDefaultsInternal(final RequestOptions modifiedOptions) {
@@ -119,6 +126,10 @@ public abstract class RequestOptions {
                 && modifiedOptions.getOperationExpiryTimeInMs() == null && setStartTime) {
             modifiedOptions.setOperationExpiryTimeInMs(new Date().getTime()
                     + modifiedOptions.getMaximumExecutionTimeInMs());
+        }
+
+        if (modifiedOptions.getLocalAddress() == null) {
+            modifiedOptions.setLocalAddress(clientOptions.getLocalAddress());
         }
 
         return modifiedOptions;
@@ -183,6 +194,15 @@ public abstract class RequestOptions {
     }
 
     /**
+     * Gets the local address connections will bind to. May be null.
+     *
+     * @return The current local address.
+     */
+    public InetAddress getLocalAddress() {
+        return this.localAddress;
+    }
+
+    /**
      * Sets the RetryPolicyFactory object to use for this request.
      * <p>
      * The default RetryPolicyFactory is set in the client and is by default {@link RetryExponentialRetry}. You can
@@ -214,7 +234,7 @@ public abstract class RequestOptions {
      * {@link ServiceClient#getDefaultRequestOptions()} object so that all subsequent requests made via the service
      * client will use that server timeout.
      * 
-     * @param timeoutInMs
+     * @param timeoutIntervalInMs
      *            The timeout, in milliseconds, to use for this request.
      */
     public final void setTimeoutIntervalInMs(final Integer timeoutIntervalInMs) {
@@ -268,5 +288,9 @@ public abstract class RequestOptions {
      */
     private void setOperationExpiryTimeInMs(final Long operationExpiryTime) {
         this.operationExpiryTime = operationExpiryTime;
+    }
+
+    public void setLocalAddress(final InetAddress localAddress) {
+        this.localAddress = localAddress;
     }
 }
