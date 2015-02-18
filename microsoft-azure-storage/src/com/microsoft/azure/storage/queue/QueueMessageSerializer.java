@@ -28,7 +28,7 @@ import com.microsoft.azure.storage.core.Utility;
  * RESERVED FOR INTERNAL USE. A class used to serialize message requests to a byte array.
  */
 final class QueueMessageSerializer {
-
+    static final XMLOutputFactory xmlOutFactoryInst = XMLOutputFactory.newInstance();
     /**
      * Generates the message request body from a string containing the message.
      * The message must be encodable as UTF-8. To be included in a web request,
@@ -47,7 +47,6 @@ final class QueueMessageSerializer {
      */
     public static byte[] generateMessageRequestBody(final String message) throws XMLStreamException, StorageException {
         final StringWriter outWriter = new StringWriter();
-        final XMLOutputFactory xmlOutFactoryInst = XMLOutputFactory.newInstance();
         final XMLStreamWriter xmlw = xmlOutFactoryInst.createXMLStreamWriter(outWriter);
 
         // default is UTF8
