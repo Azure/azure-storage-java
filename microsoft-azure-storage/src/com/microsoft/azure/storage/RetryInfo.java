@@ -53,6 +53,7 @@ public class RetryInfo {
     public RetryInfo(RetryContext retryContext) {
         Utility.assertNotNull("retryContext", retryContext);
         this.targetLocation = retryContext.getNextLocation();
+		
         this.updatedLocationMode = retryContext.getLocationMode();
     }
 
