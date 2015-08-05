@@ -1,0 +1,6 @@
+com.microsoft.azure.storage
+com.microsoft.azure.storage.analytics
+com.microsoft.azure.storage.blob
+com.microsoft.azure.storage.file
+com.microsoft.azure.storage.queue
+com.microsoft.azure.storage.table
