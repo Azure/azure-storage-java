@@ -2550,6 +2550,23 @@ public abstract class CloudBlob implements ListBlobItem {
         this.streamMinimumReadSizeInBytes = minimumReadSize;
     }
 
+    /**
+     * Sets the maximum read size when using a {@link BlobInputStream}.
+     *
+     * @param maximumReadSize
+     *            An <code>int</code> that represents the maximum block size, in bytes, for reading from a blob while
+     *            using a {@link BlobInputStream} object. Must be less than or equal to 4M.
+     * @throws IllegalArgumentException
+     *             If <code>maximumReadSize</code> is less than or equal to 4 M.
+     */
+    public void setStreamMaximumReadSizeInBytes(final int maximumReadSize) {
+        if (maximumReadSize > 4 * Constants.MB) {
+            throw new IllegalArgumentException("MaximumReadSize");
+        }
+
+        this.streamMaximumReadSizeInBytes = maximumReadSize;
+    }
+
     protected void updateEtagAndLastModifiedFromResponse(HttpURLConnection request) {
         // ETag
         this.getProperties().setEtag(request.getHeaderField(Constants.HeaderConstants.ETAG));
