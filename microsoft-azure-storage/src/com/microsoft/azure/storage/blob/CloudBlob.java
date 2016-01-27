@@ -109,6 +109,11 @@ public abstract class CloudBlob implements ListBlobItem {
     protected int streamMinimumReadSizeInBytes = Constants.DEFAULT_MINIMUM_READ_SIZE_IN_BYTES;
 
     /**
+     * Holds the maximum read size when using a {@link BlobInputStream}.
+     */
+    protected int streamMaximumReadSizeInBytes = Constants.DEFAULT_MAXIMUM_READ_SIZE_IN_BYTES;
+
+    /**
      * Represents the blob client.
      */
     protected CloudBlobClient blobServiceClient;
@@ -2147,6 +2152,16 @@ public abstract class CloudBlob implements ListBlobItem {
      */
     public final int getStreamMinimumReadSizeInBytes() {
         return this.streamMinimumReadSizeInBytes;
+    }
+
+    /**
+     * Returns the maximum read size when using a {@link BlobInputStream}.
+     *
+     * @return A <code>int</code> which represents the maximum read size, in bytes, when using a {@link BlobInputStream}
+     *         object.
+     */
+    public final int getStreamMaximumReadSizeInBytes() {
+        return this.streamMaximumReadSizeInBytes;
     }
 
     /**
