@@ -109,6 +109,11 @@ public abstract class CloudBlob implements ListBlobItem {
     protected int streamMinimumReadSizeInBytes = Constants.DEFAULT_MINIMUM_READ_SIZE_IN_BYTES;
 
     /**
+     * Holds the maximum read size when using a {@link BlobInputStream}.
+     */
+    protected int streamMaximumReadSizeInBytes = Constants.DEFAULT_MAXIMUM_READ_SIZE_IN_BYTES;
+
+    /**
      * Represents the blob client.
      */
     protected CloudBlobClient blobServiceClient;
@@ -2209,6 +2214,16 @@ public abstract class CloudBlob implements ListBlobItem {
     }
 
     /**
+     * Returns the maximum read size when using a {@link BlobInputStream}.
+     *
+     * @return A <code>int</code> which represents the maximum read size, in bytes, when using a {@link BlobInputStream}
+     *         object.
+     */
+    public final int getStreamMaximumReadSizeInBytes() {
+        return this.streamMaximumReadSizeInBytes;
+    }
+
+    /**
      * Returns the transformed URI for the resource if the given credentials require transformation.
      *
      * @param opContext
@@ -2592,6 +2607,23 @@ public abstract class CloudBlob implements ListBlobItem {
         }
 
         this.streamMinimumReadSizeInBytes = minimumReadSize;
+    }
+
+    /**
+     * Sets the maximum read size when using a {@link BlobInputStream}.
+     *
+     * @param maximumReadSize
+     *            An <code>int</code> that represents the maximum block size, in bytes, for reading from a blob while
+     *            using a {@link BlobInputStream} object. Must be less than or equal to 4M.
+     * @throws IllegalArgumentException
+     *             If <code>maximumReadSize</code> is less than or equal to 4 M.
+     */
+    public void setStreamMaximumReadSizeInBytes(final int maximumReadSize) {
+        if (maximumReadSize > 4 * Constants.MB) {
+            throw new IllegalArgumentException("MaximumReadSize");
+        }
+
+        this.streamMaximumReadSizeInBytes = maximumReadSize;
     }
 
     protected void updateEtagAndLastModifiedFromResponse(HttpURLConnection request) {

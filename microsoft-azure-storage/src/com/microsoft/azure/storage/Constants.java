@@ -1102,7 +1102,12 @@ public final class Constants {
     /**
      * The default minimum read size, in bytes, for a {@link BlobInputStream} or {@link FileInputStream}.
      */
-    public static final int DEFAULT_MINIMUM_READ_SIZE_IN_BYTES = Constants.MAX_BLOCK_SIZE;
+    public static final int DEFAULT_MINIMUM_READ_SIZE_IN_BYTES = Constants.MAX_BLOCK_SIZE / 8;
+
+    /**
+     * The default maximum read size, in bytes, for a {@link BlobInputStream} or {@link FileInputStream}.
+     */
+    public static final int DEFAULT_MAXIMUM_READ_SIZE_IN_BYTES = Constants.MAX_BLOCK_SIZE;
 
     /**
      * The maximum size, in bytes, of a given stream mark operation.

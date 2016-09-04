@@ -72,9 +72,14 @@ public final class BlobInputStream extends InputStream {
     private long streamLength = -1;
 
     /**
-     * Holds the stream read size for both block and page blobs.
+     * Holds the minimum stream read size for both block and page blobs.
      */
-    private final int readSize;
+    private final int minReadSize;
+
+    /**
+     * Holds the maximum stream read size for both block and page blobs.
+     */
+    private final int maxReadSize;
 
     /**
      * A flag indicating if the Blob MD5 should be validated.
@@ -146,9 +151,10 @@ public final class BlobInputStream extends InputStream {
         this.opContext = opContext;
         this.streamFaulted = false;
         this.currentAbsoluteReadPosition = 0;
-        this.readSize = parentBlob.getStreamMinimumReadSizeInBytes();
+        this.minReadSize = parentBlob.getStreamMinimumReadSizeInBytes();
+        this.maxReadSize = parentBlob.getStreamMaximumReadSizeInBytes();
 
-        if (options.getUseTransactionalContentMD5() && this.readSize > 4 * Constants.MB) {
+        if (options.getUseTransactionalContentMD5() && this.minReadSize > 4 * Constants.MB) {
             throw new IllegalArgumentException(SR.INVALID_RANGE_CONTENT_MD5_HEADER);
         }
 
@@ -445,10 +451,11 @@ public final class BlobInputStream extends InputStream {
         // if buffer is empty do next get operation
         if ((this.currentBuffer == null || this.currentBuffer.available() == 0)
                 && this.currentAbsoluteReadPosition < this.streamLength) {
-            this.dispatchRead((int) Math.min(this.readSize, this.streamLength - this.currentAbsoluteReadPosition));
+            int bufferLength = Math.max(this.minReadSize, Math.min(len, this.maxReadSize));
+            this.dispatchRead((int) Math.min(bufferLength, this.streamLength - this.currentAbsoluteReadPosition));
         }
 
-        len = Math.min(len, this.readSize);
+        len = Math.min(len, this.maxReadSize);
 
         // do read from buffer
         final int numberOfBytesRead = this.currentBuffer.read(b, off, len);
