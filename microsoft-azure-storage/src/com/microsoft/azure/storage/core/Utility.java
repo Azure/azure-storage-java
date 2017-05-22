@@ -637,7 +637,8 @@ public final class Utility {
      */
     public static JsonParser getJsonParser(final String jsonString) throws JsonParseException, IOException {
         JsonParser parser = jsonFactory.createParser(jsonString);
-
+        // fixes connection pooling with SSL
+        parser.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
         // allows handling of infinity, -infinity, and NaN for Doubles
         return parser.enable(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS);
     }
@@ -654,7 +655,8 @@ public final class Utility {
      */
     public static JsonParser getJsonParser(final InputStream inStream) throws JsonParseException, IOException {
         JsonParser parser = jsonFactory.createParser(inStream);
-
+        // fixes connection pooling with SSL
+        parser.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
         // allows handling of infinity, -infinity, and NaN for Doubles
         return parser.enable(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS);
     }
