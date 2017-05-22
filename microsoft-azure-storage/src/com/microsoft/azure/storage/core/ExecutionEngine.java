@@ -148,23 +148,12 @@ public final class ExecutionEngine {
                     result = task.postProcessResponse(request, parentObject, client, opContext, result);
                     Logger.info(opContext, LogConstants.POST_PROCESS_DONE);
 
-                    // Success return result and drain the input stream.
+                    // Success. return result and drain the input stream.
                     if ((task.getResult().getStatusCode() >= 200) && (task.getResult().getStatusCode() < 300)) {
                         if (request != null) {
-                            InputStream inStream = request.getInputStream();
                             // At this point, we already have a result / exception to return to the user.
                             // This is just an optimization to improve socket reuse.
-                            try {
-                                Utility.writeToOutputStream(inStream, null, -1, false, false, null,
-                                        task.getRequestOptions());
-                            }
-                            catch (final IOException ex) {
-                            }
-                            catch (StorageException e) {
-                            }
-                            finally {
-                                inStream.close();
-                            }
+                            drainStream(request.getInputStream(), task.getRequestOptions());
                         }
                     }
                     Logger.info(opContext, LogConstants.COMPLETE);
@@ -261,6 +250,19 @@ public final class ExecutionEngine {
                     Thread.currentThread().interrupt();
                 }
             }
+        }
+    }
+
+    private static void drainStream(InputStream stream, RequestOptions opts) throws IOException {
+        try {
+            Utility.writeToOutputStream(stream, null, -1, false, false, null, opts);
+        }
+        catch (final IOException ignored) {
+        }
+        catch (StorageException ignored) {
+        }
+        finally {
+            stream.close();
         }
     }
 
