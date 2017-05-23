@@ -261,7 +261,7 @@ public final class ExecutionEngine {
         try {
             Utility.writeToOutputStream(stream, null, -1, false, false, null, opts);
         }
-        catch (final IOException ignored) {
+        catch (IOException ignored) {
         }
         catch (StorageException ignored) {
         }
