@@ -148,16 +148,16 @@ public final class ExecutionEngine {
                     result = task.postProcessResponse(request, parentObject, client, opContext, result);
                     Logger.info(opContext, LogConstants.POST_PROCESS_DONE);
 
-                    // Success. return result and drain the input stream.
-                    if ((task.getResult().getStatusCode() >= 200) && (task.getResult().getStatusCode() < 300)) {
-                        if (request != null) {
-                            // At this point, we already have a result / exception to return to the user.
-                            // This is just an optimization to improve socket reuse.
-                            drainStream(request.getInputStream(), task.getRequestOptions());
-                        }
+                    // At this point, we already have a result / exception to return to the user.
+                    // This is just an optimization to improve socket reuse.
+                    if (task.getResult().getStatusCode() < HttpURLConnection.HTTP_BAD_REQUEST) {
+                        drainStream(request.getInputStream(), task.getRequestOptions());
                     }
-                    Logger.info(opContext, LogConstants.COMPLETE);
+                    else {
+                        drainStream(request.getErrorStream(), task.getRequestOptions());
+                    }
 
+                    Logger.info(opContext, LogConstants.COMPLETE);
                     return result;
                 }
                 else {
@@ -254,6 +254,9 @@ public final class ExecutionEngine {
     }
 
     private static void drainStream(InputStream stream, RequestOptions opts) throws IOException {
+        if (stream == null) {
+            return;
+        }
         try {
             Utility.writeToOutputStream(stream, null, -1, false, false, null, opts);
         }
