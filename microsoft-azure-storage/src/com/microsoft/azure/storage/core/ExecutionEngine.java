@@ -26,6 +26,7 @@ import com.microsoft.azure.storage.Constants;
 import com.microsoft.azure.storage.LocationMode;
 import com.microsoft.azure.storage.OperationContext;
 import com.microsoft.azure.storage.RequestCompletedEvent;
+import com.microsoft.azure.storage.RequestOptions;
 import com.microsoft.azure.storage.RequestResult;
 import com.microsoft.azure.storage.ResponseReceivedEvent;
 import com.microsoft.azure.storage.RetryContext;
