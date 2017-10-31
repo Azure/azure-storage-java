@@ -1029,11 +1029,11 @@ public final class CloudBlockBlob extends CloudBlob {
 
         if (!sourceStream.markSupported()) {
             // needs buffering
-            final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+            final BlobByteArrayOutputStream byteStream = new BlobByteArrayOutputStream();
             descriptor = Utility.writeToOutputStream(sourceStream, byteStream, length, false /* rewindSourceStream */,
                     options.getUseTransactionalContentMD5(), opContext, options);
 
-            bufferedStreamReference = new ByteArrayInputStream(byteStream.toByteArray());
+            bufferedStreamReference = byteStream.getInputStream();
         }
         else if (length < 0 || options.getUseTransactionalContentMD5()) {
             // If the stream is of unknown length or we need to calculate the
