@@ -1207,8 +1207,8 @@ public final class Constants {
     /**
      * The maximum size, in bytes, of a given stream mark operation.
      */
-    // Note if BlobConstants.MAX_SINGLE_UPLOAD_BLOB_SIZE_IN_BYTES is updated then this needs to be as well.
-    public static final int MAX_MARK_LENGTH = 256 * MB;
+    //This actually acquire the buffer into memory until file gets copied
+    public static final int MAX_MARK_LENGTH = 8 * MB;
 
     /**
      * XML element for maximum results.

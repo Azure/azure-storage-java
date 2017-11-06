@@ -1,11 +1,11 @@
 /**
  * Copyright Microsoft Corporation
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,9 +22,13 @@ import com.microsoft.azure.storage.RetryNoRetry;
 import com.microsoft.azure.storage.SendingRequestEvent;
 import com.microsoft.azure.storage.StorageCredentialsAnonymous;
 import com.microsoft.azure.storage.StorageCredentialsSharedAccessSignature;
+import com.microsoft.azure.storage.StorageErrorCodeStrings;
 import com.microsoft.azure.storage.StorageEvent;
 import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.TestRunners;
+import com.microsoft.azure.storage.TestRunners.CloudTests;
+import com.microsoft.azure.storage.TestRunners.DevFabricTests;
+import com.microsoft.azure.storage.TestRunners.DevStoreTests;
+import com.microsoft.azure.storage.TestRunners.SlowTests;
 import com.microsoft.azure.storage.core.Utility;
 import com.microsoft.azure.storage.file.CloudFile;
 import com.microsoft.azure.storage.file.CloudFileShare;
@@ -32,7 +36,6 @@ import com.microsoft.azure.storage.file.FileProperties;
 import com.microsoft.azure.storage.file.FileTestHelper;
 import com.microsoft.azure.storage.file.SharedAccessFilePermissions;
 import com.microsoft.azure.storage.file.SharedAccessFilePolicy;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,19 +47,28 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.GregorianCalendar;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.TimeZone;
 
-import com.microsoft.azure.storage.StorageErrorCodeStrings;
-import com.microsoft.azure.storage.TestRunners.CloudTests;
-import com.microsoft.azure.storage.TestRunners.DevFabricTests;
-import com.microsoft.azure.storage.TestRunners.DevStoreTests;
-import com.microsoft.azure.storage.TestRunners.SlowTests;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Block Blob Tests
@@ -373,7 +385,7 @@ public class CloudBlockBlobTests {
 
     /**
      * Start copying a blob and then abort
-     * 
+     *
      * @throws StorageException
      * @throws URISyntaxException
      * @throws IOException
@@ -398,7 +410,7 @@ public class CloudBlockBlobTests {
         }
     }
 
-    
+
     @Test
     @Category(SlowTests.class)
     public void testCopyFileSas()
@@ -631,7 +643,7 @@ public class CloudBlockBlobTests {
 
     /**
      * Create a snapshot
-     * 
+     *
      * @throws StorageException
      * @throws URISyntaxException
      * @throws IOException
@@ -711,7 +723,7 @@ public class CloudBlockBlobTests {
 
     /**
      * Create a blob and try to download a range of its contents
-     * 
+     *
      * @throws StorageException
      * @throws URISyntaxException
      * @throws IOException
@@ -986,7 +998,7 @@ public class CloudBlockBlobTests {
         blockBlobRef.download(dstStream);
         BlobTestHelper.assertStreamsAreEqual(srcStream, new ByteArrayInputStream(dstStream.toByteArray()));
     }
-    
+
     @Test
     @Category({ DevFabricTests.class, DevStoreTests.class, SlowTests.class })
     public void testLargeSinglePutBlobTest() throws URISyntaxException, StorageException, IOException {
@@ -1567,6 +1579,101 @@ public class CloudBlockBlobTests {
         }
     }
 
+    //Following test case expect "bigFile.mp4" into resource folder of test module
+    @Test
+    @Category({ DevFabricTests.class, DevStoreTests.class, SlowTests.class })
+    public void testBigFileUploadWithSingleThread() throws IOException, StorageException, URISyntaxException {
+
+        InputStream inputStream = getBigFileToUpload();
+        final CloudBlockBlob blob = getCloudBlockBlob("bigFileTestBlob_");
+
+        this.doUploadBigFileTest(blob, inputStream, 4 * Constants.MB, 1, false, false);
+    }
+
+    //Following test case expect "bigFile.mp4" into resource folder of test module.
+    //It test concurrent(5 threads) upload of big file(500MB+)
+    @Test
+    @Category({ DevFabricTests.class, DevStoreTests.class, SlowTests.class })
+    public void testConcurrentBigFileUploads() throws IOException, StorageException, URISyntaxException, InterruptedException {
+
+        ThreadGroup threadGroup = new ThreadGroup("concurrentThreadGroup");
+
+        for (int i = 0; i < 5; i++) {
+            final Thread thread = new Thread(threadGroup, "concurrent thread - " + i) {
+
+                @Override
+                public void run() {
+
+                    try {
+
+                        InputStream inputStream = getBigFileToUpload();
+
+                        //To prevent duplicate name for copy same file
+                        final CloudBlockBlob blob = getCloudBlockBlob(this.getName());
+
+                        doUploadBigFileTest(blob, inputStream, 4 * Constants.MB, 1, false, false);
+                    }
+                    catch (IOException | StorageException | URISyntaxException e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+
+            thread.start();
+
+            Thread.sleep(2000); //wait for some seconds before starting new upload
+        }
+
+        //Wait till all thread finish
+        while (threadGroup.activeCount() > 0) {
+
+        }
+
+    }
+
+    private InputStream getBigFileToUpload() {
+
+        return this.getClass().getClassLoader().getResourceAsStream("bigFile.mp4");
+    }
+
+
+    private CloudBlockBlob getCloudBlockBlob(String blobPrefix) throws URISyntaxException, StorageException {
+
+        String blobName = BlobTestHelper.generateRandomBlobNameWithPrefix(blobPrefix);
+        return this.container.getBlockBlobReference(blobName);
+    }
+
+
+    private void doUploadBigFileTest(final CloudBlockBlob blob, final InputStream inputStream, final int blockSize, final int
+            parallelThreads, final boolean useSingleBlobThreshold, final boolean storeBlobContentMD5) throws IOException,
+            StorageException {
+
+        assertNotNull("Source file shouldn't be NULL !!!", inputStream);
+
+        try {
+
+            BlobRequestOptions options = new BlobRequestOptions();
+            options.setConcurrentRequestCount(parallelThreads);
+            options.setStoreBlobContentMD5(storeBlobContentMD5);
+            if (!useSingleBlobThreshold) {
+                options.setSingleBlobPutThresholdInBytes(BlobConstants.DEFAULT_SINGLE_BLOB_PUT_THRESHOLD_IN_BYTES);
+            }
+
+            blob.setStreamWriteSizeInBytes(blockSize);
+
+            assertFalse("File already exist? ", blob.exists());
+
+            blob.upload(inputStream, inputStream.available(), null, options, null);
+
+            assertTrue("File not uploaded successfully.... ", blob.exists());
+        }
+        finally {
+            if (inputStream != null) {
+                inputStream.close();
+            }
+        }
+    }
+
     @Test
     @Category({ DevFabricTests.class, DevStoreTests.class })
     public void testUploadDownloadFromText() throws URISyntaxException, StorageException, IOException {
@@ -1739,7 +1846,7 @@ public class CloudBlockBlobTests {
         newETag = blob.getProperties().getEtag();
         assertFalse("ETage should be modified on write metadata", newETag.equals(currentETag));
     }
-    
+
     @Test
     public void testBlobExceedMaxRange() throws URISyntaxException, StorageException, IOException
     {

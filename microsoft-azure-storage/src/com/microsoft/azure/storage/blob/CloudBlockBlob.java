@@ -661,11 +661,6 @@ public final class CloudBlockBlob extends CloudBlob {
         // Note this will abort at
         // options.getSingleBlobPutThresholdInBytes() bytes and return -1.        
         if (!skipPutBlob && options.getEncryptionPolicy() != null) {
-            class GettableByteArrayOutputStream extends ByteArrayOutputStream {
-                public byte[] getByteArray() {
-                    return this.buf;
-                }
-            }
             
             Cipher cipher = options.getEncryptionPolicy().createAndSetEncryptionContext(this.getMetadata(), false /* noPadding */);
             GettableByteArrayOutputStream targetStream = new GettableByteArrayOutputStream();
@@ -873,7 +868,7 @@ public final class CloudBlockBlob extends CloudBlob {
         assertNoWriteOperationForSnapshot();
 
         // Mark sourceStream for current position.
-        sourceStream.mark(Constants.MAX_MARK_LENGTH);
+        sourceStream.mark(BlobConstants.MAX_SINGLE_UPLOAD_BLOB_SIZE_IN_BYTES);
 
         if (length < 0 || length > BlobConstants.MAX_SINGLE_UPLOAD_BLOB_SIZE_IN_BYTES) {
             throw new IllegalArgumentException(String.format(SR.INVALID_STREAM_LENGTH,
@@ -1029,11 +1024,12 @@ public final class CloudBlockBlob extends CloudBlob {
 
         if (!sourceStream.markSupported()) {
             // needs buffering
-            final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+            final GettableByteArrayOutputStream byteStream = new GettableByteArrayOutputStream();
             descriptor = Utility.writeToOutputStream(sourceStream, byteStream, length, false /* rewindSourceStream */,
                     options.getUseTransactionalContentMD5(), opContext, options);
 
-            bufferedStreamReference = new ByteArrayInputStream(byteStream.toByteArray());
+            bufferedStreamReference = new ByteArrayInputStream(byteStream.getByteArray());
+            byteStream.close();
         }
         else if (length < 0 || options.getUseTransactionalContentMD5()) {
             // If the stream is of unknown length or we need to calculate the
