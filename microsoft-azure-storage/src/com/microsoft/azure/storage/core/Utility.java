@@ -163,6 +163,36 @@ public final class Utility {
      * The length of a datestring that matches the MAX_PRECISION_PATTERN.
      */
     private static final int MAX_PRECISION_DATESTRING_LENGTH = MAX_PRECISION_PATTERN.replaceAll("'", "").length();
+
+    /**
+     *
+     * Determines the size of an input stream, and optionally calculates the MD5 hash for the stream.
+     *
+     * @param sourceStream
+     *            A <code>InputStream</code> object that represents the stream to measure.
+     * @param writeLength
+     *            The number of bytes to read from the stream.
+     * @param abandonLength
+     *            The number of bytes to read before the analysis is abandoned. Set this value to <code>-1</code> to
+     *            force the entire stream to be read. This parameter is provided to support upload thresholds.
+     * @param rewindSourceStream
+     *            <code>true</code> if the stream should be rewound after it is read; otherwise, <code>false</code>.
+     * @param calculateMD5
+     *            <code>true</code> if an MD5 hash will be calculated; otherwise, <code>false</code>.
+     * @return A {@link StreamMd5AndLength} object that contains the stream length, and optionally the MD5 hash.
+     *
+     * @throws IOException
+     *             If an I/O error occurs.
+     * @throws StorageException
+     *             If a storage service error occurred.
+     */
+    public static StreamMd5AndLength analyzeStream(final InputStream sourceStream, long writeLength,
+            long abandonLength, final boolean rewindSourceStream, final boolean calculateMD5) throws IOException,
+            StorageException {
+
+        return analyzeStream(sourceStream, writeLength, abandonLength, rewindSourceStream, calculateMD5, -1);
+    }
+
     
     /**
      * 
@@ -179,6 +209,9 @@ public final class Utility {
      *            <code>true</code> if the stream should be rewound after it is read; otherwise, <code>false</code>.
      * @param calculateMD5
      *            <code>true</code> if an MD5 hash will be calculated; otherwise, <code>false</code>.
+     * @param  streamMarkLimit
+     *           if input stream is mark supported and given limit is grater than <code>Constants.MAX_BLOCK_NUMBER</code> then
+     *           input stream will be marked with this limit.
      * 
      * @return A {@link StreamMd5AndLength} object that contains the stream length, and optionally the MD5 hash.
      * 
@@ -188,18 +221,20 @@ public final class Utility {
      *             If a storage service error occurred.
      */
     public static StreamMd5AndLength analyzeStream(final InputStream sourceStream, long writeLength,
-            long abandonLength, final boolean rewindSourceStream, final boolean calculateMD5) throws IOException,
-            StorageException {
+            long abandonLength, final boolean rewindSourceStream, final boolean calculateMD5, int streamMarkLimit) throws
+            IOException, StorageException {
+
         if (abandonLength < 0) {
             abandonLength = Long.MAX_VALUE;
         }
 
+        Integer markLimit = (int)Math.max(streamMarkLimit, Constants.MAX_MARK_LENGTH);
         if (rewindSourceStream) {
             if (!sourceStream.markSupported()) {
                 throw new IllegalArgumentException(SR.INPUT_STREAM_SHOULD_BE_MARKABLE);
             }
 
-            sourceStream.mark(Constants.MAX_MARK_LENGTH);
+            sourceStream.mark(markLimit);
         }
 
         MessageDigest digest = null;
@@ -251,12 +286,12 @@ public final class Utility {
 
         if (rewindSourceStream) {
             sourceStream.reset();
-            sourceStream.mark(Constants.MAX_MARK_LENGTH);
+            sourceStream.mark(markLimit);
         }
 
         return retVal;
     }
-    
+
     /**
      * Encrypts an input stream up to a given length.
      * Exits early if the encrypted data is longer than the abandon length.
@@ -278,7 +313,7 @@ public final class Utility {
      *            If an I/O error occurs.
      */
     public static long encryptStreamIfUnderThreshold(final InputStream sourceStream, final ByteArrayOutputStream targetStream, Cipher cipher, long writeLength,
-            long abandonLength) throws IOException {
+            long abandonLength, int streamMarkLimit) throws IOException {
         if (abandonLength < 0) {
             abandonLength = Long.MAX_VALUE;
         }
@@ -287,7 +322,8 @@ public final class Utility {
             throw new IllegalArgumentException(SR.INPUT_STREAM_SHOULD_BE_MARKABLE);
         }
 
-        sourceStream.mark(Constants.MAX_MARK_LENGTH);
+        Integer markLimit = (int)Math.max(streamMarkLimit, Constants.MAX_MARK_LENGTH);
+        sourceStream.mark(markLimit);
 
         if (writeLength < 0) {
             writeLength = Long.MAX_VALUE;
@@ -320,7 +356,7 @@ public final class Utility {
         }
 
         sourceStream.reset();
-        sourceStream.mark(Constants.MAX_MARK_LENGTH);
+        sourceStream.mark(markLimit);
         
         encryptStream.close();
         totalEncryptedLength = targetStream.size();

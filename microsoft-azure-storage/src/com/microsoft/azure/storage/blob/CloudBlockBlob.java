@@ -661,12 +661,12 @@ public final class CloudBlockBlob extends CloudBlob {
         // Note this will abort at
         // options.getSingleBlobPutThresholdInBytes() bytes and return -1.        
         if (!skipPutBlob && options.getEncryptionPolicy() != null) {
-            
+
             Cipher cipher = options.getEncryptionPolicy().createAndSetEncryptionContext(this.getMetadata(), false /* noPadding */);
             GettableByteArrayOutputStream targetStream = new GettableByteArrayOutputStream();
             long byteCount = Utility.encryptStreamIfUnderThreshold(inputDataStream, targetStream, cipher, descriptor.getLength(),
-                    options.getSingleBlobPutThresholdInBytes() + 1 /*abandon if the operation hits this limit*/);
-            
+                    options.getSingleBlobPutThresholdInBytes() + 1, BlobConstants.MAX_SINGLE_UPLOAD_BLOB_SIZE_IN_BYTES/*abandon if the operation hits this limit*/);
+
             if (byteCount >= 0)
             {
                 inputDataStream = new ByteArrayInputStream(targetStream.getByteArray());
@@ -688,17 +688,17 @@ public final class CloudBlockBlob extends CloudBlob {
             // If the stream is of unknown length or we need to calculate
             // the MD5, then we we need to read the stream contents first
 
-            descriptor = Utility.analyzeStream(inputDataStream, descriptor.getLength(), 
-                    options.getSingleBlobPutThresholdInBytes() + 1 /*abandon if the operation hits this limit*/, 
-                    true /* rewindSourceStream */, options.getStoreBlobContentMD5());
+            descriptor = Utility.analyzeStream(inputDataStream, descriptor.getLength(),
+                    options.getSingleBlobPutThresholdInBytes() + 1 /*abandon if the operation hits this limit*/,
+                    true /* rewindSourceStream */, options.getStoreBlobContentMD5(),
+                    BlobConstants.MAX_SINGLE_UPLOAD_BLOB_SIZE_IN_BYTES);
 
             if (descriptor.getMd5() != null && options.getStoreBlobContentMD5()) {
                 this.properties.setContentMD5(descriptor.getMd5());
             }
-            
+
             // If the data is over the threshold, skip PutBlob.  
-            if (descriptor.getLength() == -1 || descriptor.getLength() > options.getSingleBlobPutThresholdInBytes())
-            {
+            if (descriptor.getLength() == -1 || descriptor.getLength() > options.getSingleBlobPutThresholdInBytes()) {
                 skipPutBlob = true;
             }
         }
