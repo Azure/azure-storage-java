@@ -14,9 +14,6 @@
  */
 package com.microsoft.azure.storage;
 
-//import com.microsoft.azure.storage.blob.CloudBlobDirectory;
-//import com.microsoft.azure.storage.table.TableServiceEntity;
-
 /**
  * Represents a continuation token for listing operations. Continuation tokens are used in methods that return a
  * {@link ResultSegment} object, such as {@link CloudBlobDirectory#listBlobsSegmented}.

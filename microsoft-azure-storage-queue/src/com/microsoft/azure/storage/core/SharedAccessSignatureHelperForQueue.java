@@ -29,6 +29,11 @@ import com.microsoft.azure.storage.queue.*;
  */
 public class SharedAccessSignatureHelperForQueue {
     /**
+     * The current storage version header value.
+     */
+    public static final String TARGET_STORAGE_VERSION = "2017-04-17";
+
+    /**
      * Get the complete query builder for creating the Shared Access Signature query.
      *
      * @param policy
@@ -186,7 +191,7 @@ public class SharedAccessSignatureHelperForQueue {
 
         final UriQueryBuilder builder = new UriQueryBuilder();
 
-        builder.add(Constants.QueryConstants.SIGNED_VERSION, QueueConstants.TARGET_STORAGE_VERSION);
+        builder.add(Constants.QueryConstants.SIGNED_VERSION, TARGET_STORAGE_VERSION);
         addIfNotNullOrEmpty(builder, Constants.QueryConstants.SIGNED_PERMISSIONS, permissions);
 
         final String startString = Utility.getUTCTimeOrEmpty(startTime);
@@ -265,7 +270,7 @@ public class SharedAccessSignatureHelperForQueue {
                 accessPolicyIdentifier == null ? Constants.EMPTY_STRING : accessPolicyIdentifier,
                 ipRange == null ? Constants.EMPTY_STRING : ipRange.toString(),
                 protocols == null ? Constants.EMPTY_STRING : protocols.toString(),
-                QueueConstants.TARGET_STORAGE_VERSION);
+                TARGET_STORAGE_VERSION);
 
         return stringToSign;
     }

@@ -19,7 +19,7 @@ import com.microsoft.azure.storage.Constants;
 /**
  * Holds the Constants used for the File Service.
  */
-public final class FileConstants {
+final class FileConstants {
 
     /**
      * XML element for a file.
@@ -55,11 +55,6 @@ public final class FileConstants {
      * XML element for file range start elements.
      */
     public static final String START_ELEMENT = "Start";
-
-    /**
-     * The current storage version header value.
-     */
-    public static final String TARGET_STORAGE_VERSION = "2017-04-17";
 
     /**
      * Specifies the value to use for UserAgent header.

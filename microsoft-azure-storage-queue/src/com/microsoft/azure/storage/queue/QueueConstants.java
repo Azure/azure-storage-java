@@ -20,7 +20,7 @@ import com.microsoft.azure.storage.*;
 /**
  * RESERVED FOR INTERNAL USE. Holds the Constants used for the Queue Service.
  */
-public final class QueueConstants {
+final class QueueConstants {
     /**
      * The header that specifies the approximate message count of a queue.
      */
@@ -101,11 +101,6 @@ public final class QueueConstants {
      * XML element for queues.
      */
     public static final String QUEUES_ELEMENT = "Queues";
-
-    /**
-     * The current storage version header value.
-     */
-    public static final String TARGET_STORAGE_VERSION = "2017-04-17";
 
     /**
      * Specifies the value to use for UserAgent header.

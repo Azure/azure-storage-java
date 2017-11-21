@@ -19,7 +19,7 @@ import com.microsoft.azure.storage.Constants;
 /**
  * Holds the Constants used for the Blob Service.
  */
-public final class BlobConstants {
+final class BlobConstants {
     /**
      * The header that specifies the last time the tier was modified.
      */
@@ -254,7 +254,7 @@ public final class BlobConstants {
     /**
      * The current storage version header value.
      */
-    public static final String TARGET_STORAGE_VERSION = "2017-04-17";
+    //public static final String TARGET_STORAGE_VERSION = "2017-04-17";
 
     /**
      * Specifies the value to use for UserAgent header.

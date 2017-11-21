@@ -18,7 +18,7 @@ package com.microsoft.azure.storage.table;
 /**
  * RESERVED FOR INTERNAL USE. Holds the constants used for the Table Service.
  */
-public final class TableConstants {
+final class TableConstants {
     public static class ErrorConstants {
         /**
          * XML element for error codes.
@@ -191,11 +191,6 @@ public final class TableConstants {
      * The name of the special table used to store tables.
      */
     public static final String TABLES_SERVICE_TABLES_NAME = "Tables";
-
-    /**
-     * The current storage version header value.
-     */
-    public static final String TARGET_STORAGE_VERSION = "2017-04-17";
 
     /**
      * Specifies the value to use for UserAgent header.

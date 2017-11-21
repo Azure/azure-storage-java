@@ -29,6 +29,11 @@ import com.microsoft.azure.storage.table.*;
  */
 public class SharedAccessSignatureHelperForTable {
     /**
+     * The current storage version header value.
+     */
+    public static final String TARGET_STORAGE_VERSION = "2017-04-17";
+
+    /**
      * Helper to add a name/value pair to a <code>UriQueryBuilder</code> if the value is not null or empty.
      * 
      * @param builder
@@ -99,7 +104,7 @@ public class SharedAccessSignatureHelperForTable {
 
         final UriQueryBuilder builder = new UriQueryBuilder();
 
-        builder.add(Constants.QueryConstants.SIGNED_VERSION, TableConstants.TARGET_STORAGE_VERSION);
+        builder.add(Constants.QueryConstants.SIGNED_VERSION, TARGET_STORAGE_VERSION);
         addIfNotNullOrEmpty(builder, Constants.QueryConstants.SIGNED_PERMISSIONS, permissions);
 
         final String startString = Utility.getUTCTimeOrEmpty(startTime);
@@ -178,7 +183,7 @@ public class SharedAccessSignatureHelperForTable {
                 accessPolicyIdentifier == null ? Constants.EMPTY_STRING : accessPolicyIdentifier,
                 ipRange == null ? Constants.EMPTY_STRING : ipRange.toString(),
                 protocols == null ? Constants.EMPTY_STRING : protocols.toString(),
-                TableConstants.TARGET_STORAGE_VERSION);
+                TARGET_STORAGE_VERSION);
 
         return stringToSign;
     }
