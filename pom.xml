@@ -11,7 +11,7 @@
 	<groupId>com.microsoft.azure</groupId>
 	<artifactId>azure-storage</artifactId>
 	<version>6.1.0</version>
-	<packaging>jar</packaging>
+	<packaging>pom</packaging>
 
 	<name>Microsoft Azure Storage Client SDK</name>
 	<description>SDK for Microsoft Azure Storage Clients</description>
@@ -41,6 +41,16 @@
 			<name>Microsoft</name>
 		</developer>
 	</developers>
+
+	<modules>
+		<module>microsoft-azure-storage-common</module>
+		<module>microsoft-azure-storage-analytics</module>
+		<module>microsoft-azure-storage-blob</module>
+		<module>microsoft-azure-storage-file</module>
+		<module>microsoft-azure-storage-queue</module>
+		<module>microsoft-azure-storage-table</module>
+		<module>microsoft-azure-storage-test</module>
+	</modules>
 
 	<dependencies>
 		<dependency>
@@ -84,11 +94,11 @@
 	</dependencies>
 
 	<build>
-		<sourceDirectory>microsoft-azure-storage/src</sourceDirectory>
-		<testSourceDirectory>microsoft-azure-storage-test/src</testSourceDirectory>
+		<sourceDirectory>src</sourceDirectory>
+		<testSourceDirectory>test/src</testSourceDirectory>
 		<testResources>
 			<testResource>
-				<directory>microsoft-azure-storage-test/res</directory>
+				<directory>test/res</directory>
 			</testResource>
 		</testResources>
 		<plugins>
@@ -133,7 +143,7 @@
 					<version>2.13</version>
 					<configuration>
 						<parallel>classes</parallel>
-						<threadCount>2</threadCount>
+						<threadCount>1</threadCount>
 						<includes>
 							<include>**/Test*.java</include>
 							<include>**/*Test.java</include>
