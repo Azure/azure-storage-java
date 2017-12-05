@@ -127,7 +127,7 @@ final class BlobOutputStreamInternal extends BlobOutputStream {
     /**
      * A private buffer to store data prior to committing to the cloud.
      */
-    private volatile ByteArrayOutputStream outBuffer;
+    private volatile GettableByteArrayOutputStream outBuffer;
 
     /**
      * Holds the reference to the blob this stream is associated with.
@@ -165,7 +165,7 @@ final class BlobOutputStreamInternal extends BlobOutputStream {
         this.parentBlobRef = parentBlob;
         this.parentBlobRef.assertCorrectBlobType();
         this.options = new BlobRequestOptions(options);
-        this.outBuffer = new ByteArrayOutputStream();
+        this.outBuffer = new GettableByteArrayOutputStream();
         this.opContext = opContext;
 
         if (this.options.getConcurrentRequestCount() < 1) {
@@ -363,11 +363,7 @@ final class BlobOutputStreamInternal extends BlobOutputStream {
     
     /**
      * Dispatches a write operation for a given length.
-     * 
-     * @param writeLength
-     *            An <code>int</code> which represents the length of the data to write, this is the write threshold that
-     *            triggered the write.
-     * 
+     *
      * @throws IOException
      *             If an I/O error occurs. In particular, an IOException may be thrown if the output stream has been
      *             closed.
@@ -393,7 +389,8 @@ final class BlobOutputStreamInternal extends BlobOutputStream {
             this.clearCompletedFutures();
         }
 
-        final ByteArrayInputStream bufferRef = new ByteArrayInputStream(this.outBuffer.toByteArray());
+        final ByteArrayInputStream bufferRef = new ByteArrayInputStream(this.outBuffer.getByteArray());
+        this.outBuffer.close();
 
         if (this.streamType == BlobType.BLOCK_BLOB) {
             final String blockID = this.getCurrentBlockId();
@@ -444,9 +441,9 @@ final class BlobOutputStreamInternal extends BlobOutputStream {
 
         // Add future to set
         this.futureSet.add(this.completionService.submit(worker));
-        
+
         // Reset buffer.
-        this.outBuffer = new ByteArrayOutputStream();
+        this.outBuffer = new GettableByteArrayOutputStream();
     }
     
     private void writeBlock(ByteArrayInputStream blockData, String blockId, long writeLength) {
