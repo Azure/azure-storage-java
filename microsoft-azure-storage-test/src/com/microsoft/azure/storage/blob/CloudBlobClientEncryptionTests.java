@@ -29,6 +29,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -37,15 +38,14 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.apache.commons.lang.mutable.MutableInt;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import com.microsoft.azure.keyvault.core.IKey;
-import com.microsoft.azure.keyvault.extensions.RsaKey;
-import com.microsoft.azure.keyvault.extensions.SymmetricKey;
+import com.microsoft.azure.keyvault.cryptography.RsaKey;
+import com.microsoft.azure.keyvault.cryptography.SymmetricKey;
 import com.microsoft.azure.storage.Constants;
 import com.microsoft.azure.storage.DictionaryKeyResolver;
 import com.microsoft.azure.storage.OperationContext;
@@ -1012,13 +1012,13 @@ public class CloudBlobClientEncryptionTests {
         
         OperationContext opContext = new OperationContext();
         
-        final MutableInt operationCount = new MutableInt(0);
+        final AtomicInteger operationCount = new AtomicInteger();
         
         opContext.getSendingRequestEventHandler().addListener(new StorageEvent<SendingRequestEvent>() {
     
             @Override
             public void eventOccurred(SendingRequestEvent eventArg) {
-                operationCount.increment();
+                operationCount.incrementAndGet();
             }
         });
         
