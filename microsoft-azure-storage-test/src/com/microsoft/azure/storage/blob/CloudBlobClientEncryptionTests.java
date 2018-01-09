@@ -26,6 +26,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -156,9 +157,12 @@ public class CloudBlobClientEncryptionTests {
         // Upload data without encryption
         blob.uploadFromByteArray(msg, 0, msg.length);
 
+        // Create an asymmetric encryption key. The provider must be specified to work around an issue in RsaKey.
+        RsaKey rsaKey = new RsaKey("myKey", 1024, KeyPairGenerator.getInstance("RSA").getProvider());
+
         // Create options with encryption policy
         BlobRequestOptions options = new BlobRequestOptions();
-        options.setEncryptionPolicy(new BlobEncryptionPolicy(new RsaKey("myKey", 1024), null));
+        options.setEncryptionPolicy(new BlobEncryptionPolicy(rsaKey, null));
         options.setRequireEncryption(true);
 
         try {
@@ -605,7 +609,7 @@ public class CloudBlobClientEncryptionTests {
         // Wait for writes to complete asynchronously
         Thread.sleep(10000);
 
-        // Page blobs have one extra call due to create.
+        // Page and append blobs have one extra call due to create.
         if (type == BlobType.BLOCK_BLOB) {
             assertEquals(1, opContext.getRequestResults().size());
         }
@@ -622,7 +626,7 @@ public class CloudBlobClientEncryptionTests {
         // Wait for writes to complete asynchronously
         Thread.sleep(10000);
 
-        // Page blobs have one extra call due to create.
+        // Page and append blobs have one extra call due to create.
         if (type == BlobType.BLOCK_BLOB) {
             assertEquals(2, opContext.getRequestResults().size());
         }
@@ -633,8 +637,6 @@ public class CloudBlobClientEncryptionTests {
         blobStream.close();
 
         // Block blobs have an additional PutBlockList call.
-        assertEquals(4, opContext.getRequestResults().size());
-
         assertEquals(4, opContext.getRequestResults().size());
 
         ByteArrayOutputStream downloadedBlob = new ByteArrayOutputStream();
