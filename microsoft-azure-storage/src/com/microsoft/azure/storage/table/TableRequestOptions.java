@@ -340,7 +340,11 @@ public class TableRequestOptions extends RequestOptions {
      * required if a {@link TableEncryptionPolicy} is specified.
      * <p>
      * You can change the {@link EncryptionResolver} on this request by setting this property. You can also change the 
+<<<<<<< HEAD
      * value on the {@link CloudTableClient#getDefaultRequestOptions()} object so that all subsequent requests made
+=======
+     * value on the {@link TableServiceClient#getDefaultRequestOptions()} object so that all subsequent requests made
+>>>>>>> 4db72122740cdb78b05ba50dece19710d2b30451
      * via the service client will use that {@link EncryptionResolver}.
      * 
      * @param encryptionResolver

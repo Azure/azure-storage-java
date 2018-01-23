@@ -107,9 +107,15 @@ public final class BlobContainerProperties {
 
     /**
      * Gets the public access level for the container.
+<<<<<<< HEAD
      * This field should only be set using the container's {@link CloudBlobContainer#create(BlobContainerPublicAccessType,
      * BlobRequestOptions, com.microsoft.azure.storage.OperationContext) create} method or
      * {@link CloudBlobContainer#uploadPermissions(BlobContainerPermissions) uploadPermissions} method.
+=======
+     * This field should only be set using the container's {@link #create(BlobContainerPublicAccessType,
+     * BlobRequestOptions, com.microsoft.azure.storage.OperationContext) create} method or
+     * {@link #uploadPermissions(BlobContainerPermissions) uploadPermissions} method.
+>>>>>>> 4db72122740cdb78b05ba50dece19710d2b30451
      * 
      * @return A <code>{@link BlobContainerPublicAccessType}</code> that specifies the level of public access
      * that is allowed on the container.
@@ -170,9 +176,15 @@ public final class BlobContainerProperties {
 
     /**
      * Sets the public access level on the container.
+<<<<<<< HEAD
      * This should only be set using the container's {@link CloudBlobContainer#create(BlobContainerPublicAccessType,
      * BlobRequestOptions, com.microsoft.azure.storage.OperationContext) create} method or
      * {@link CloudBlobContainer#uploadPermissions(BlobContainerPermissions) uploadPermissions} method.
+=======
+     * This should only be set using the container's {@link #create(BlobContainerPublicAccessType,
+     * BlobRequestOptions, com.microsoft.azure.storage.OperationContext) create} method or
+     * {@link #uploadPermissions(BlobContainerPermissions) uploadPermissions} method.
+>>>>>>> 4db72122740cdb78b05ba50dece19710d2b30451
      * @param publicAccess
      *            A <code>{@link BlobContainerPublicAccessType}</code> object
      *            which represents the public access level on the container.
