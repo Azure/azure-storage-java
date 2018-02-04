@@ -315,6 +315,11 @@ public final class Constants {
         public static final String AUTHORIZATION = "Authorization";
 
         /**
+         * The keyword used for bearer token authorization.
+         */
+        public static final String BEARER = "Bearer";
+
+        /**
          * The format string for specifying ranges with only begin offset.
          */
         public static final String BEGIN_RANGE_HEADER_FORMAT = "bytes=%d-";

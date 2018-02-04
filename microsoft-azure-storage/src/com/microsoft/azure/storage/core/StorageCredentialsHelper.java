@@ -17,12 +17,9 @@ package com.microsoft.azure.storage.core;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 
-import com.microsoft.azure.storage.Constants;
-import com.microsoft.azure.storage.OperationContext;
-import com.microsoft.azure.storage.StorageCredentials;
-import com.microsoft.azure.storage.StorageCredentialsAccountAndKey;
-import com.microsoft.azure.storage.StorageCredentialsSharedAccessSignature;
-import com.microsoft.azure.storage.StorageException;
+import com.microsoft.azure.storage.*;
+
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * RESERVED FOR INTERNAL USE. A helper method for StorageCredentials.
@@ -49,7 +46,8 @@ public final class StorageCredentialsHelper {
      *  credentials; otherwise, <Code>false</Code>
      */
     public static boolean canCredentialsGenerateClient(final StorageCredentials creds) {
-        return canCredentialsSignRequest(creds) || creds.getClass().equals(StorageCredentialsSharedAccessSignature.class);
+        return canCredentialsSignRequest(creds) || creds.getClass().equals(StorageCredentialsSharedAccessSignature.class) ||
+                creds.getClass().equals(StorageCredentialsToken.class);
     }
 
     /**
@@ -80,7 +78,7 @@ public final class StorageCredentialsHelper {
     }
 
     /**
-     * Signs a request using the specified operation context under the Shared Key authentication scheme.
+     * Signs a request using the specified operation context under either the Shared Key or Token authentication scheme.
      * 
      * @param request
      *            An <code>HttpURLConnection</code> object that represents the request to sign.
@@ -113,6 +111,15 @@ public final class StorageCredentialsHelper {
             
             request.setRequestProperty(Constants.HeaderConstants.AUTHORIZATION,
                     String.format("%s %s:%s", "SharedKey", creds.getAccountName(), computedBase64Signature));
+        } else if (creds.getClass().equals(StorageCredentialsToken.class)) {
+            // the token is set as a header to authenticate the HTTPS requests
+            if (request instanceof HttpsURLConnection) {
+                request.setRequestProperty(Constants.HeaderConstants.AUTHORIZATION,
+                        String.format("%s %s", Constants.HeaderConstants.BEARER, ((StorageCredentialsToken)creds).getToken()));
+            }
+            else {
+                throw new IllegalArgumentException("Token credential is only supported for HTTPS requests.");
+            }
         }
     }
     

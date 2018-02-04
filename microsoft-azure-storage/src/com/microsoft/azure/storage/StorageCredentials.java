@@ -25,7 +25,7 @@ import com.microsoft.azure.storage.core.Utility;
 
 /**
  * Represents a set of credentials used to authenticate access to a Microsoft Azure storage account. This is the base
- * class for the {@link StorageCredentialsAccountAndKey} and {@link StorageCredentialsSharedAccessSignature} classes.
+ * class for the {@link StorageCredentialsAccountAndKey}, {@link StorageCredentialsToken}, and {@link StorageCredentialsSharedAccessSignature} classes.
  */
 public abstract class StorageCredentials {
 

@@ -47,6 +47,11 @@ public final class CloudStorageAccount {
     protected static final String ACCOUNT_KEY_NAME = "AccountKey";
 
     /**
+     * Represents the setting name for the token credential.
+     */
+    protected static final String ACCOUNT_TOKEN_NAME = "AccountToken";
+
+    /**
      * Represents the setting name for the account name.
      */
     protected static final String ACCOUNT_NAME_NAME = "AccountName";
