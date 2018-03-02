@@ -34,16 +34,16 @@ public final class Utility {
      * Stores the storage connection string.
      */
     public static final String storageConnectionString = "DefaultEndpointsProtocol=https;"
-            + "AccountName=[MY_ACCOUNT_NAME];"
-            + "AccountKey=[MY_ACCOUNT_KEY]";
+            + "AccountName=xclientdev3;"
+            + "AccountKey=gTedjbpZLkx/ws271aqFPEiyrHbOnKg9fakgYWz5QFGjKLvCW4yWL27ZTy7UgGNf6sqsEWoCN+adrJKnhArKSg==";
 
     /**
      * You only need to modify the following values if you want to run the
      * KeyVault Encryption samples. Otherwise, leave empty.
      */
-    public static final String vaultURL = null;
-    public static final String AuthClientId = null;
-    public static final String AuthClientSecret = null;
+    public static final String vaultURL = "https://javasampleskv.vault.azure.net/";
+    public static final String AuthClientId = "76228ca7-9b5f-4f3e-a7f7-24f9e4539660";
+    public static final String AuthClientSecret = "T6qGub/uDURGWeJvgVFhZP9gblwzgHP4QDJPaonWWRw=";
 
     /**
      * Optional. Modify this if you want to run the KeyVaultGettingStarted
