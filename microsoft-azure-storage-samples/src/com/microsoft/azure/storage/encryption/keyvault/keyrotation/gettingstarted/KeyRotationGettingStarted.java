@@ -39,9 +39,7 @@ import com.microsoft.azure.storage.util.Utility;
 
 public class KeyRotationGettingStarted {
 
-    public static void main(String[] args) throws StorageException,
-            InterruptedException, ExecutionException, URISyntaxException,
-            NoSuchAlgorithmException, InvalidKeyException, IOException {
+    public static void main(String[] args) throws Exception {
         Utility.printSampleStartInfo("KeyRotationGettingStarted");
 
         // Create two secrets and obtain their IDs. This is normally a one-time

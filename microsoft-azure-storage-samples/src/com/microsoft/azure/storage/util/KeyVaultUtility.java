@@ -21,19 +21,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+
+import com.microsoft.azure.keyvault.models.KeyVaultErrorException;
+import com.microsoft.azure.keyvault.models.SecretBundle;
+import com.microsoft.azure.keyvault.requests.SetSecretRequest;
+import com.microsoft.rest.ServiceCallback;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.impl.client.HttpClientBuilder;
 
 import com.microsoft.azure.keyvault.KeyVaultClient;
-import com.microsoft.azure.keyvault.KeyVaultClientImpl;
-import com.microsoft.azure.keyvault.models.Secret;
-import com.microsoft.windowsazure.exception.ServiceException;
+import com.microsoft.rest.RestException;
+
 
 /**
  * A utility class for interacting with KeyVault
@@ -52,8 +53,7 @@ public class KeyVaultUtility {
      * @throws MalformedURLException
      */
     public static String SetUpKeyVaultSecret(String secretName)
-            throws InterruptedException, ExecutionException,
-            NoSuchAlgorithmException, URISyntaxException, MalformedURLException {
+            throws Exception {
         KeyVaultClient cloudVault = GetKeyVaultClient();
 
         if (Utility.vaultURL == null || Utility.vaultURL.isEmpty()) {
@@ -62,13 +62,13 @@ public class KeyVaultUtility {
 
         try {
             // Delete the secret if it exists.
-            cloudVault.deleteSecretAsync(Utility.vaultURL, secretName).get();
-        } catch (ExecutionException ex) {
+            cloudVault.deleteSecretAsync(Utility.vaultURL, secretName, null).get();
+        }
+        catch (Exception ex) {
             boolean keyNotFound = false;
-            if (ex.getCause().getClass() == ServiceException.class) {
-                ServiceException serviceException = (ServiceException) ex
-                        .getCause();
-                if (serviceException.getHttpStatusCode() == 404) {
+            if (ex.getCause() instanceof KeyVaultErrorException) {
+                KeyVaultErrorException serviceException = (KeyVaultErrorException) ex.getCause();
+                if (serviceException.response().code() == 404) {
                     keyNotFound = true;
                 }
             }
@@ -98,13 +98,15 @@ public class KeyVaultUtility {
         // it as a key.
         Map<String, String> headers = new HashMap<String, String>();
         headers.put("Content-Type", "application/octet-stream");
-        Secret cloudSecret = cloudVault.setSecretAsync(Utility.vaultURL,
-                secretName, Base64.encodeBase64String(wrapKey.getEncoded()),
-                "application/octet-stream", null, null).get();
+        SecretBundle cloudSecret = cloudVault.setSecretAsync(
+                new SetSecretRequest.Builder(Utility.vaultURL, secretName,
+                        Base64.encodeBase64String(wrapKey.getEncoded())).withContentType("application/octet-stream")
+                        .build(), null).get();
+
 
         // Return the base identifier of the secret. This will be resolved to
         // the current version of the secret.
-        return cloudSecret.getSecretIdentifier().getBaseIdentifier();
+        return cloudSecret.secretIdentifier().baseIdentifier();
     }
 
     /**
@@ -126,12 +128,9 @@ public class KeyVaultUtility {
                     "Invalid AuthClientID or AuthClientSecret specified.");
         }
 
-        HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
-        ExecutorService executorService = Executors.newCachedThreadPool();
         KVCredentials creds = new KVCredentials(Utility.AuthClientId,
                 Utility.AuthClientSecret);
-        KeyVaultClient cloudVault = new KeyVaultClientImpl(httpClientBuilder,
-                executorService, creds);
+        KeyVaultClient cloudVault = new KeyVaultClient(creds);
         return cloudVault;
     }
 
@@ -149,8 +148,7 @@ public class KeyVaultUtility {
      * @throws MalformedURLException
      */
     public static String createSecret(String defaultKeyName)
-            throws InterruptedException, ExecutionException,
-            NoSuchAlgorithmException, URISyntaxException, MalformedURLException {
+            throws Exception {
         System.out.println("No secret specified in Utility class.");
         System.out
                 .println("Please enter the name of a new secret to create in Key Vault.");
