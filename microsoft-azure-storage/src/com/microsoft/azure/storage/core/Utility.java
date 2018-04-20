@@ -548,9 +548,6 @@ public final class Utility {
     /**
      * Reads character data for the Etag element from an XML stream reader.
      * 
-     * @param xmlr
-     *            An <code>XMLStreamReader</code> object that represents the source XML stream reader.
-     * 
      * @return A <code>String</code> that represents the character data for the Etag element.
      */
     public static String formatETag(final String etag) {
@@ -1319,7 +1316,7 @@ public final class Utility {
      * @param request
      *            Used by download resume to set currentRequestByteCount on the request. Otherwise, null is always used.
      * @param descriptor
-     *                A {@Link StreamMd5AndLength} object to append to in the case of recovery action or null if this is not called
+     *                A {@link StreamMd5AndLength} object to append to in the case of recovery action or null if this is not called
      *                from a recovery. This value needs to be passed for recovery in case part of the body has already been read,
      *                the recovery will attempt to download the remaining bytes but will do MD5 validation on the originally
      *                requested range size.

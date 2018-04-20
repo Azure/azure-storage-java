@@ -2670,10 +2670,6 @@ public final class CloudFile implements ListFileItem {
      * 
      * @param resourceAddress
      *            A {@link StorageUri} object which represents the resource URI.
-     * @param delimiter
-     *            A <code>String</code> which specifies the directory delimiter to use.
-     * @param usePathStyleUris
-     *            A <code>Boolean</code> which specifies whether path style URIs are used.
      * @param share
      *            A {@link CloudFileShare} object which represents the file share.
      * 
