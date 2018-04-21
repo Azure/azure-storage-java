@@ -24,7 +24,7 @@ public class ListResponse<T> {
     public static final String ENUMERATION_RESULTS = "EnumerationResults";
 
     /**
-     * Holds the ArrayList<T> of results.
+     * Holds the ArrayList&lt;T&gt; of results.
      */
     protected ArrayList<T> results = new ArrayList<T>();
 
@@ -49,9 +49,9 @@ public class ListResponse<T> {
     protected String prefix;
 
     /**
-     * Gets the ArrayList<T> of the results.
+     * Gets the ArrayList&lt;T&gt; of the results.
      * 
-     * @return the ArrayList<T> of results
+     * @return the ArrayList&lt;T&gt; of results
      */
     public ArrayList<T> getResults() {
         return this.results;
@@ -94,7 +94,7 @@ public class ListResponse<T> {
     }
 
     /**
-     * Sets the ArrayList<T> of the results
+     * Sets the ArrayList&lt;T&gt; of the results
      * 
      * @param results
      *            the results to set

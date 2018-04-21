@@ -301,8 +301,6 @@ public abstract class StorageRequest<C, P, R> {
     /**
      * Returns either the held exception from the operation if it is set, otherwise the translated exception.
      * 
-     * @param request
-     *            the reference to the HttpURLConnection for the operation.
      * @param opContext
      *            an object used to track the execution of the operation
      * @return the exception to throw.
@@ -508,8 +506,8 @@ public abstract class StorageRequest<C, P, R> {
     }
 
     /**
-     * @param storageLocation
-     *            the storageLocation value
+     * @param currentLocation
+     *            the currentLocation value
      */
     public void setCurrentLocation(StorageLocation currentLocation) {
         this.currentLocation = currentLocation;
@@ -594,12 +592,14 @@ public abstract class StorageRequest<C, P, R> {
     /**
      * Pre-Stream Retrieval function.
      * 
-     * @param command
-     *            StorageCommand for the operation.
      * @param parentObject
      *            Parent object, i.e. CloudBlobContainer for downloadAttributes etc.
      * @param client
      *            The service client.
+     * @param context
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
      * @return an Object of the expected result's type.
      * @throws Exception
      */

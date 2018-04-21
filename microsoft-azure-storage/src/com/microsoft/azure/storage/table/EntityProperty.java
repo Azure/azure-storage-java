@@ -123,8 +123,8 @@ public final class EntityProperty {
      * 
      * @param value
      *            The <code>Object</code> to convert to a string and store.
-     * @param edmType
-     *            The <code>Class<?></code> type of the value to construct.
+     * @param type
+     *            The <code>Class&lt;?&gt;</code> type of the value to construct.
      */
     protected EntityProperty(final Object value, final Class<?> type) {        
         if (type.equals(byte[].class)) {

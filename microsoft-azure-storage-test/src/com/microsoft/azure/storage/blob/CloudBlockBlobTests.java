@@ -1033,6 +1033,7 @@ public class CloudBlockBlobTests {
         assertEquals(length, retrievedBuff.length);
 
         InputStream inputStream = blobSnapshot.openInputStream();
+
         int readCount = inputStream.read(retrievedBuff);
         assertEquals(length, readCount); // Assert that we filled the buffer.
         assertEquals(-1, inputStream.read()); // Assert that there is no more unread data.
@@ -1049,6 +1050,7 @@ public class CloudBlockBlobTests {
         assertEquals(length, retrievedBuff.length);
 
         inputStream = blobSnapshotUsingRootUri.openInputStream();
+
         readCount = inputStream.read(retrievedBuff);
         assertEquals(length, readCount);
         assertEquals(-1, inputStream.read());
