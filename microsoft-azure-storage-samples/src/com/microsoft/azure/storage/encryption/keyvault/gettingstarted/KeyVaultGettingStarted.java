@@ -30,7 +30,7 @@ import com.microsoft.azure.keyvault.core.IKey;
 import com.microsoft.azure.keyvault.extensions.AggregateKeyResolver;
 import com.microsoft.azure.keyvault.extensions.CachingKeyResolver;
 import com.microsoft.azure.keyvault.extensions.KeyVaultKeyResolver;
-import com.microsoft.azure.keyvault.extensions.RsaKey;
+import com.microsoft.azure.keyvault.cryptography.RsaKey;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.BlobEncryptionPolicy;
@@ -44,9 +44,7 @@ import com.microsoft.azure.storage.util.Utility;
 
 public class KeyVaultGettingStarted {
 
-    public static void main(String[] args) throws StorageException,
-            NoSuchAlgorithmException, InterruptedException, ExecutionException,
-            URISyntaxException, InvalidKeyException, IOException {
+    public static void main(String[] args) throws Exception {
         Utility.printSampleStartInfo("KeyVaultGettingStarted");
 
         // Get the key ID from App.config if it exists.
@@ -86,7 +84,7 @@ public class KeyVaultGettingStarted {
         keyGen.initialize(1024);
         final KeyPair wrapKey = keyGen.generateKeyPair();
 
-        RsaKey rsaKey = new RsaKey("rsaKey1", wrapKey);
+        RsaKey rsaKey = new RsaKey(keyID, wrapKey);
         LocalResolver resolver = new LocalResolver();
         resolver.add(rsaKey);
 
@@ -95,8 +93,8 @@ public class KeyVaultGettingStarted {
         // This helps users to define a plug-in model for all the different key
         // providers they support.
         AggregateKeyResolver aggregateResolver = new AggregateKeyResolver();
-        aggregateResolver.Add(resolver);
-        aggregateResolver.Add(cloudResolver);
+        aggregateResolver.add(resolver);
+        aggregateResolver.add(cloudResolver);
 
         // Set up a caching resolver so the secrets can be cached on the client.
         // This is the recommended usage

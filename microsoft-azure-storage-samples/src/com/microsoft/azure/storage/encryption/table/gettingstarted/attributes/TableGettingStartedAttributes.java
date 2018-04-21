@@ -16,11 +16,13 @@ package com.microsoft.azure.storage.encryption.table.gettingstarted.attributes;
 
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.UUID;
 
-import com.microsoft.azure.keyvault.extensions.RsaKey;
+import com.microsoft.azure.keyvault.cryptography.RsaKey;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.table.CloudTable;
@@ -51,7 +53,10 @@ public class TableGettingStartedAttributes {
             table.createIfNotExists();
 
             // Create the IKey used for encryption.
-            RsaKey key = new RsaKey("private:key1");
+            final KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+            keyGen.initialize(1024);
+            final KeyPair wrapKey = keyGen.generateKeyPair();
+            RsaKey key = new RsaKey("private:key1", wrapKey);
 
             EncryptedEntity ent = new EncryptedEntity(UUID.randomUUID()
                     .toString(), String.valueOf(new Date().getTime()));
