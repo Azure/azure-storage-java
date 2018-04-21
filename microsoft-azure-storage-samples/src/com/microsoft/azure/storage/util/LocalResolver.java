@@ -15,8 +15,12 @@
 package com.microsoft.azure.storage.util;
 
 import java.util.HashMap;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.SettableFuture;
 import org.apache.commons.lang3.concurrent.ConcurrentUtils;
 
 import com.microsoft.azure.keyvault.core.IKey;
@@ -38,8 +42,10 @@ public class LocalResolver implements IKeyResolver {
      *            The KeyID to map to a key
      */
     @Override
-    public Future<IKey> resolveKeyAsync(String keyId) {
-        return ConcurrentUtils.constantFuture(this.keys.get(keyId));
+    public ListenableFuture<IKey> resolveKeyAsync(String keyId) {
+        SettableFuture<IKey> future = SettableFuture.create();
+        future.set(this.keys.get(keyId));
+        return future;
     }
 
     /**
