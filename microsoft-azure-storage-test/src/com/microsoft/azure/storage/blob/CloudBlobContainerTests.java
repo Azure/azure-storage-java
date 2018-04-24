@@ -316,6 +316,10 @@ public class CloudBlobContainerTests {
         this.container.create();
         assertTrue(this.container.exists());
         assertNotNull(this.container.getProperties().getEtag());
+        assertNotNull(this.container.getProperties().hasImmutabilityPolicy());
+        assertNotNull(this.container.getProperties().hasLegalHold());
+        assertFalse(this.container.getProperties().hasImmutabilityPolicy());
+        assertFalse(this.container.getProperties().hasLegalHold());
 
         this.container.delete();
         assertFalse(this.container.exists());
@@ -549,6 +553,8 @@ public class CloudBlobContainerTests {
                     EnumSet.noneOf(BlobListingDetails.class), 150, token, null, null);
             for (ListBlobItem blob : result.getResults()) {
                 assertEquals(CloudBlockBlob.class, blob.getClass());
+                assertNotNull(((CloudBlockBlob)blob).getProperties().getCreatedTime());
+                assertTrue(((CloudBlockBlob)blob).getProperties().getCreatedTime().before(new Date()));
                 assertTrue(blobNames.remove(((CloudBlockBlob) blob).getName()));
             }
             token = result.getContinuationToken();

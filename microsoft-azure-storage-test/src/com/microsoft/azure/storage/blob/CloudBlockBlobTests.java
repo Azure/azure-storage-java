@@ -99,6 +99,8 @@ public class CloudBlockBlobTests {
         // Create again (should succeed)
         blob.uploadText("text");
         assertTrue(blob.exists());
+        assertNotNull(blob.getProperties().getCreatedTime());
+        assertTrue(blob.getProperties().getCreatedTime().before(new Date()));
 
         // Create again, specifying not to if it already exists
         // This should fail
