@@ -574,28 +574,35 @@ public class CloudBlockBlobTests {
     @Category(SlowTests.class)
     public void testCopyBlockBlobSasToSasTest() throws InvalidKeyException, URISyntaxException, StorageException,
             IOException, InterruptedException {
-        this.doCloudBlockBlobCopy(true, true);
+        this.doCloudBlockBlobCopy(true, true, false);
     }
 
     @Test
     @Category(SlowTests.class)
     public void testCopyBlockBlobToSasTest() throws InvalidKeyException, URISyntaxException, StorageException,
             IOException, InterruptedException {
-        this.doCloudBlockBlobCopy(false, true);
+        this.doCloudBlockBlobCopy(false, true, false);
     }
 
     @Test
     @Category(SlowTests.class)
     public void testCopyBlockBlobSasTest() throws InvalidKeyException, URISyntaxException, StorageException,
             IOException, InterruptedException {
-        this.doCloudBlockBlobCopy(true, false);
+        this.doCloudBlockBlobCopy(true, false, false);
     }
 
     @Test
     @Category({ DevFabricTests.class, DevStoreTests.class, SlowTests.class })
     public void testCopyBlockBlobTest() throws InvalidKeyException, URISyntaxException, StorageException, IOException,
             InterruptedException {
-        this.doCloudBlockBlobCopy(false, false);
+        this.doCloudBlockBlobCopy(false, false, false);
+    }
+
+    @Test
+    @Category({ DevFabricTests.class, DevStoreTests.class, SlowTests.class })
+    public void testCopyBlockBlobSyncTest() throws InterruptedException, IOException, StorageException,
+            InvalidKeyException, URISyntaxException {
+        this.doCloudBlockBlobCopy(false, false, true);
     }
 
     @Test
@@ -630,8 +637,8 @@ public class CloudBlockBlobTests {
             }
         });
 
-        copyDestination.startCopy(copySource.getUri(), null, null, null, ctx);
-        copyDestination.startCopy(copySource, null, null, null, ctx);
+        copyDestination.startCopy(copySource.getUri(), false, null, null, null, ctx);
+        copyDestination.startCopy(copySource, false, null, null, null, ctx);
     }
 
     @Test
@@ -1155,6 +1162,36 @@ public class CloudBlockBlobTests {
         //Download block list.
         blockBlobRef.downloadBlockList();
         assertEquals(length, blockBlobRef.getProperties().getLength());
+    }
+
+    @Test
+    @Category({ DevFabricTests.class, DevStoreTests.class })
+    public void testUploadBlockFromURI() throws URISyntaxException, StorageException, IOException {
+        CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
+        container.create(BlobContainerPublicAccessType.CONTAINER, null, null);
+        final CloudBlockBlob blob = container.getBlockBlobReference(BlobTestHelper
+                .generateRandomBlobNameWithPrefix("testBlob"));
+
+        String text = "Test data.";
+
+        // create
+        blob.uploadText(text);
+        assertTrue(blob.exists());
+
+        final CloudBlockBlob blob2 = container.getBlockBlobReference(BlobTestHelper
+                .generateRandomBlobNameWithPrefix("copyBlob"));
+        Map<String, BlockEntry> blocks = BlobTestHelper.getBlockEntryList(2);
+        int i=0;
+        for (BlockEntry block : blocks.values()) {
+            blob2.uploadBlockFromURI(block.getId(), blob.getUri(), i*(text.length()/blocks.values().size()),
+                    (long) (text.length()/blocks.values().size()));
+            i++;
+        }
+        blob2.commitBlockList(blocks.values());
+
+        assertEquals(blob2.downloadText(), text);
+
+        container.deleteIfExists();
     }
 
     @Test
@@ -2230,7 +2267,7 @@ public class CloudBlockBlobTests {
         return new String(codePoints, 0, length);
     }
 
-    private void doCloudBlockBlobCopy(boolean sourceIsSas, boolean destinationIsSas) throws URISyntaxException,
+    private void doCloudBlockBlobCopy(boolean sourceIsSas, boolean destinationIsSas, boolean syncCopy) throws URISyntaxException,
             StorageException, IOException, InvalidKeyException, InterruptedException {
 
         // Create source on server.
@@ -2296,7 +2333,7 @@ public class CloudBlockBlobTests {
         Thread.sleep(30000);
 
         // Start copy and wait for completion
-        String copyId = copyDestination.startCopy(copySource);
+        String copyId = copyDestination.startCopy(copySource, syncCopy, null, null, null, null);
         BlobTestHelper.waitForCopy(copyDestination);
         Calendar calendar = Calendar.getInstance(Utility.UTC_ZONE);
         destination.downloadAttributes();

@@ -39,6 +39,7 @@ public class SR {
     public static final String CANNOT_TRANSFORM_NON_HTTPS_URI_WITH_HTTPS_ONLY_CREDENTIALS = "Cannot use HTTP with credentials that only support HTTPS.";
     public static final String CONTAINER = "container";
     public static final String CONTENT_LENGTH_MISMATCH = "An incorrect number of bytes was read from the connection. The connection may have been closed.";
+    public static final String COPY_SIZE_GREATER_THAN_100MB = "Invalid copy length, length must be less than or equal to 100 MB in size.";
     public static final String CREATING_NETWORK_STREAM = "Creating a NetworkInputStream and expecting to read %s bytes.";
     public static final String CREDENTIALS_CANNOT_SIGN_REQUEST = "CloudBlobClient, CloudQueueClient and CloudTableClient require credentials that can sign a request.";
     public static final String CUSTOM_RESOLVER_THREW = "The custom property resolver delegate threw an exception. Check the inner exception for more details.";

@@ -629,7 +629,7 @@ public abstract class CloudBlob implements ListBlobItem {
      */
     @DoesServiceRequest
     public final String startCopy(final URI source) throws StorageException {
-        return this.startCopy(source, null /* sourceAccessCondition */, null /* destinationAccessCondition */,
+        return this.startCopy(source, false /* sync copy */, null /* sourceAccessCondition */, null /* destinationAccessCondition */,
                 null /* options */, null /* opContext */);
     }
 
@@ -660,10 +660,10 @@ public abstract class CloudBlob implements ListBlobItem {
      *
      */
     @DoesServiceRequest
-    public final String startCopy(final URI source, final AccessCondition sourceAccessCondition,
+    public final String startCopy(final URI source, boolean syncCopy, final AccessCondition sourceAccessCondition,
                                   final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException {
-        return this.startCopy(source, null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(source, syncCopy, null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
@@ -675,6 +675,8 @@ public abstract class CloudBlob implements ListBlobItem {
      * @param source
      *            A <code>java.net.URI</code> The source URI.  URIs for resources outside of Azure
      *            may only be copied into block blobs.
+     * @param syncCopy
+     *            A <code>boolean</code> which indicates if the copy should be done synchronously on the service.
      * @param premiumPageBlobTier
      *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
      * @param sourceAccessCondition
@@ -697,7 +699,7 @@ public abstract class CloudBlob implements ListBlobItem {
      *
      */
     @DoesServiceRequest
-    protected final String startCopy(final URI source, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
+    protected final String startCopy(final URI source, boolean syncCopy, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException {
         if (opContext == null) {
@@ -708,12 +710,12 @@ public abstract class CloudBlob implements ListBlobItem {
         options = BlobRequestOptions.populateAndApplyDefaults(options, this.properties.getBlobType(), this.blobServiceClient);
 
         return ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.startCopyImpl(source, false /* incrementalCopy */, premiumPageBlobTier, sourceAccessCondition, destinationAccessCondition, options),
+                this.startCopyImpl(source, syncCopy, false /* incrementalCopy */, premiumPageBlobTier, sourceAccessCondition, destinationAccessCondition, options),
                 options.getRetryPolicyFactory(), opContext);
     }
 
     protected StorageRequest<CloudBlobClient, CloudBlob, String> startCopyImpl(
-            final URI source, final boolean incrementalCopy, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
+            final URI source, final boolean syncCopy, final boolean incrementalCopy, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, final BlobRequestOptions options) {
 
         final StorageRequest<CloudBlobClient, CloudBlob, String> putRequest =
@@ -725,7 +727,7 @@ public abstract class CloudBlob implements ListBlobItem {
                 // toASCIIString() must be used in order to appropriately encode the URI
                 return BlobRequest.copyFrom(blob.getTransformedAddress(context).getUri(this.getCurrentLocation()),
                         options, context, sourceAccessCondition, destinationAccessCondition, source.toASCIIString(),
-                        blob.snapshotID, incrementalCopy, premiumPageBlobTier);
+                        blob.snapshotID, incrementalCopy, syncCopy, premiumPageBlobTier);
             }
 
             @Override

@@ -177,7 +177,7 @@ public final class CloudBlockBlob extends CloudBlob {
      */
     @DoesServiceRequest
     public final String startCopy(final CloudBlockBlob sourceBlob) throws StorageException, URISyntaxException {
-        return this.startCopy(sourceBlob, null /* sourceAccessCondition */,
+        return this.startCopy(sourceBlob, false /* syncCopy */, null /* sourceAccessCondition */,
                 null /* destinationAccessCondition */, null /* options */, null /* opContext */);
     }
 
@@ -208,7 +208,7 @@ public final class CloudBlockBlob extends CloudBlob {
      *
      */
     @DoesServiceRequest
-    public final String startCopy(final CloudBlockBlob sourceBlob, final AccessCondition sourceAccessCondition,
+    public final String startCopy(final CloudBlockBlob sourceBlob, boolean syncCopy, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException, URISyntaxException {
         Utility.assertNotNull("sourceBlob", sourceBlob);
@@ -219,7 +219,7 @@ public final class CloudBlockBlob extends CloudBlob {
             source = sourceBlob.getServiceClient().getCredentials().transformUri(sourceBlob.getSnapshotQualifiedUri());
         }
 
-        return this.startCopy(source, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(source, syncCopy, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
@@ -236,7 +236,7 @@ public final class CloudBlockBlob extends CloudBlob {
     */
    @DoesServiceRequest
    public final String startCopy(final CloudFile sourceFile) throws StorageException, URISyntaxException {
-       return this.startCopy(sourceFile, null /* sourceAccessCondition */,
+       return this.startCopy(sourceFile, false /* syncCopy */, null /* sourceAccessCondition */,
                null /* destinationAccessCondition */, null /* options */, null /* opContext */);
    }
 
@@ -267,12 +267,12 @@ public final class CloudBlockBlob extends CloudBlob {
     *             If the resource URI is invalid.
     */
    @DoesServiceRequest
-   public final String startCopy(final CloudFile sourceFile, final AccessCondition sourceAccessCondition,
+   public final String startCopy(final CloudFile sourceFile, boolean syncCopy, final AccessCondition sourceAccessCondition,
            final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
            throws StorageException, URISyntaxException {
        Utility.assertNotNull("sourceFile", sourceFile);
        return this.startCopy(
-               sourceFile.getServiceClient().getCredentials().transformUri(sourceFile.getUri()),
+               sourceFile.getServiceClient().getCredentials().transformUri(sourceFile.getUri()), syncCopy,
                sourceAccessCondition, destinationAccessCondition, options, opContext);
    }
 
@@ -1148,6 +1148,172 @@ public final class CloudBlockBlob extends CloudBlob {
         };
 
         return putRequest;
+    }
+
+    /**
+     * Uploads a block to be committed as part of the block blob, using the specified block ID and the source URL.
+     *
+     * @param blockId
+     *            A <code>String</code> that represents the Base-64 encoded block ID. Note for a given blob the length
+     *            of all Block IDs must be identical.
+     * @param copySource
+     *            The <code>URI</code> of the source data. It can point to any Azure Blob or File that is public or the
+     *            URL can include a shared access signature.
+     * @param offset
+     *           A <code>long</code> which represents the offset to use as the starting point for the source.
+     * @param length
+     *           A <code>Long</code> which represents the number of bytes to copy or <code>null</code> to copy until the
+     *           end of the blob.
+     * @throws IOException
+     *             If an I/O error occurred.
+     * @throws StorageException
+     *             If a storage service error occurred.
+     */
+    @DoesServiceRequest
+    public void uploadBlockFromURI(final String blockId, final URI copySource, final long offset,
+                                   final Long length)
+            throws StorageException, IOException {
+        this.uploadBlockFromURI(blockId, copySource, offset, length, null /* md5 */,
+                null /* accessCondition */,null /* options */, null /* opContext */);
+    }
+
+    /**
+     * Uploads a block to be committed as part of the block blob, using the specified block ID, the specified source
+     * URL, the specified lease ID, request options, and operation context.
+     *
+     * @param blockId
+     *            A <code>String</code> that represents the Base-64 encoded block ID. Note for a given blob the length
+     *            of all Block IDs must be identical.
+     * @param copySource
+     *            The <code>URI</code> of the source data. It can point to any Azure Blob or File that is public or the
+     *            URL can include a shared access signature.
+     * @param offset
+     *           A <code>long</code> which represents the offset to use as the starting point for the source.
+     * @param length
+     *           A <code>Long</code> which represents the number of bytes to copy or <code>null</code> to copy until the
+     *           end of the blob.
+     * @param md5
+     *           A <code>String</code> which represents the MD5 caluclated for the range of bytes of the source.
+     * @param accessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the blob.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     */
+    @DoesServiceRequest
+    public void uploadBlockFromURI(final String blockId, final URI copySource, final long offset, final Long length,
+                                   String md5, final AccessCondition accessCondition, BlobRequestOptions options,
+                                   OperationContext opContext)
+            throws StorageException {
+
+        Utility.assertNotNull("copySource", copySource);
+
+        assertNoWriteOperationForSnapshot();
+
+        if (opContext == null) {
+            opContext = new OperationContext();
+        }
+
+        options = BlobRequestOptions.populateAndApplyDefaults(options, BlobType.BLOCK_BLOB, this.blobServiceClient);
+
+        // Assert no encryption policy as this is not supported for partial uploads
+        options.assertNoEncryptionPolicyOrStrictMode();
+
+        // Assert block length
+        if (Utility.isNullOrEmpty(blockId) || !Base64.validateIsBase64String(blockId)) {
+            throw new IllegalArgumentException(SR.INVALID_BLOCK_ID);
+        }
+
+        if (length > Constants.MAX_BLOCK_SIZE)
+        {
+            throw new IllegalArgumentException(SR.COPY_SIZE_GREATER_THAN_100MB);
+        }
+
+        this.uploadBlockFromURIInternal(blockId, copySource, offset, length, md5,
+                accessCondition, options, opContext);
+    }
+
+    /**
+     * Uploads a block to be committed as part of the block blob, using the specified block ID, the specified source
+     * URL, the specified lease ID, request options, and operation context.
+     *
+     * @param blockId
+     *            A <code>String</code> that represents the Base-64 encoded block ID. Note for a given blob the length
+     *            of all Block IDs must be identical.
+     * @param copySource
+     *            The <code>URI</code> of the source data. It can point to any Azure Blob or File that is public or the
+     *            URL can include a shared access signature.
+     * @param offset
+     *           A <code>long</code> which represents the offset to use as the starting point for the source.
+     * @param length
+     *           A <code>Long</code> which represents the number of bytes to copy or <code>null</code> to copy until the
+     *           end of the blob.
+     * @param md5
+     *           A <code>String</code> which represents the MD5 caluclated for the range of bytes of the source.
+     * @param accessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the blob.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     */
+    @DoesServiceRequest
+    private void uploadBlockFromURIInternal(final String blockId, final URI copySource, final long offset, final Long length,
+                                            String md5, final AccessCondition accessCondition, BlobRequestOptions options,
+                                            OperationContext opContext) throws StorageException {
+        ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
+                uploadBlockFromURIImpl(blockId, copySource, offset, length, md5, accessCondition, options, opContext),
+                options.getRetryPolicyFactory(), opContext);
+    }
+
+    private StorageRequest<CloudBlobClient, CloudBlob, Void> uploadBlockFromURIImpl(final String blockId, final URI copySource, final long offset, final Long length,
+                                                                                    final String md5, final AccessCondition accessCondition,
+                                                                                    final BlobRequestOptions options, final OperationContext opContext) {
+
+        return new StorageRequest<CloudBlobClient, CloudBlob, Void>(
+                options, this.getStorageUri()) {
+
+            @Override
+            public HttpURLConnection buildRequest(CloudBlobClient client, CloudBlob blob, OperationContext context)
+                    throws Exception {
+                return BlobRequest.putBlock(blob.getTransformedAddress(opContext).getUri(this.getCurrentLocation()),
+                        copySource.toASCIIString(), offset, length,
+                        options, md5, opContext, accessCondition, blockId);
+            }
+
+            @Override
+            public void signRequest(HttpURLConnection connection, CloudBlobClient client, OperationContext context)
+                    throws Exception {
+                StorageRequest.signBlobQueueAndFileRequest(connection, client, 0, context);
+            }
+
+            @Override
+            public Void preProcessResponse(CloudBlob blob, CloudBlobClient client, OperationContext context)
+                    throws Exception {
+                if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_CREATED) {
+                    this.setNonExceptionedRetryableFailure(true);
+                    return null;
+                }
+
+                this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                return null;
+            }
+        };
     }
 
     /**

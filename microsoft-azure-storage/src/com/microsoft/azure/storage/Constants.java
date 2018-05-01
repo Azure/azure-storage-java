@@ -616,6 +616,11 @@ public final class Constants {
         public static final String REQUEST_ID_HEADER = PREFIX_FOR_STORAGE_HEADER + "request-id";
 
         /**
+         * The header for copy sync.
+         */
+        public static final String REQUIRES_SYNC_HEADER = PREFIX_FOR_STORAGE_HEADER + "requires-sync";
+
+        /**
          * The header field value received that indicates which server was accessed
          */
         public static final String SERVER = "Server";
@@ -639,6 +644,11 @@ public final class Constants {
          * The header that specifies the snapshot ID.
          */
         public static final String SNAPSHOT_ID_HEADER = PREFIX_FOR_STORAGE_HEADER + "snapshot";
+
+        /**
+         * The header that specifies source content MD5.
+         */
+        public static final String SOURCE_CONTENT_MD5_HEADER = PREFIX_FOR_STORAGE_HEADER + "source-content-md5";
 
         /**
          * The header for the If-Match condition.
@@ -671,6 +681,11 @@ public final class Constants {
          * The header for data ranges.
          */
         public static final String STORAGE_RANGE_HEADER = PREFIX_FOR_STORAGE_HEADER + "range";
+
+        /**
+         * The header for data ranges.
+         */
+        public static final String STORAGE_SOURCE_RANGE_HEADER = PREFIX_FOR_STORAGE_HEADER + "source-range";
 
         /**
          * The header for storage version.
