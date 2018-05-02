@@ -235,8 +235,12 @@ final class BlobRequest {
     public static HttpURLConnection copyFrom(final URI uri, final BlobRequestOptions blobOptions,
             final OperationContext opContext, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, String source, final String sourceSnapshotID,
-            final boolean incrementalCopy, final boolean syncCopy, final PremiumPageBlobTier premiumPageBlobTier)
+            final boolean incrementalCopy, final boolean syncCopy, final String contentMd5, final PremiumPageBlobTier premiumPageBlobTier)
             throws StorageException, IOException, URISyntaxException {
+
+        if (!syncCopy && !Utility.isNullOrEmpty(contentMd5)) {
+            throw new IllegalArgumentException(SR.INVALID_COPY_MD5_OPERATION);
+        }
 
         if (sourceSnapshotID != null) {
             source = source.concat("?snapshot=");
@@ -272,6 +276,10 @@ final class BlobRequest {
 
         if (syncCopy) {
             request.setRequestProperty(HeaderConstants.REQUIRES_SYNC_HEADER, Constants.TRUE);
+        }
+
+        if (!Utility.isNullOrEmpty(contentMd5)) {
+            request.setRequestProperty(HeaderConstants.SOURCE_CONTENT_MD5_HEADER, contentMd5);
         }
 
         return request;

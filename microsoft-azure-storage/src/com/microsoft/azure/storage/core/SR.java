@@ -90,6 +90,7 @@ public class SR {
     public static final String INVALID_CONNECTION_STRING_DEV_STORE_NOT_TRUE = "Invalid connection string, the UseDevelopmentStorage key must always be paired with 'true'.  Remove the flag entirely otherwise.";
     public static final String INVALID_CONTENT_LENGTH = "ContentLength must be set to -1 or positive Long value.";
     public static final String INVALID_CONTENT_TYPE = "An incorrect Content-Type was returned from the server.";
+    public static final String INVALID_COPY_MD5_OPERATION = "MD5 can only be specified with a synchronous copy operation.";
     public static final String INVALID_CORS_RULE = "A CORS rule must contain at least one allowed origin and allowed method, and MaxAgeInSeconds cannot have a value less than zero.";
     public static final String INVALID_DATE_STRING = "Invalid Date String: %s.";
     public static final String INVALID_EDMTYPE_VALUE = "Invalid value '%s' for EdmType.";

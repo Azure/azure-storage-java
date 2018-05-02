@@ -177,7 +177,7 @@ public final class CloudBlockBlob extends CloudBlob {
      */
     @DoesServiceRequest
     public final String startCopy(final CloudBlockBlob sourceBlob) throws StorageException, URISyntaxException {
-        return this.startCopy(sourceBlob, false /* syncCopy */, null /* sourceAccessCondition */,
+        return this.startCopy(sourceBlob, null /* contentMd5 */, false /* syncCopy */, null /* sourceAccessCondition */,
                 null /* destinationAccessCondition */, null /* options */, null /* opContext */);
     }
 
@@ -187,6 +187,11 @@ public final class CloudBlockBlob extends CloudBlob {
      *
      * @param sourceBlob
      *            A <code>CloudBlockBlob</code> object that represents the source blob to copy.
+     * @param contentMd5
+     *            An optional hash value used to ensure transactional integrity for the operation. May be
+     *            <code>null</code> or empty.
+     * @param syncCopy
+     *            A <code>boolean</code> to enable synchronous server copy of blobs.
      * @param sourceAccessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the source blob.
      * @param destinationAccessCondition
@@ -208,7 +213,7 @@ public final class CloudBlockBlob extends CloudBlob {
      *
      */
     @DoesServiceRequest
-    public final String startCopy(final CloudBlockBlob sourceBlob, boolean syncCopy, final AccessCondition sourceAccessCondition,
+    public final String startCopy(final CloudBlockBlob sourceBlob, String contentMd5, boolean syncCopy, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException, URISyntaxException {
         Utility.assertNotNull("sourceBlob", sourceBlob);
@@ -219,7 +224,7 @@ public final class CloudBlockBlob extends CloudBlob {
             source = sourceBlob.getServiceClient().getCredentials().transformUri(sourceBlob.getSnapshotQualifiedUri());
         }
 
-        return this.startCopy(source, syncCopy, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(source, contentMd5, syncCopy, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
@@ -236,7 +241,7 @@ public final class CloudBlockBlob extends CloudBlob {
     */
    @DoesServiceRequest
    public final String startCopy(final CloudFile sourceFile) throws StorageException, URISyntaxException {
-       return this.startCopy(sourceFile, false /* syncCopy */, null /* sourceAccessCondition */,
+       return this.startCopy(sourceFile, null /* sourceAccessCondition */,
                null /* destinationAccessCondition */, null /* options */, null /* opContext */);
    }
 
@@ -267,12 +272,12 @@ public final class CloudBlockBlob extends CloudBlob {
     *             If the resource URI is invalid.
     */
    @DoesServiceRequest
-   public final String startCopy(final CloudFile sourceFile, boolean syncCopy, final AccessCondition sourceAccessCondition,
+   public final String startCopy(final CloudFile sourceFile, final AccessCondition sourceAccessCondition,
            final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
            throws StorageException, URISyntaxException {
        Utility.assertNotNull("sourceFile", sourceFile);
        return this.startCopy(
-               sourceFile.getServiceClient().getCredentials().transformUri(sourceFile.getUri()), syncCopy,
+               sourceFile.getServiceClient().getCredentials().transformUri(sourceFile.getUri()), null, false,
                sourceAccessCondition, destinationAccessCondition, options, opContext);
    }
 

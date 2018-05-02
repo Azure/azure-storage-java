@@ -629,7 +629,7 @@ public abstract class CloudBlob implements ListBlobItem {
      */
     @DoesServiceRequest
     public final String startCopy(final URI source) throws StorageException {
-        return this.startCopy(source, false /* sync copy */, null /* sourceAccessCondition */, null /* destinationAccessCondition */,
+        return this.startCopy(source, null /* contentMd5 */, false /* syncCopy */, null /* sourceAccessCondition */, null /* destinationAccessCondition */,
                 null /* options */, null /* opContext */);
     }
 
@@ -640,6 +640,11 @@ public abstract class CloudBlob implements ListBlobItem {
      * @param source
      *            A <code>java.net.URI</code> The source URI.  URIs for resources outside of Azure
      *            may only be copied into block blobs.
+     * @param contentMd5
+     *            An optional hash value used to ensure transactional integrity for the operation. May be
+     *            <code>null</code> or empty.
+     * @param syncCopy
+     *            A <code>boolean</code> which indicates if the copy should be done synchronously on the service.
      * @param sourceAccessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the source.
      * @param destinationAccessCondition
@@ -660,10 +665,10 @@ public abstract class CloudBlob implements ListBlobItem {
      *
      */
     @DoesServiceRequest
-    public final String startCopy(final URI source, boolean syncCopy, final AccessCondition sourceAccessCondition,
+    public final String startCopy(final URI source, String contentMd5, boolean syncCopy, final AccessCondition sourceAccessCondition,
                                   final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException {
-        return this.startCopy(source, syncCopy, null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(source, contentMd5, syncCopy, null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
@@ -675,6 +680,9 @@ public abstract class CloudBlob implements ListBlobItem {
      * @param source
      *            A <code>java.net.URI</code> The source URI.  URIs for resources outside of Azure
      *            may only be copied into block blobs.
+     * @param contentMd5
+     *            An optional hash value used to ensure transactional integrity for the operation. May be
+     *            <code>null</code> or empty.
      * @param syncCopy
      *            A <code>boolean</code> which indicates if the copy should be done synchronously on the service.
      * @param premiumPageBlobTier
@@ -699,7 +707,7 @@ public abstract class CloudBlob implements ListBlobItem {
      *
      */
     @DoesServiceRequest
-    protected final String startCopy(final URI source, boolean syncCopy, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
+    protected final String startCopy(final URI source, String contentMd5, boolean syncCopy, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException {
         if (opContext == null) {
@@ -710,12 +718,12 @@ public abstract class CloudBlob implements ListBlobItem {
         options = BlobRequestOptions.populateAndApplyDefaults(options, this.properties.getBlobType(), this.blobServiceClient);
 
         return ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.startCopyImpl(source, syncCopy, false /* incrementalCopy */, premiumPageBlobTier, sourceAccessCondition, destinationAccessCondition, options),
+                this.startCopyImpl(source, contentMd5, syncCopy, false /* incrementalCopy */, premiumPageBlobTier, sourceAccessCondition, destinationAccessCondition, options),
                 options.getRetryPolicyFactory(), opContext);
     }
 
     protected StorageRequest<CloudBlobClient, CloudBlob, String> startCopyImpl(
-            final URI source, final boolean syncCopy, final boolean incrementalCopy, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
+            final URI source, final String contentMd5, final boolean syncCopy, final boolean incrementalCopy, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, final BlobRequestOptions options) {
 
         final StorageRequest<CloudBlobClient, CloudBlob, String> putRequest =
@@ -727,7 +735,7 @@ public abstract class CloudBlob implements ListBlobItem {
                 // toASCIIString() must be used in order to appropriately encode the URI
                 return BlobRequest.copyFrom(blob.getTransformedAddress(context).getUri(this.getCurrentLocation()),
                         options, context, sourceAccessCondition, destinationAccessCondition, source.toASCIIString(),
-                        blob.snapshotID, incrementalCopy, syncCopy, premiumPageBlobTier);
+                        blob.snapshotID, incrementalCopy, syncCopy, contentMd5, premiumPageBlobTier);
             }
 
             @Override
