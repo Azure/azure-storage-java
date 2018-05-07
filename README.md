@@ -2,6 +2,8 @@
 
 This project provides a client library in Java that makes it easy to consume Microsoft Azure Storage services. For documentation please see the [Storage API doc page](https://docs.microsoft.com/en-us/java/api/overview/azure/storage) and the generated [javadoc](http://azure.github.io/azure-storage-java/).
 
+NOTE: There is a new version of this library in development, which supports asynchronous APIs in a reactive model. This entails a significant architectural overhaul and a redesign of the current interface.  If this interests you, please feel free to check it out in the New-Storage-SDK-V10-Preview branch. Feedback is always appreciated. The rest of the document below applies to the existing generally available library.
+
 > If you are looking for the Azure Storage Android SDK, please visit [https://github.com/Azure/azure-storage-android](https://github.com/Azure/azure-storage-android).
 
 # Features
