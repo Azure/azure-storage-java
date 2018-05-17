@@ -72,8 +72,11 @@ public class TestHelper {
     private static Tenant premiumBlobTenant;
     private static StorageCredentialsAccountAndKey premiumBlobCredentials;
     private static CloudStorageAccount premiumBlobAccount;
+    private static Tenant copySourceTenant;
+    private static StorageCredentialsAccountAndKey copySourceCredentials;
+    private static CloudStorageAccount copySourceAccount;
 
-    private final static boolean enableFiddler = false;
+    private final static boolean enableFiddler = true;
     private final static boolean requireSecondaryEndpoint = false;
 
     public static String generateOAuthToken() throws MalformedURLException, InterruptedException, ExecutionException, ServiceUnavailableException, StorageException {
@@ -124,6 +127,11 @@ public class TestHelper {
 
     public static CloudBlobClient createPremiumCloudBlobClient() throws StorageException {
         CloudBlobClient client = getPremiumBlobAccount().createCloudBlobClient();
+        return client;
+    }
+
+    public static CloudBlobClient createCopySourceBlobClient() throws StorageException {
+        CloudBlobClient client = getCopySourceAccount().createCloudBlobClient();
         return client;
     }
 
@@ -388,12 +396,12 @@ public class TestHelper {
                     account = CloudStorageAccount.parse(cloudAccount);
                 }
                 else if (accountConfig != null) {
-                    readTestConfigsFromXml(new File(accountConfig), false);
+                    readTestConfigsFromXml(new File(accountConfig), false, false);
                     setAccountAndCredentials();
                 }
                 else {
                     URL localTestConfig = TestHelper.class.getClassLoader().getResource("TestConfigurations.xml");
-                    readTestConfigsFromXml(new File(localTestConfig.getPath()), false);
+                    readTestConfigsFromXml(new File(localTestConfig.getPath()), false, false);
                     setAccountAndCredentials();
                 }
             }
@@ -425,12 +433,12 @@ public class TestHelper {
             // if neither are set, use the local configurations file at TestConfigurations.xml
             try {
                 if (accountConfig != null) {
-                    readTestConfigsFromXml(new File(accountConfig), true);
+                    readTestConfigsFromXml(new File(accountConfig), true, false);
                     setAccountAndCredentials();
                 }
                 else {
                     URL localTestConfig = TestHelper.class.getClassLoader().getResource("TestConfigurations.xml");
-                    readTestConfigsFromXml(new File(localTestConfig.getPath()), true);
+                    readTestConfigsFromXml(new File(localTestConfig.getPath()), true, false);
                     setAccountAndCredentials();
                 }
             }
@@ -443,6 +451,47 @@ public class TestHelper {
         }
 
         return premiumBlobAccount;
+    }
+
+    private static CloudStorageAccount getCopySourceAccount() throws StorageException {
+        // Only do this the first time TestBase is called as storage account is static
+        if (copySourceAccount == null) {
+            //enable fiddler
+            if (enableFiddler)
+                enableFiddler();
+
+            // try to get the environment variable with the test configuration file path
+            String accountConfig;
+            try {
+                accountConfig = System.getenv("storageTestConfiguration");
+            }
+            catch (SecurityException e) {
+                accountConfig = null;
+            }
+
+            // if storageConnection is set, use that as an account string
+            // if storageTestConfiguration is set, use that as a path to the configurations file
+            // if neither are set, use the local configurations file at TestConfigurations.xml
+            try {
+                if (accountConfig != null) {
+                    readTestConfigsFromXml(new File(accountConfig), false, true);
+                    setAccountAndCredentials();
+                }
+                else {
+                    URL localTestConfig = TestHelper.class.getClassLoader().getResource("TestConfigurations.xml");
+                    readTestConfigsFromXml(new File(localTestConfig.getPath()), false, true);
+                    setAccountAndCredentials();
+                }
+            }
+            catch (AssumptionViolatedException e) {
+                throw e;
+            }
+            catch (Exception e) {
+                throw StorageException.translateClientException(e);
+            }
+        }
+
+        return copySourceAccount;
     }
 
     private static void setAccountAndCredentials() {
@@ -462,9 +511,17 @@ public class TestHelper {
                     null,
                     null);
         }
+
+        if (copySourceTenant != null) {
+            copySourceCredentials = new StorageCredentialsAccountAndKey(copySourceTenant.getAccountName(), copySourceTenant.getAccountKey());
+            copySourceAccount = new CloudStorageAccount(copySourceCredentials, new StorageUri(copySourceTenant.getBlobServiceEndpoint(), copySourceTenant.getBlobServiceSecondaryEndpoint()),
+                    null,
+                    null,
+                    null);
+        }
     }
 
-    private static void readTestConfigsFromXml(File testConfigurations, boolean premiumBlob) throws ParserConfigurationException,
+    private static void readTestConfigsFromXml(File testConfigurations, boolean premiumBlob, boolean copyBlob) throws ParserConfigurationException,
             SAXException, IOException, DOMException, URISyntaxException {
 
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -487,8 +544,15 @@ public class TestHelper {
             premiumBlobTenantName = premiumBlobTenantNode.getTextContent();
         }
 
+        Node copySourceBlobTenantNode = testConfigs.getElementsByTagName("TargetCopySourceTenant").item(0);
+        String copySourceBlobTenantName = null;
+        if (copySourceBlobTenantNode != null) {
+            copySourceBlobTenantName = copySourceBlobTenantNode.getTextContent();
+        }
+
         tenant = null;
         premiumBlobTenant = null;
+        copySourceTenant = null;
         final NodeList tenantNodes = testConfigs.getElementsByTagName("TenantName");
         for (int i = 0; i < tenantNodes.getLength(); i++) {
             if (tenantNodes.item(i).getTextContent().equals(targetTenant)) {
@@ -597,6 +661,35 @@ public class TestHelper {
                     }
                 }
             }
+
+            if (tenantNodes.item(i).getTextContent().equals(copySourceBlobTenantName)) {
+                copySourceTenant = new Tenant();
+                Node parent = tenantNodes.item(i).getParentNode();
+                final NodeList childNodes = parent.getChildNodes();
+                for (int j = 0; j < childNodes.getLength(); j++) {
+                    final Node node = childNodes.item(j);
+
+                    if (node.getNodeType() != Node.ELEMENT_NODE) {
+                        // do nothing
+                    } else {
+                        final String name = node.getNodeName();
+
+                        if (name.equals("TenantName")) {
+                            copySourceTenant.setTenantName(node.getTextContent());
+                        } else if (name.equals("TenantType")) {
+                            // do nothing, we don't track this field
+                        } else if (name.equals("AccountName")) {
+                            copySourceTenant.setAccountName(node.getTextContent());
+                        } else if (name.equals("AccountKey")) {
+                            copySourceTenant.setAccountKey(node.getTextContent());
+                        } else if (name.equals("BlobServiceEndpoint")) {
+                            copySourceTenant.setBlobServiceEndpoint(new URI(node.getTextContent()));
+                        } else if (name.equals("BlobServiceSecondaryEndpoint")) {
+                            copySourceTenant.setBlobServiceSecondaryEndpoint(new URI(node.getTextContent()));
+                        }
+                    }
+                }
+            }
         }
 
         if (tenant == null && !premiumBlob) {
@@ -605,6 +698,10 @@ public class TestHelper {
 
         if (premiumBlobTenant == null && premiumBlob) {
             assumeNotNull(premiumBlobTenant);
+        }
+
+        if (copySourceTenant == null && copyBlob) {
+            assumeNotNull(copySourceTenant);
         }
     }
 }

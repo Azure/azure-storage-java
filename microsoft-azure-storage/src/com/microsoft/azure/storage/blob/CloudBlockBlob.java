@@ -1237,7 +1237,7 @@ public final class CloudBlockBlob extends CloudBlob {
             throw new IllegalArgumentException(SR.INVALID_BLOCK_ID);
         }
 
-        if (length > Constants.MAX_BLOCK_SIZE)
+        if (length != null && length > Constants.MAX_BLOCK_SIZE)
         {
             throw new IllegalArgumentException(SR.COPY_SIZE_GREATER_THAN_100MB);
         }

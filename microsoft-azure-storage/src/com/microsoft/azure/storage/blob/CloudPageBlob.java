@@ -258,7 +258,7 @@ public final class CloudPageBlob extends CloudBlob {
             source = sourceBlob.getServiceClient().getCredentials().transformUri(sourceBlob.getSnapshotQualifiedUri());
         }
 
-        return this.startCopy(source, false, premiumBlobTier, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(source, Constants.EMPTY_STRING,false, premiumBlobTier, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
@@ -377,7 +377,7 @@ public final class CloudPageBlob extends CloudBlob {
         options = BlobRequestOptions.populateAndApplyDefaults(options, this.properties.getBlobType(), this.blobServiceClient);
 
         return ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.startCopyImpl(sourceSnapshot, false /* syncCopy */, true /* incrementalCopy */, null /* premiumPageBlobTier */, null /* sourceAccesCondition */,
+                this.startCopyImpl(sourceSnapshot, Constants.EMPTY_STRING,false /* syncCopy */, true /* incrementalCopy */, null /* premiumPageBlobTier */, null /* sourceAccesCondition */,
                         destinationAccessCondition, options),
                 options.getRetryPolicyFactory(), opContext);
     }

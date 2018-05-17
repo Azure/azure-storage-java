@@ -219,10 +219,15 @@ final class BlobRequest {
      *            An {@link AccessCondition} object that represents the access conditions for the destination blob.
      * @param source
      *            The canonical path to the source blob, in the form /<account-name>/<container-name>/<blob-name>.
+     * @param contentMd5
+     *            An optional hash value used to ensure transactional integrity for the operation. May be {@code null}
+     *            or an empty string.
      * @param sourceSnapshotID
      *            The snapshot version, if the source blob is a snapshot.
      * @param incrementalCopy
      *            A boolean indicating whether or not this is an incremental copy.
+     * @param syncCopy
+     *            A boolean to enable synchronous server copy of blobs.
      * @param premiumPageBlobTier
      *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
      * @return a HttpURLConnection configured for the operation.
