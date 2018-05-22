@@ -32,6 +32,9 @@ public class Tenant {
     private Integer fileHttpsPortOverride = null;
     private Integer queueHttpsPortOverride = null;
     private Integer tableHttpsPortOverride = null;
+    private String activeDirectoryApplicationId;
+    private String activeDirectoryApplicationSecret;
+    private String activeDirectoryTenantId;
 
     public String getTenantName() {
         return this.tenantName;
@@ -92,7 +95,31 @@ public class Tenant {
     public Integer getTableHttpsPortOverride() {
         return this.tableHttpsPortOverride;
     }
-    
+
+    public String getActiveDirectoryApplicationId() {
+        return this.activeDirectoryApplicationId;
+    }
+
+    public String getActiveDirectoryApplicationSecret() {
+        return this.activeDirectoryApplicationSecret;
+    }
+
+    public String getActiveDirectoryTenantId() {
+        return this.activeDirectoryTenantId;
+    }
+
+    public void setActiveDirectoryApplicationId(String activeDirectoryApplicationId) {
+        this.activeDirectoryApplicationId = activeDirectoryApplicationId;
+    }
+
+    public void setActiveDirectoryApplicationSecret(String activeDirectoryApplicationSecret) {
+        this.activeDirectoryApplicationSecret = activeDirectoryApplicationSecret;
+    }
+
+    public void setActiveDirectoryTenantId(String activeDirectoryTenantId) {
+        this.activeDirectoryTenantId = activeDirectoryTenantId;
+    }
+
     void setTenantName(String tenantName) {
         this.tenantName = tenantName;
     }

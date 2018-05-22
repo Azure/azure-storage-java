@@ -366,5 +366,8 @@ final class BlobListHandler extends DefaultHandler {
         else if (BlobConstants.REMAINING_RETENTION_DAYS.equals(currentNode)) {
             this.properties.setRemainingRetentionDays(Integer.parseInt(value));
         }
+        else if (BlobConstants.CREATION_TIME_ELEMENT.equals(currentNode)) {
+            this.properties.setCreatedTime(Utility.parseRFC1123DateFromStringInGMT(value));
+        }
     }
 }
