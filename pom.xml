@@ -10,7 +10,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.microsoft.azure</groupId>
 	<artifactId>azure-storage</artifactId>
-	<version>7.0.0</version>
+	<version>7.1.0-Preview</version>
 	<packaging>jar</packaging>
 
 	<name>Microsoft Azure Storage Client SDK</name>
@@ -79,6 +79,12 @@
 			<groupId>com.microsoft.azure</groupId>
 			<artifactId>azure-keyvault-extensions</artifactId>
 			<version>1.0.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.microsoft.azure</groupId>
+			<artifactId>adal4j</artifactId>
+			<version>1.4.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

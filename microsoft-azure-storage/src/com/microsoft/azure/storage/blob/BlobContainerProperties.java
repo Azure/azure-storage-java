@@ -29,6 +29,16 @@ public final class BlobContainerProperties {
     private String etag;
 
     /**
+     * Represents whether the container has an immutability policy.
+     */
+    private Boolean hasImmutabilityPolicy;
+
+    /**
+     * Represents whether the container has a legal hold.
+     */
+    private Boolean hasLegalHold;
+
+    /**
      * Represents the container's last-modified time.
      */
     private Date lastModified;
@@ -67,6 +77,24 @@ public final class BlobContainerProperties {
      */
     public String getEtag() {
         return this.etag;
+    }
+
+    /**
+     * Gets the hasImmutabilityPolicy value of the container.
+     *
+     * @return A <code>Boolean</code> which represents the hasImmutabilityPolicy value.
+     */
+    public Boolean hasImmutabilityPolicy() {
+        return this.hasImmutabilityPolicy;
+    }
+
+    /**
+     * Gets the hasLegalHold value of the container.
+     *
+     * @return A <code>Boolean</code> which represents the hasLegalHold value.
+     */
+    public Boolean hasLegalHold() {
+        return this.hasLegalHold;
     }
 
     /**
@@ -126,6 +154,26 @@ public final class BlobContainerProperties {
      */
     protected void setEtag(final String etag) {
         this.etag = etag;
+    }
+
+    /**
+     * Sets the hasImmutabilityPolicy value on the container.
+     *
+     * @param hasImmutabilityPolicy
+     *        A <code>Boolean</code> which represents the hasImmutabilityProperty value to set.
+     */
+    protected void setHasImmutabilityPolicy(final Boolean hasImmutabilityPolicy) {
+        this.hasImmutabilityPolicy = hasImmutabilityPolicy;
+    }
+
+    /**
+     * Sets the hasLegalHold value on the container.
+     *
+     * @param hasLegalHold
+     *        A <code>Boolean</code> which represents the hasLegalHold value to set.
+     */
+    protected void setHasLegalHold(final Boolean hasLegalHold) {
+        this.hasLegalHold= hasLegalHold;
     }
 
     /**

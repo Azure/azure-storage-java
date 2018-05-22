@@ -77,6 +77,10 @@ public class CloudBlobClientTests {
             for (final CloudBlobContainer container : segment.getResults()) {
                 container.downloadAttributes();
                 assertEquals(CloudBlobContainer.class, container.getClass());
+                assertNotNull(container.getProperties().hasImmutabilityPolicy());
+                assertNotNull(container.getProperties().hasLegalHold());
+                assertFalse(container.getProperties().hasImmutabilityPolicy());
+                assertFalse(container.getProperties().hasLegalHold());
                 containerList.remove(container.getName());
             }
 

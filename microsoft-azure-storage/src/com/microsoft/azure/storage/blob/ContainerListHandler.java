@@ -203,5 +203,11 @@ final class ContainerListHandler extends DefaultHandler {
                 throw new SAXException(SR.INVALID_RESPONSE_RECEIVED);
             }
         }
+        else if (currentNode.equals(BlobConstants.HAS_IMMUTABILITY_POLICY_ELEMENT)) {
+            this.attributes.getProperties().setHasImmutabilityPolicy(Boolean.parseBoolean(value));
+        }
+        else if (currentNode.equals(BlobConstants.HAS_LEGAL_HOLD_ELEMENT)) {
+            this.attributes.getProperties().setHasLegalHold(Boolean.parseBoolean(value));
+        }
     }
 }

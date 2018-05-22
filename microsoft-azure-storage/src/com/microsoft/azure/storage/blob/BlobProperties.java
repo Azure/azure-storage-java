@@ -73,6 +73,11 @@ public final class BlobProperties {
     private CopyState copyState;
 
     /**
+     * Represents the creation time for the blob, expressed as a UTC value.
+     */
+    private Date createdTime;
+
+    /**
      * Represents the blob's ETag value.
      */
     private String etag;
@@ -176,6 +181,7 @@ public final class BlobProperties {
         this.contentMD5 = other.contentMD5;
         this.contentType = other.contentType;
         this.copyState = other.copyState;
+        this.createdTime = other.createdTime;
         this.etag = other.etag;
         this.isBlobTierInferredTier = other.isBlobTierInferredTier;
         this.isIncrementalCopy = other.isIncrementalCopy;
@@ -286,6 +292,14 @@ public final class BlobProperties {
      */
     public CopyState getCopyState() {
         return this.copyState;
+    }
+
+    /**
+     * Gets the time when the blob was created.
+     * @return A {@link java.util.Date} object which represents the time when the blob was created.
+     */
+    public Date getCreatedTime() {
+        return this.createdTime;
     }
 
     /**
@@ -519,6 +533,16 @@ public final class BlobProperties {
      */
     protected void setCopyState(final CopyState copyState) {
         this.copyState = copyState;
+    }
+
+    /**
+     * Sets the createdTime value for the blob
+     *
+     * @param createdTime
+     *        A <code>Date</code> which represents the time when the blob was created.
+     */
+    protected void setCreatedTime(final Date createdTime) {
+        this.createdTime = createdTime;
     }
 
     /**
