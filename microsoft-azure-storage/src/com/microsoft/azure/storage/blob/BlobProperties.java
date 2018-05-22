@@ -631,7 +631,7 @@ public final class BlobProperties {
     /**
      * Sets whether the blob tier is inferred.
      * @param isBlobTierInferredTier
-     *      A {@Link java.lang.Boolean} which specifies if the blob tier is inferred.
+     *      A {@link java.lang.Boolean} which specifies if the blob tier is inferred.
      */
     protected void setBlobTierInferred(Boolean isBlobTierInferredTier) {
         this.isBlobTierInferredTier = isBlobTierInferredTier;
@@ -649,7 +649,7 @@ public final class BlobProperties {
     /**
      * Sets the rehydration status of the blob.
      * @param rehydrationStatus
-     *      A {@Link RehydrationStatus} which specifies the rehydration status of the blob.
+     *      A {@link RehydrationStatus} which specifies the rehydration status of the blob.
      */
     protected void setRehydrationStatus(RehydrationStatus rehydrationStatus) {
         this.rehydrationStatus = rehydrationStatus;

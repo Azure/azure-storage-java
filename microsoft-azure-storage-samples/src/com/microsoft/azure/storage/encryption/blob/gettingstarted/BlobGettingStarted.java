@@ -25,7 +25,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 import java.util.UUID;
 
-import com.microsoft.azure.keyvault.extensions.RsaKey;
+import com.microsoft.azure.keyvault.cryptography.RsaKey;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.BlobEncryptionPolicy;

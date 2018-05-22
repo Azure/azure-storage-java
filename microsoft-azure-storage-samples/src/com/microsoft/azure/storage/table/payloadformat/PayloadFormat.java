@@ -84,7 +84,7 @@ public class PayloadFormat {
 				// Submit the operation to the table service.
 				table.execute(insertCustomer1);	
 				
-				// When using JsonNoMetadata the client library will “infer” the property types(int, double,
+				// When using JsonNoMetadata the client library will infer the property types(int, double,
 				// String and some booleans) by inspecting the type information on the POJO entity type 
 				// provided by the client. Additionally, in some scenarios clients may wish to provide 
 				// the property type information at runtime such as when querying with the DynamicTableEntity 
@@ -97,15 +97,15 @@ public class PayloadFormat {
 					public EdmType propertyResolver(String pk, String rk, String key,
 							String value) {
 						if (key.equals("Email")) {
-				            return EdmType.STRING;
-				        }
-				        else if (key.equals("PhoneNumber")) {
-				            return EdmType.STRING;
-				        }
-				        else if (key.equals("Id")) {
-				            return EdmType.GUID;
-				        }
-				        return null;
+							return EdmType.STRING;
+						}
+						else if (key.equals("PhoneNumber")) {
+							return EdmType.STRING;
+						}
+						else if (key.equals("Id")) {
+							return EdmType.GUID;
+						}
+						return null;
 					}
 				}
 				

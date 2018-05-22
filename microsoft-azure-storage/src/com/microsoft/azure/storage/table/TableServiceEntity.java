@@ -492,8 +492,8 @@ public class TableServiceEntity implements TableEntity {
      * entities are deserialized and the payload does not include JSON metadata.
      * 
      * @return
-     *         The <code>ConcurrentHashMap<Class<?>, HashMap<String, PropertyPair>></code> representing the known entity
-     *         types and their reflected entity dictionaries
+     *         The <code>ConcurrentHashMap&lt;Class&lt;?&gt;, HashMap&lt;String, PropertyPair&gt;&gt;</code> representing
+     *         the known entity types and their reflected entity dictionaries
      */
     protected static ConcurrentHashMap<Class<?>, HashMap<String, PropertyPair>> getReflectedEntityCache() {
         return TableServiceEntity.reflectedEntityCache;

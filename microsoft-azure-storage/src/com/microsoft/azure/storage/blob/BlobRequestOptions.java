@@ -110,9 +110,8 @@ public final class BlobRequestOptions extends RequestOptions {
      *            BlobType of the current operation
      * @param client
      *            A {@link CloudBlobClient} object that represents the service client used to set the default timeout
-     *            interval and retry policy, if they are <code>null</code>. Additionally, if the
-     *            {@link #concurrentRequestCount} field's value is null, it will be set to the value specified by the
-     *            cloud blob client's {@link CloudBlobClient#getConcurrentRequestCount} method.
+     *            interval and retry policy, if they are <code>null</code>. Additionally, the default value of
+     *            {@link #concurrentRequestCount} is <code>1</code>.
      */
     protected static final BlobRequestOptions populateAndApplyDefaults(final BlobRequestOptions options,
             final BlobType blobType, final CloudBlobClient client) {
@@ -129,9 +128,8 @@ public final class BlobRequestOptions extends RequestOptions {
      *            BlobType of the current operation
      * @param client
      *            A {@link CloudBlobClient} object that represents the service client used to set the default timeout
-     *            interval and retry policy, if they are <code>null</code>. Additionally, if the
-     *            {@link #concurrentRequestCount} field's value is null, it will be set to the value specified by the
-     *            cloud blob client's {@link CloudBlobClient#getConcurrentRequestCount} method.
+     *            interval and retry policy, if they are <code>null</code>. Additionally, the default value of
+     *            {@link #concurrentRequestCount} is <code>1</code>.
      * @param setStartTime
      *            whether to initialize the startTimeInMs field, or not
      */

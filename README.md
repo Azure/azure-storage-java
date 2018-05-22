@@ -1,6 +1,8 @@
 # Microsoft Azure Storage SDK for Java
 
-This project provides a client library in Java that makes it easy to consume Microsoft Azure Storage services. For documentation please see the Microsoft Azure [Java Developer Center](http://azure.microsoft.com/en-us/develop/java/) and the [JavaDocs](http://azure.github.io/azure-storage-java/).
+This project provides a client library in Java that makes it easy to consume Microsoft Azure Storage services. For documentation please see the [Storage API doc page](https://docs.microsoft.com/en-us/java/api/overview/azure/storage) and the generated [javadoc](http://azure.github.io/azure-storage-java/).
+
+NOTE: There is a new version of this library in development, which supports asynchronous APIs in a reactive model. This entails a significant architectural overhaul and a redesign of the current interface.  If this interests you, please feel free to check it out in the New-Storage-SDK-V10-Preview branch. Feedback is always appreciated. The rest of the document below applies to the existing generally available library.
 
 > If you are looking for the Azure Storage Android SDK, please visit [https://github.com/Azure/azure-storage-android](https://github.com/Azure/azure-storage-android).
 
@@ -30,7 +32,7 @@ To get the binaries of this library as distributed by Microsoft, ready for use w
 <dependency>
 	<groupId>com.microsoft.azure</groupId>
 	<artifactId>azure-storage</artifactId>
-	<version>6.1.0</version>
+	<version>7.0.0</version>
 </dependency>
 ```
 
@@ -60,7 +62,7 @@ SLF4J is only needed if you enable logging through the OperationContext class. I
 
 ## Usage
 
-To use this SDK to call Microsoft Azure storage services, you need to first [create an account](https://account.windowsazure.com/signup).
+To use this SDK to call Microsoft Azure storage services, you need to first [create an account](https://azure.microsoft.com/free).
 
 Samples are provided in the microsoft-azure-storage-samples folder. The unit tests in microsoft-azure-storage-test can also be helpful.
 
@@ -131,7 +133,7 @@ When sending pull requests, please send non-breaking PRs to the dev branch and b
 
 # Learn More
 
-* [Azure Developer Center](http://azure.microsoft.com/en-us/develop/java/)
+* [Java on Azure Developer Center](http://azure.microsoft.com/en-us/java/azure)
 * [Azure Storage Service](http://azure.microsoft.com/en-us/documentation/services/storage/)
 * [Azure Storage Team Blog](http://blogs.msdn.com/b/windowsazurestorage/)
-* [JavaDocs](http://azure.github.io/azure-storage-java/)
+* [Javadoc](http://azure.github.io/azure-storage-java/)
