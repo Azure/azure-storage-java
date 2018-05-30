@@ -151,6 +151,16 @@ final class BlobConstants {
     public static final String CONTENT_TYPE_HEADER = Constants.PREFIX_FOR_STORAGE_HEADER + "blob-content-type";
 
     /**
+     * The header that specifies the blob creation time.
+     */
+    public static final String CREATION_TIME_HEADER = Constants.PREFIX_FOR_STORAGE_HEADER + "creation-time";
+
+    /**
+     * XML element for the creation time.
+     */
+    public static final String CREATION_TIME_ELEMENT = "Creation-Time";
+
+    /**
      * The number of default concurrent requests for parallel operation.
      */
     public static final int DEFAULT_CONCURRENT_REQUEST_COUNT = 1;
@@ -169,6 +179,26 @@ final class BlobConstants {
      * The default polling interval of a copy operation.
      */
     public static final int DEFAULT_POLLING_INTERVAL_IN_SECONDS = 30;
+
+    /**
+     * The header that specifies the immutability policy for the resource.
+     */
+    public static final String HAS_IMMUTABILITY_POLICY_HEADER = Constants.PREFIX_FOR_STORAGE_HEADER + "has-immutability-policy";
+
+    /**
+     * The header that specifies the legal hold value for the resource.
+     */
+    public static final String HAS_LEGAL_HOLD_HEADER = Constants.PREFIX_FOR_STORAGE_HEADER + "has-legal-hold";
+
+    /**
+     * XML element for immutability policy.
+     */
+    public static final String HAS_IMMUTABILITY_POLICY_ELEMENT = "HasImmutabilityPolicy";
+
+    /**
+     * XML element for legal hold.
+     */
+    public static final String HAS_LEGAL_HOLD_ELEMENT = "HasLegalHold";
 
     /**
      * XML element for the latest.

@@ -45,15 +45,10 @@ public class SharedAccessSignatureHelper {
      * 
      * @param policy
      *            The shared access policy to hash.
-     * @param ipRange
-     *            An optional range of IP addresses.
-     * @param protocols
-     *            An optional restriction of allowed protocols.
      * @param signature
      *            The signature to use.
      *            
      * @return The finished query builder
-     * @throws InvalidKeyException
      * @throws StorageException
      */
     public static UriQueryBuilder generateSharedAccessSignatureForAccount(
@@ -214,10 +209,6 @@ public class SharedAccessSignatureHelper {
      *            The name of the account to use for the SAS.
      * @param policy
      *            The shared access policy to hash.
-     * @param ipRange
-     *            An optional range of IP addresses.
-     * @param protocols
-     *            An optional restriction of allowed protocols.
      * @param creds
      *            The {@link StorageCredentials} associated with the object.
      *            
@@ -576,7 +567,7 @@ public class SharedAccessSignatureHelper {
      * @param stringToSign
      *            The string to decode and hash
      * @param creds
-     *            Reference to the {@link StorageCredentials.}.
+     *            Reference to the {@link StorageCredentials}.
      * 
      * @return The signature hash embedded inside the Shared Access Signature.
      *         
@@ -605,8 +596,6 @@ public class SharedAccessSignatureHelper {
      *            The range of IP addresses to hash.
      * @param protocols
      *            The Internet protocols to hash.
-     * @param headers
-     *            The optional header values to set for a blob or file accessed with this shared access signature.
      * @param accessPolicyIdentifier
      *            An optional identifier for the policy.
      *            

@@ -1609,7 +1609,7 @@ public abstract class CloudBlob implements ListBlobItem {
      *            A {@link BlobRequestOptions} object that specifies any additional options for the request.
      * @param opContext
      *            An {@link OperationContext} object used to track the execution of the operation.
-     * @returns The total number of bytes read into the buffer.
+     * @return The total number of bytes read into the buffer.
      * 
      * @throws StorageException
      *             an exception representing any error which occurred during the operation.

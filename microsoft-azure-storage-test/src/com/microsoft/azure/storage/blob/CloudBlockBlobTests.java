@@ -99,6 +99,8 @@ public class CloudBlockBlobTests {
         // Create again (should succeed)
         blob.uploadText("text");
         assertTrue(blob.exists());
+        assertNotNull(blob.getProperties().getCreatedTime());
+        assertTrue(blob.getProperties().getCreatedTime().before(new Date()));
 
         // Create again, specifying not to if it already exists
         // This should fail
@@ -1033,8 +1035,10 @@ public class CloudBlockBlobTests {
         assertEquals(length, retrievedBuff.length);
 
         InputStream inputStream = blobSnapshot.openInputStream();
-        retrievedBuff = inputStream.readAllBytes();
-        assertEquals(length, retrievedBuff.length);
+
+        int readCount = inputStream.read(retrievedBuff);
+        assertEquals(length, readCount); // Assert that we filled the buffer.
+        assertEquals(-1, inputStream.read()); // Assert that there is no more unread data.
 
         // Read operation should work fine.
         blobSnapshot.downloadAttributes();
@@ -1048,8 +1052,10 @@ public class CloudBlockBlobTests {
         assertEquals(length, retrievedBuff.length);
 
         inputStream = blobSnapshotUsingRootUri.openInputStream();
-        retrievedBuff = inputStream.readAllBytes();
-        assertEquals(length, retrievedBuff.length);
+
+        readCount = inputStream.read(retrievedBuff);
+        assertEquals(length, readCount);
+        assertEquals(-1, inputStream.read());
 
         assertEquals(blobSnapshot.getSnapshotID(), blobSnapshotUsingRootUri.getSnapshotID());
 

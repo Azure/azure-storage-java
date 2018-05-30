@@ -29,9 +29,7 @@ import com.microsoft.azure.storage.core.Utility;
 public final class FileRequestOptions extends RequestOptions {
 
     /**
-     * Represents the concurrent number of simultaneous requests per operation. If it's null, it will be set to the
-     * value specified by the cloud file client's {@link CloudFileClient#getConcurrentRequestCount} method during upload
-     * operations.
+     * Represents the concurrent number of simultaneous requests per operation. The default value is <code>1</code>.
      */
     private Integer concurrentRequestCount = null;
 
@@ -85,9 +83,8 @@ public final class FileRequestOptions extends RequestOptions {
      *            The input options to copy from when applying defaults
      * @param client
      *            A {@link CloudFileClient} object that represents the service client used to set the default timeout
-     *            interval and retry policy, if they are <code>null</code>. Additionally, if the
-     *            {@link #concurrentRequestCount} field's value is null, it will be set to the value specified by the
-     *            cloud file client's {@link CloudFileClient#getConcurrentRequestCount} method.
+     *            interval and retry policy, if they are <code>null</code>. Additionally, the default value of
+     *            {@link #concurrentRequestCount} is <code>1</code>.
      */
     protected static final FileRequestOptions populateAndApplyDefaults(final FileRequestOptions options,
             final CloudFileClient client) {
@@ -102,9 +99,8 @@ public final class FileRequestOptions extends RequestOptions {
      *            The input options to copy from when applying defaults
      * @param client
      *            A {@link CloudFileClient} object that represents the service client used to set the default timeout
-     *            interval and retry policy, if they are <code>null</code>. Additionally, if the
-     *            {@link #concurrentRequestCount} field's value is null, it will be set to the value specified by the
-     *            cloud blob client's {@link CloudFileClient#getConcurrentRequestCount} method.
+     *            interval and retry policy, if they are <code>null</code>. Additionally, the default value of
+     *            {@link #concurrentRequestCount} is <code>1</code>.
      * @param setStartTime
      *            whether to initialize the startTimeInMs field, or not
      */

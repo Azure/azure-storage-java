@@ -172,6 +172,12 @@ final class BlobResponse extends BaseResponse {
             properties.setTierChangeTime(new Date(tierChangeTime));
         }
 
+        // Get the creation time of the blob.
+        final long creationTime = request.getHeaderFieldDate(BlobConstants.CREATION_TIME_HEADER, 0);
+        if (creationTime != 0) {
+            properties.setCreatedTime(new Date(creationTime));
+        }
+
         final String incrementalCopyHeaderString =
                 request.getHeaderField(Constants.HeaderConstants.INCREMENTAL_COPY);
         if (!Utility.isNullOrEmpty(incrementalCopyHeaderString)) {
@@ -221,6 +227,17 @@ final class BlobResponse extends BaseResponse {
         containerProperties.setLeaseDuration(getLeaseDuration(request));
 
         containerProperties.setPublicAccess(getPublicAccessLevel(request));
+
+        // Worm policy
+        String hasImmutability = request.getHeaderField(BlobConstants.HAS_IMMUTABILITY_POLICY_HEADER);
+        if (!Utility.isNullOrEmpty(hasImmutability)) {
+            containerProperties.setHasImmutabilityPolicy(Boolean.parseBoolean(hasImmutability));
+        }
+
+        String hasLegalHold = request.getHeaderField(BlobConstants.HAS_LEGAL_HOLD_HEADER);
+        if (!Utility.isNullOrEmpty(hasLegalHold)) {
+            containerProperties.setHasLegalHold(Boolean.parseBoolean(hasLegalHold));
+        }
 
         return containerAttributes;
     }

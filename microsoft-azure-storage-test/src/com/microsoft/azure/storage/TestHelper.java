@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -32,14 +33,22 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.naming.ServiceUnavailableException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.microsoft.aad.adal4j.AuthenticationContext;
+import com.microsoft.aad.adal4j.AuthenticationResult;
+import com.microsoft.aad.adal4j.ClientCredential;
 import org.junit.AssumptionViolatedException;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -66,6 +75,47 @@ public class TestHelper {
 
     private final static boolean enableFiddler = false;
     private final static boolean requireSecondaryEndpoint = false;
+
+    public static String generateOAuthToken() throws MalformedURLException, InterruptedException, ExecutionException, ServiceUnavailableException, StorageException {
+        // if the test configuration has not been read in yet, trigger a getAccount to read in the information
+        if(tenant == null) {
+            getAccount();
+        }
+
+        // this boiler plate code is from the ADAL sample
+        String authority = String.format("https://login.microsoftonline.com/%s/oauth2/token",
+                tenant.getActiveDirectoryTenantId());
+        ClientCredential credential = new ClientCredential(tenant.getActiveDirectoryApplicationId(),
+                tenant.getActiveDirectoryApplicationSecret());
+
+        ExecutorService service = null;
+        AuthenticationResult result;
+
+        try {
+            service = Executors.newFixedThreadPool(1);
+            AuthenticationContext context = new AuthenticationContext(authority, true, service);
+            Future<AuthenticationResult> future = context.acquireToken("https://storage.azure.com", credential, null);
+            result = future.get();
+        } finally {
+            if(service != null) {
+                service.shutdown();
+            }
+        }
+
+        if (result == null) {
+            throw new ServiceUnavailableException("authentication result was null");
+        }
+        return result.getAccessToken();
+    }
+
+    public static String getAccountName() throws StorageException {
+        // if the test configuration has not been read in yet, trigger a getAccount to read in the information
+        if(tenant == null) {
+            getAccount();
+        }
+
+        return tenant.getAccountName();
+    }
 
     public static CloudBlobClient createCloudBlobClient() throws StorageException {
         CloudBlobClient client = getAccount().createCloudBlobClient();
@@ -305,7 +355,7 @@ public class TestHelper {
         }
     }
 
-    private static CloudStorageAccount getAccount() throws StorageException {
+    public static CloudStorageAccount getAccount() throws StorageException {
         // Only do this the first time TestBase is called as storage account is static
         if (account == null) {
             //enable fiddler
@@ -501,6 +551,15 @@ public class TestHelper {
                         }
                         else if (name.equals("FileHttpsPortOverride")) {
                             tenant.setFileHttpsPortOverride(Integer.parseInt(node.getTextContent()));
+                        }
+                        else if (name.equals("ActiveDirectoryApplicationId")) {
+                            tenant.setActiveDirectoryApplicationId(node.getTextContent());
+                        }
+                        else if (name.equals("ActiveDirectoryApplicationSecret")) {
+                            tenant.setActiveDirectoryApplicationSecret(node.getTextContent());
+                        }
+                        else if (name.equals("ActiveDirectoryTenantId")) {
+                            tenant.setActiveDirectoryTenantId(node.getTextContent());
                         }
                         else if (!premiumBlob){
                             throw new IllegalArgumentException(String.format(

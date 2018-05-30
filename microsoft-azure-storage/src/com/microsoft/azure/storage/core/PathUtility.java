@@ -98,8 +98,8 @@ public final class PathUtility {
      * 
      * @param uriList
      *            The base Uri.
-     * @param relativeOrAbslouteUri
-     *            The relative or absloute URI.
+     * @param relativeOrAbsoluteUri
+     *            The relative or absolute URI.
      * @return The appended Uri.
      * @throws URISyntaxException
      */
@@ -113,8 +113,8 @@ public final class PathUtility {
      * 
      * @param uriList
      *            The base Uri.
-     * @param relativeOrAbslouteUri
-     *            The relative or absloute URI.
+     * @param relativeOrAbsoluteUri
+     *            The relative or absolute URI.
      * @return The appended Uri.
      * @throws URISyntaxException
      */
@@ -127,9 +127,9 @@ public final class PathUtility {
     /**
      * Appends a path to a URI correctly using "/" as separator.
      * 
-     * @param uriList
+     * @param uri
      *            The base Uri.
-     * @param relativeOrAbslouteUri
+     * @param relativeOrAbsoluteUri
      *            The relative or absloute URI.
      * @return The appended Uri.
      * @throws URISyntaxException
@@ -421,7 +421,7 @@ public final class PathUtility {
     /**
      * Get the service client address from a complete Uri.
      * 
-     * @param address
+     * @param addressUri
      *            Complete address of the resource.
      * @param usePathStyleUris
      *            a value indicating if the address is a path style uri.
@@ -440,7 +440,7 @@ public final class PathUtility {
      * 
      * @param parseString
      *            the string to parse
-     * @return a HashMap<String, String[]> of the key values.
+     * @return a HashMap&lt;String, String[]&gt; of the key values.
      * @throws StorageException
      */
     public static HashMap<String, String[]> parseQueryString(String parseString) throws StorageException {
