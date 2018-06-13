@@ -202,6 +202,47 @@ final class BlobRequest {
 
     /**
      * Creates a request to copy a blob, Sign with 0 length.
+     *
+     * @param uri
+     *            A <code>java.net.URI</code> object that specifies the absolute URI.
+     * @param blobOptions
+     *            A {@link BlobRequestOptions} object that specifies execution options such as retry policy and timeout
+     *            settings for the operation. Specify <code>null</code> to use the request options specified on the
+     *            {@link CloudBlobClient}.
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @param sourceAccessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the source blob.
+     * @param destinationAccessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the destination blob.
+     * @param source
+     *            The canonical path to the source blob, in the form /<account-name>/<container-name>/<blob-name>.
+     * @param sourceSnapshotID
+     *            The snapshot version, if the source blob is a snapshot.
+     * @param incrementalCopy
+     *            A boolean indicating whether or not this is an incremental copy.
+     * @param premiumPageBlobTier
+     *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
+     * @return a HttpURLConnection configured for the operation.
+     * @throws StorageException
+     *             an exception representing any error which occurred during the operation.
+     * @throws IllegalArgumentException
+     * @throws IOException
+     * @throws URISyntaxException
+     */
+    public static HttpURLConnection copyFrom(final URI uri, final BlobRequestOptions blobOptions,
+                                             final OperationContext opContext, final AccessCondition sourceAccessCondition,
+                                             final AccessCondition destinationAccessCondition, String source, final String sourceSnapshotID,
+                                             final boolean incrementalCopy, final PremiumPageBlobTier premiumPageBlobTier)
+            throws StorageException, IOException, URISyntaxException {
+
+        return copyFrom(uri, blobOptions, opContext, sourceAccessCondition, destinationAccessCondition, source, sourceSnapshotID, incrementalCopy, false, null, premiumPageBlobTier);
+    }
+
+    /**
+     * Creates a request to copy a blob, Sign with 0 length.
      * 
      * @param uri
      *            A <code>java.net.URI</code> object that specifies the absolute URI.
@@ -221,7 +262,7 @@ final class BlobRequest {
      *            The canonical path to the source blob, in the form /<account-name>/<container-name>/<blob-name>.
      * @param contentMd5
      *            An optional hash value used to ensure transactional integrity for the operation. May be {@code null}
-     *            or an empty string.
+     *            or an empty string. If the blob being copied is within the same account, this value will be ignored.
      * @param sourceSnapshotID
      *            The snapshot version, if the source blob is a snapshot.
      * @param incrementalCopy
@@ -603,6 +644,10 @@ final class BlobRequest {
      *            Number of bytes in the range.
      */
     private static void addRangeImpl(String header, HttpURLConnection request, Long offset, Long count) {
+        if (count != null) {
+            Utility.assertNotNull("offset", offset);
+            Utility.assertInBounds("count", count, 1, Long.MAX_VALUE);
+        }
         if (offset != null) {
             long rangeStart = offset;
             long rangeEnd;
@@ -1311,7 +1356,7 @@ final class BlobRequest {
     }
 
     /**
-     * Constructs a HttpURLConnection to upload a block. Sign with length of block data.
+     * Constructs a HttpURLConnection to create a block. Sign with length of block data.
      * 
      * @param uri
      *            A <code>java.net.URI</code> object that specifies the absolute URI.

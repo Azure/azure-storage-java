@@ -187,6 +187,47 @@ public final class CloudBlockBlob extends CloudBlob {
      *
      * @param sourceBlob
      *            A <code>CloudBlockBlob</code> object that represents the source blob to copy.
+     * @param sourceAccessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the source blob.
+     * @param destinationAccessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the destination blob.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     *
+     * @return A <code>String</code> which represents the copy ID associated with the copy operation.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     * @throws URISyntaxException
+     *
+     */
+    @DoesServiceRequest
+    public final String startCopy(final CloudBlockBlob sourceBlob, final AccessCondition sourceAccessCondition,
+                                  final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
+            throws StorageException, URISyntaxException {
+        Utility.assertNotNull("sourceBlob", sourceBlob);
+
+        URI source = sourceBlob.getSnapshotQualifiedUri();
+        if (sourceBlob.getServiceClient() != null && sourceBlob.getServiceClient().getCredentials() != null)
+        {
+            source = sourceBlob.getServiceClient().getCredentials().transformUri(sourceBlob.getSnapshotQualifiedUri());
+        }
+
+        return this.startCopy(sourceBlob, null /* contentMd5 */, false /* syncCopy */, sourceAccessCondition, destinationAccessCondition, options, opContext);
+    }
+
+    /**
+     * Requests the service to start copying a block blob's contents, properties, and metadata to a new block blob,
+     * using the specified access conditions, lease ID, request options, and operation context.
+     *
+     * @param sourceBlob
+     *            A <code>CloudBlockBlob</code> object that represents the source blob to copy.
      * @param contentMd5
      *            An optional hash value used to ensure transactional integrity for the operation. May be
      *            <code>null</code> or empty.
@@ -224,7 +265,7 @@ public final class CloudBlockBlob extends CloudBlob {
             source = sourceBlob.getServiceClient().getCredentials().transformUri(sourceBlob.getSnapshotQualifiedUri());
         }
 
-        return this.startCopy(source, contentMd5, syncCopy, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(source, contentMd5, syncCopy, null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
@@ -278,7 +319,7 @@ public final class CloudBlockBlob extends CloudBlob {
        Utility.assertNotNull("sourceFile", sourceFile);
        return this.startCopy(
                sourceFile.getServiceClient().getCredentials().transformUri(sourceFile.getUri()), null, false,
-               sourceAccessCondition, destinationAccessCondition, options, opContext);
+               null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
    }
 
     /**
@@ -1156,7 +1197,7 @@ public final class CloudBlockBlob extends CloudBlob {
     }
 
     /**
-     * Uploads a block to be committed as part of the block blob, using the specified block ID and the source URL.
+     * Creates a block to be committed as part of the block blob, using the specified block ID and the source URL.
      *
      * @param blockId
      *            A <code>String</code> that represents the Base-64 encoded block ID. Note for a given blob the length
@@ -1175,15 +1216,15 @@ public final class CloudBlockBlob extends CloudBlob {
      *             If a storage service error occurred.
      */
     @DoesServiceRequest
-    public void uploadBlockFromURI(final String blockId, final URI copySource, final long offset,
+    public void createBlockFromURI(final String blockId, final URI copySource, final Long offset,
                                    final Long length)
             throws StorageException, IOException {
-        this.uploadBlockFromURI(blockId, copySource, offset, length, null /* md5 */,
+        this.createBlockFromURI(blockId, copySource, offset, length, null /* md5 */,
                 null /* accessCondition */,null /* options */, null /* opContext */);
     }
 
     /**
-     * Uploads a block to be committed as part of the block blob, using the specified block ID, the specified source
+     * Creates a block to be committed as part of the block blob, using the specified block ID, the specified source
      * URL, the specified lease ID, request options, and operation context.
      *
      * @param blockId
@@ -1214,7 +1255,7 @@ public final class CloudBlockBlob extends CloudBlob {
      *             If a storage service error occurred.
      */
     @DoesServiceRequest
-    public void uploadBlockFromURI(final String blockId, final URI copySource, final long offset, final Long length,
+    public void createBlockFromURI(final String blockId, final URI copySource, final Long offset, final Long length,
                                    String md5, final AccessCondition accessCondition, BlobRequestOptions options,
                                    OperationContext opContext)
             throws StorageException {
@@ -1242,12 +1283,12 @@ public final class CloudBlockBlob extends CloudBlob {
             throw new IllegalArgumentException(SR.COPY_SIZE_GREATER_THAN_100MB);
         }
 
-        this.uploadBlockFromURIInternal(blockId, copySource, offset, length, md5,
+        this.createBlockFromURIInternal(blockId, copySource, offset, length, md5,
                 accessCondition, options, opContext);
     }
 
     /**
-     * Uploads a block to be committed as part of the block blob, using the specified block ID, the specified source
+     * Creates a block to be committed as part of the block blob, using the specified block ID, the specified source
      * URL, the specified lease ID, request options, and operation context.
      *
      * @param blockId
@@ -1278,15 +1319,15 @@ public final class CloudBlockBlob extends CloudBlob {
      *             If a storage service error occurred.
      */
     @DoesServiceRequest
-    private void uploadBlockFromURIInternal(final String blockId, final URI copySource, final long offset, final Long length,
+    private void createBlockFromURIInternal(final String blockId, final URI copySource, final Long offset, final Long length,
                                             String md5, final AccessCondition accessCondition, BlobRequestOptions options,
                                             OperationContext opContext) throws StorageException {
         ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                uploadBlockFromURIImpl(blockId, copySource, offset, length, md5, accessCondition, options, opContext),
+                createBlockFromURIImpl(blockId, copySource, offset, length, md5, accessCondition, options, opContext),
                 options.getRetryPolicyFactory(), opContext);
     }
 
-    private StorageRequest<CloudBlobClient, CloudBlob, Void> uploadBlockFromURIImpl(final String blockId, final URI copySource, final long offset, final Long length,
+    private StorageRequest<CloudBlobClient, CloudBlob, Void> createBlockFromURIImpl(final String blockId, final URI copySource, final Long offset, final Long length,
                                                                                     final String md5, final AccessCondition accessCondition,
                                                                                     final BlobRequestOptions options, final OperationContext opContext) {
 

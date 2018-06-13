@@ -629,7 +629,7 @@ public abstract class CloudBlob implements ListBlobItem {
      */
     @DoesServiceRequest
     public final String startCopy(final URI source) throws StorageException {
-        return this.startCopy(source, null /* contentMd5 */, false /* syncCopy */, null /* sourceAccessCondition */, null /* destinationAccessCondition */,
+        return this.startCopy(source, null /* sourceAccessCondition */, null /* destinationAccessCondition */,
                 null /* options */, null /* opContext */);
     }
 
@@ -640,11 +640,6 @@ public abstract class CloudBlob implements ListBlobItem {
      * @param source
      *            A <code>java.net.URI</code> The source URI.  URIs for resources outside of Azure
      *            may only be copied into block blobs.
-     * @param contentMd5
-     *            An optional hash value used to ensure transactional integrity for the operation. May be
-     *            <code>null</code> or empty.
-     * @param syncCopy
-     *            A <code>boolean</code> which indicates if the copy should be done synchronously on the service.
      * @param sourceAccessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the source.
      * @param destinationAccessCondition
@@ -665,10 +660,48 @@ public abstract class CloudBlob implements ListBlobItem {
      *
      */
     @DoesServiceRequest
-    public final String startCopy(final URI source, String contentMd5, boolean syncCopy, final AccessCondition sourceAccessCondition,
+    public final String startCopy(final URI source, final AccessCondition sourceAccessCondition,
                                   final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException {
-        return this.startCopy(source, contentMd5, syncCopy, null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(source,null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
+    }
+
+    /**
+     * Requests the service to start copying a URI's contents, properties, and metadata to a new blob, using the
+     * specified premium page blob tier, access conditions, lease ID, request options, and operation context.
+     * <p>
+     * Note: Setting the premiumPageBlobTier is only supported for premium accounts.
+     * </p>
+     * @param source
+     *            A <code>java.net.URI</code> The source URI.  URIs for resources outside of Azure
+     *            may only be copied into block blobs.
+     * @param premiumPageBlobTier
+     *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
+     * @param sourceAccessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the source.
+     * @param destinationAccessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the destination.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request.
+     *            Specifying <code>null</code> will use the default request options from the associated
+     *            service client ({@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation.
+     *            This object is used to track requests to the storage service, and to provide additional
+     *            runtime information about the operation.
+     *
+     * @return A <code>String</code> which represents the copy ID associated with the copy operation.
+     *
+     * @throws StorageException
+     *            If a storage service error occurred.
+     *
+     */
+    @DoesServiceRequest
+    protected final String startCopy(final URI source, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
+                                     final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
+            throws StorageException {
+        return startCopy(source, null /* contentMd5 */, false /* syncCopy */, premiumPageBlobTier, sourceAccessCondition,
+                destinationAccessCondition, options, opContext);
     }
 
     /**

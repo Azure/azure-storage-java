@@ -625,7 +625,6 @@ public class CloudBlockBlobTests {
         CloudBlockBlob destination = this.container.getBlockBlobReference("destination");
         destination.commitBlockList(new ArrayList<BlockEntry>());
 
-        String copyId = null;
         boolean exceptionThrown = false;
         // Test that setting an md5 without sync copy is disallowed.
         try {
@@ -650,7 +649,7 @@ public class CloudBlockBlobTests {
             String md5 = Base64.encode(MessageDigest.getInstance("MD5").digest(data.getBytes()));
 
             // Start a sync copy with a correct md5. Should succeed.
-            copyId = destination.startCopy(source, md5,true, null, null, null, null);
+            destination.startCopy(source, md5,true, null, null, null, null);
         }
         assertTrue(exceptionThrown);
 
@@ -713,7 +712,7 @@ public class CloudBlockBlobTests {
             }
         });
 
-        copyDestination.startCopy(copySource.getUri(), null, false, null, null, null, ctx);
+        copyDestination.startCopy(copySource.getUri(), null, false, null, null, null, null, ctx);
         copyDestination.startCopy(copySource, null, false, null, null, null, ctx);
     }
 
@@ -1258,19 +1257,19 @@ public class CloudBlockBlobTests {
                 .generateRandomBlobNameWithPrefix("copyBlob"));
         Map<String, BlockEntry> blocks = BlobTestHelper.getBlockEntryList(2);
         // Copy the first half of the blob.
-        blob2.uploadBlockFromURI(((BlockEntry)blocks.values().toArray()[0]).getId(), blob.getUri(), 0, 5L);
+        blob2.createBlockFromURI(((BlockEntry)blocks.values().toArray()[0]).getId(), blob.getUri(), 0L, 5L);
 
         // Copy the second half of the blob, specifying the MD5 and setting null for the length to indicate the remainder of the blob.
         String md5 = Base64.encode(MessageDigest.getInstance("MD5").digest(text.substring(5).getBytes()));
         boolean exceptionThrown = false;
         try {
-            blob2.uploadBlockFromURI(((BlockEntry) blocks.values().toArray()[1]).getId(), blob.getUri(), 5, null,
+            blob2.createBlockFromURI(((BlockEntry) blocks.values().toArray()[1]).getId(), blob.getUri(), 5L, null,
                     Base64.encode(MessageDigest.getInstance("MD5").digest("garbage".getBytes())), null, null, null);
         }
         catch (StorageException e) {
             exceptionThrown = true;
             assertEquals("Md5Mismatch", e.getErrorCode());
-            blob2.uploadBlockFromURI(((BlockEntry) blocks.values().toArray()[1]).getId(), blob.getUri(), 5, null, md5, null, null, null);
+            blob2.createBlockFromURI(((BlockEntry) blocks.values().toArray()[1]).getId(), blob.getUri(), 5L, null, md5, null, null, null);
         }
         assertTrue(exceptionThrown);
 
