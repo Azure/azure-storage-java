@@ -23,7 +23,6 @@ import com.microsoft.azure.storage.table.CloudTableClient;
 import com.microsoft.azure.storage.TestRunners.CloudTests;
 import com.microsoft.azure.storage.TestRunners.DevFabricTests;
 import com.microsoft.azure.storage.TestRunners.DevStoreTests;
-import com.microsoft.azure.storage.TestRunners.SlowTests;
 
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -49,6 +48,7 @@ public class ServicePropertiesTests {
         ServiceClient client = TestHelper.createCloudBlobClient();
         ServiceProperties props = new ServiceProperties();
         props.setDeleteRetentionPolicy(new DeleteRetentionPolicy());
+        props.setStaticWebsiteProperties(new StaticWebsiteProperties());
         props.setDefaultServiceVersion(Constants.HeaderConstants.TARGET_STORAGE_VERSION);
         testAnalyticsDisable(client, props);
 
@@ -93,6 +93,7 @@ public class ServicePropertiesTests {
         ServiceClient client = TestHelper.createCloudBlobClient();
         ServiceProperties props = new ServiceProperties();
         props.setDeleteRetentionPolicy(new DeleteRetentionPolicy());
+        props.setStaticWebsiteProperties(new StaticWebsiteProperties());
         props.setDefaultServiceVersion(Constants.HeaderConstants.TARGET_STORAGE_VERSION);
         testAnalyticsDefaultServiceVersion(client, props);
 
@@ -154,6 +155,7 @@ public class ServicePropertiesTests {
         ServiceClient client = TestHelper.createCloudBlobClient();
         ServiceProperties props = new ServiceProperties();
         props.setDeleteRetentionPolicy(new DeleteRetentionPolicy());
+        props.setStaticWebsiteProperties(new StaticWebsiteProperties());
         props.setDefaultServiceVersion(Constants.HeaderConstants.TARGET_STORAGE_VERSION);
         testAnalyticsLoggingOperations(client, props);
 
@@ -196,6 +198,7 @@ public class ServicePropertiesTests {
         ServiceProperties props = new ServiceProperties();
         props.setDeleteRetentionPolicy(new DeleteRetentionPolicy());
         props.setDefaultServiceVersion(Constants.HeaderConstants.TARGET_STORAGE_VERSION);
+        props.setStaticWebsiteProperties(new StaticWebsiteProperties());
         testAnalyticsHourMetricsLevel(client, props, null);
 
         client = TestHelper.createCloudQueueClient();
@@ -264,6 +267,7 @@ public class ServicePropertiesTests {
         ServiceClient client = TestHelper.createCloudBlobClient();
         ServiceProperties props = new ServiceProperties();
         props.setDeleteRetentionPolicy(new DeleteRetentionPolicy());
+        props.setStaticWebsiteProperties(new StaticWebsiteProperties());
         props.setDefaultServiceVersion(Constants.HeaderConstants.TARGET_STORAGE_VERSION);
         testAnalyticsMinuteMetricsLevel(client, props, null);
 
@@ -333,6 +337,7 @@ public class ServicePropertiesTests {
         ServiceClient client = TestHelper.createCloudBlobClient();
         ServiceProperties props = new ServiceProperties();
         props.setDeleteRetentionPolicy(new DeleteRetentionPolicy());
+        props.setStaticWebsiteProperties(new StaticWebsiteProperties());
         props.setDefaultServiceVersion(Constants.HeaderConstants.TARGET_STORAGE_VERSION);
         testAnalyticsRetentionPolicies(client, props);
 
@@ -434,6 +439,7 @@ public class ServicePropertiesTests {
             ServiceProperties expectedServiceProperties = new ServiceProperties();
             expectedServiceProperties.setDeleteRetentionPolicy(new DeleteRetentionPolicy());
             expectedServiceProperties.setDefaultServiceVersion(Constants.HeaderConstants.TARGET_STORAGE_VERSION);
+            expectedServiceProperties.setStaticWebsiteProperties(new StaticWebsiteProperties());
 
             if (enabled) {
                 expectedServiceProperties.getDeleteRetentionPolicy().setEnabled(true);
@@ -532,6 +538,7 @@ public class ServicePropertiesTests {
             ServiceProperties currentServiceProperties = new ServiceProperties();
             currentServiceProperties.setDeleteRetentionPolicy(new DeleteRetentionPolicy());
             currentServiceProperties.setDefaultServiceVersion(Constants.HeaderConstants.TARGET_STORAGE_VERSION);
+            currentServiceProperties.setStaticWebsiteProperties(new StaticWebsiteProperties());
             currentServiceProperties.getDeleteRetentionPolicy().setEnabled(true);
             currentServiceProperties.getDeleteRetentionPolicy().setRetentionIntervalInDays(5);
             callUploadServiceProps(client, currentServiceProperties, null);
@@ -554,6 +561,79 @@ public class ServicePropertiesTests {
         }
     }
 
+    @Test
+    public void testValidStaticWebsiteProperties() throws StorageException, InterruptedException {
+        ServiceClient client = TestHelper.createCloudBlobClient();
+        // average setting
+        testValidStaticWebsiteProperties(client, true, "index.html", "errors/error/404error.html");
+
+        // disabled setting
+        testValidStaticWebsiteProperties(client, false, "index.html", "errors/error/404error.html");
+    }
+
+    private void testValidStaticWebsiteProperties(ServiceClient client, boolean enabled, String index, String pathTo404) throws InterruptedException, StorageException {
+        try {
+            ServiceProperties expectedServiceProperties = new ServiceProperties();
+            expectedServiceProperties.setDeleteRetentionPolicy(new DeleteRetentionPolicy());
+            expectedServiceProperties.setStaticWebsiteProperties(new StaticWebsiteProperties());
+            expectedServiceProperties.setDefaultServiceVersion(Constants.HeaderConstants.TARGET_STORAGE_VERSION);
+
+            if (enabled) {
+                expectedServiceProperties.getStaticWebsiteProperties().setEnabled(true);
+                expectedServiceProperties.getStaticWebsiteProperties().setIndexDocument(index);
+                expectedServiceProperties.getStaticWebsiteProperties().setErrorDocument404Path(pathTo404);
+                callUploadServiceProps(client, expectedServiceProperties, null);
+            } else {
+                // index document and error document path will be ignored by the service when the properties are not enabled.
+                ServiceProperties propertiesToUpload = new ServiceProperties();
+                propertiesToUpload.setStaticWebsiteProperties(new StaticWebsiteProperties());
+                propertiesToUpload.getStaticWebsiteProperties().setIndexDocument(index);
+                propertiesToUpload.getStaticWebsiteProperties().setErrorDocument404Path(pathTo404);
+
+                expectedServiceProperties.getStaticWebsiteProperties().setEnabled(false);
+                callUploadServiceProps(client, propertiesToUpload, null);
+            }
+
+            // verify
+            assertServicePropertiesAreEqual(expectedServiceProperties, callDownloadServiceProperties(client));
+        }
+        finally {
+            // disable the static websites
+            ServiceProperties disabledStaticWebsiteProperties = new ServiceProperties();
+            disabledStaticWebsiteProperties.setStaticWebsiteProperties(new StaticWebsiteProperties());
+            callUploadServiceProps(client, disabledStaticWebsiteProperties, null);
+        }
+    }
+
+    @Test
+    public void testEmptyStaticWebsiteProperties() throws StorageException, InterruptedException {
+        ServiceClient client = TestHelper.createCloudBlobClient();
+
+        // set up initial static website properties
+        ServiceProperties currentServiceProperties = new ServiceProperties();
+        StaticWebsiteProperties properties = new StaticWebsiteProperties();
+        properties.setEnabled(true);
+        properties.setIndexDocument("index.html");
+        properties.setErrorDocument404Path("path/to/404");
+        currentServiceProperties.setStaticWebsiteProperties(properties);
+        currentServiceProperties.setDefaultServiceVersion(Constants.HeaderConstants.TARGET_STORAGE_VERSION);
+        currentServiceProperties.setDeleteRetentionPolicy(new DeleteRetentionPolicy());
+        callUploadServiceProps(client, currentServiceProperties, null);
+
+        // verify
+        assertServicePropertiesAreEqual(currentServiceProperties, callDownloadServiceProperties(client));
+
+        // try to upload empty properties
+        ServiceProperties emptyServiceProperties = new ServiceProperties();
+        emptyServiceProperties.setDefaultServiceVersion(Constants.HeaderConstants.TARGET_STORAGE_VERSION);
+        emptyServiceProperties.setDeleteRetentionPolicy(new DeleteRetentionPolicy());
+        emptyServiceProperties.setStaticWebsiteProperties(new StaticWebsiteProperties());
+        callUploadServiceProps(client, emptyServiceProperties, null);
+
+        // verify
+        assertServicePropertiesAreEqual(emptyServiceProperties, callDownloadServiceProperties(client));
+    }
+
     /**
      * Test CORS with different rules.
      *
@@ -565,6 +645,7 @@ public class ServicePropertiesTests {
         ServiceClient client = TestHelper.createCloudBlobClient();
         ServiceProperties props = new ServiceProperties();
         props.setDeleteRetentionPolicy(new DeleteRetentionPolicy());
+        props.setStaticWebsiteProperties(new StaticWebsiteProperties());
         props.setDefaultServiceVersion(Constants.HeaderConstants.TARGET_STORAGE_VERSION);
         testCloudValidCorsRules(client, props, null);
 
@@ -689,6 +770,7 @@ public class ServicePropertiesTests {
         ServiceClient client = TestHelper.createCloudBlobClient();
         ServiceProperties props = new ServiceProperties();
         props.setDeleteRetentionPolicy(new DeleteRetentionPolicy());
+        props.setStaticWebsiteProperties(new StaticWebsiteProperties());
         props.setDefaultServiceVersion(Constants.HeaderConstants.TARGET_STORAGE_VERSION);
         testCorsExpectedExceptions(client, props, null);
 
@@ -753,6 +835,7 @@ public class ServicePropertiesTests {
         ServiceClient client = TestHelper.createCloudBlobClient();
         ServiceProperties props = new ServiceProperties();
         props.setDeleteRetentionPolicy(new DeleteRetentionPolicy());
+        props.setStaticWebsiteProperties(new StaticWebsiteProperties());
         props.setDefaultServiceVersion(Constants.HeaderConstants.TARGET_STORAGE_VERSION);
         testCorsMaxOrigins(client, props, null);
 
@@ -805,6 +888,7 @@ public class ServicePropertiesTests {
         ServiceClient client = TestHelper.createCloudBlobClient();
         ServiceProperties props = new ServiceProperties();
         props.setDeleteRetentionPolicy(new DeleteRetentionPolicy());
+        props.setStaticWebsiteProperties(new StaticWebsiteProperties());
         props.setDefaultServiceVersion(Constants.HeaderConstants.TARGET_STORAGE_VERSION);
         testCorsMaxHeaders(client, props, null);
 
@@ -909,6 +993,7 @@ public class ServicePropertiesTests {
         ServiceClient client = TestHelper.createCloudBlobClient();
         ServiceProperties props = new ServiceProperties();
         props.setDeleteRetentionPolicy(new DeleteRetentionPolicy());
+        props.setStaticWebsiteProperties(new StaticWebsiteProperties());
         props.setDefaultServiceVersion(Constants.HeaderConstants.TARGET_STORAGE_VERSION);
         testOptionalServiceProperties(client, props);
 
@@ -991,7 +1076,7 @@ public class ServicePropertiesTests {
         else {
             fail();
         }
-        
+
         // It may take up to 30 seconds for the settings to take effect, but the new properties are immediately
         // visible when querying service properties.
     }
@@ -1143,6 +1228,16 @@ public class ServicePropertiesTests {
         else {
             assertNull(propsA.getDeleteRetentionPolicy());
             assertNull(propsB.getDeleteRetentionPolicy());
+        }
+
+        if (propsA.getStaticWebsiteProperties() != null && propsB.getStaticWebsiteProperties() != null) {
+            assertEquals(propsA.getStaticWebsiteProperties().getEnabled(), propsB.getStaticWebsiteProperties().getEnabled());
+            assertEquals(propsA.getStaticWebsiteProperties().getIndexDocument(), propsB.getStaticWebsiteProperties().getIndexDocument());
+            assertEquals(propsA.getStaticWebsiteProperties().getErrorDocument404Path(), propsB.getStaticWebsiteProperties().getErrorDocument404Path());
+        }
+        else {
+            assertNull(propsA.getStaticWebsiteProperties());
+            assertNull(propsB.getStaticWebsiteProperties());
         }
     }
 

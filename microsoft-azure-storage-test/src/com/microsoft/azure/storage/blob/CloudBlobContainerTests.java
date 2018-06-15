@@ -21,16 +21,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
-import java.util.TimeZone;
-import java.util.UUID;
+import java.util.*;
 
 import org.junit.After;
 import org.junit.Before;
@@ -88,6 +79,7 @@ public class CloudBlobContainerTests {
         NameValidator.validateContainerName("middle-dash");
         NameValidator.validateContainerName("$root");
         NameValidator.validateContainerName("$logs");
+        NameValidator.validateContainerName("$web");
 
         invalidContainertTestHelper(null, "Null containers invalid.", "Invalid container name. The name may not be null, empty, or whitespace only.");
         invalidContainertTestHelper("$ROOT", "Root container case sensitive.", "Invalid container name. Check MSDN for more information about valid naming.");
@@ -915,6 +907,96 @@ public class CloudBlobContainerTests {
             assertNotNull(state2.getSource());
             assertEquals(state1.getStatus(), state2.getStatus());
             assertEquals(Long.valueOf(length), state2.getTotalBytes());
+        }
+    }
+
+    private void validateWebContainer(CloudBlobContainer webContainer) throws URISyntaxException, StorageException, IOException {
+        CloudBlockBlob blob0 = webContainer.getBlockBlobReference("blob");
+        // Content type is important for the $web container
+        blob0.getProperties().setContentType("multipart/form-data; boundary=thingz");
+        CloudBlockBlob blob1 = webContainer.getBlockBlobReference("blob/abcd");
+        blob1.getProperties().setContentType("image/gif");
+        CloudBlockBlob blob2 = webContainer.getBlockBlobReference("blob/other.html");
+        blob2.getProperties().setContentType("text/html; charset=utf-8");
+
+        List<CloudBlockBlob> expectedBlobs = Arrays.asList(blob0, blob1, blob2);
+        List<String> texts = Arrays.asList("blob0text", "blob1text", "blob2text");
+        for(int i=0; i<3; i++) {
+            expectedBlobs.get(i).uploadText(texts.get(i));
+        }
+        Iterable<ListBlobItem> blobs = webContainer.listBlobs("", true);
+        int i = 0;
+        for (ListBlobItem blob : blobs) {
+            CloudBlob cloudBlob = (CloudBlob)blob;
+            assertEquals(expectedBlobs.get(i).getName(), cloudBlob.getName());
+            assertEquals(expectedBlobs.get(i).getProperties().getContentType(), cloudBlob.getProperties().getContentType());
+            assertEquals(texts.get(i), ((CloudBlockBlob)cloudBlob).downloadText());
+            i++;
+        }
+        assertEquals(expectedBlobs.size(), i);
+    }
+
+    @Test
+    @Category({ DevFabricTests.class, DevStoreTests.class })
+    public void testCloudBlobContainerWebContainer() throws StorageException, URISyntaxException, InterruptedException, IOException, InvalidKeyException {
+        // Test operations with Shared Key
+        CloudBlobClient blobClient = TestHelper.createCloudBlobClient();
+        CloudBlobContainer webContainer = blobClient.getContainerReference("$web");
+        try {
+            webContainer.deleteIfExists();
+            assertFalse(webContainer.exists());
+            long now = System.currentTimeMillis();
+
+            while(true) {
+                try{
+                    if (webContainer.createIfNotExists() || (System.currentTimeMillis()-now)/1000 < 30) {
+                        break;
+                    }
+                }
+                catch (Exception e){
+                    Thread.sleep(1000);
+                }
+            }
+            assertTrue(webContainer.exists());
+            boolean webContainerFound = false;
+            for(CloudBlobContainer container :blobClient.listContainers("$")) {
+                if (container.getName().equals(webContainer.getName())) {
+                    webContainerFound = true;
+                }
+            }
+            assertTrue(webContainerFound);
+
+            validateWebContainer(webContainer);
+
+            // Clearing out the old data is faster than deleting/recreating.
+            for (ListBlobItem blob : webContainer.listBlobs("", true)) {
+                CloudBlob cloudBlob = (CloudBlob)blob;
+                cloudBlob.delete();
+            }
+
+            // Test operations with SAS
+            Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+            cal.setTime(new Date());
+            cal.add(Calendar.SECOND, 60);
+            SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy();
+            policy.setSharedAccessExpiryTime(cal.getTime());
+            policy.setPermissions(EnumSet.of(SharedAccessBlobPermissions.READ, SharedAccessBlobPermissions.WRITE, SharedAccessBlobPermissions.LIST,
+                    SharedAccessBlobPermissions.DELETE));
+            String sas = webContainer.generateSharedAccessSignature(policy, null);
+            CloudBlobContainer sasContainer = new CloudBlobContainer(webContainer.getUri(), new StorageCredentialsSharedAccessSignature(sas));
+            validateWebContainer(sasContainer);
+            webContainer.delete();
+
+            webContainerFound = false;
+            for(CloudBlobContainer container :blobClient.listContainers("$")) {
+                if (container.getName().equals(webContainer.getName())) {
+                    webContainerFound = true;
+                }
+            }
+            assertFalse(webContainerFound);
+        }
+        finally {
+            webContainer.deleteIfExists();
         }
     }
 }
