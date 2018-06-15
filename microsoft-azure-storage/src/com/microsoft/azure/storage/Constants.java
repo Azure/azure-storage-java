@@ -204,6 +204,21 @@ public final class Constants {
         public static final String RETENTION_POLICY_ELEMENT = "RetentionPolicy";
 
         /**
+         * The XML element for Static Website.
+         */
+        public static final String STATIC_WEBSITE_ELEMENT = "StaticWebsite";
+
+        /**
+         * The XML element for IndexDocument
+         */
+        public static final String STATIC_WEBSITE_INDEX_DOCUMENT_ELEMENT = "IndexDocument";
+
+        /**
+         * THe XML element for ErroDocument404PathName.
+         */
+        public static final String STATIC_WEBSITE_ERROR_DOCUMENT_404_PATH_ELEMENT = "ErrorDocument404Path";
+
+        /**
          * The XML element for the StorageServiceProperties
          */
         public static final String STORAGE_SERVICE_PROPERTIES_ELEMENT = "StorageServiceProperties";
@@ -655,7 +670,7 @@ public final class Constants {
         /**
          * The current storage version header value.
          */
-        public static final String TARGET_STORAGE_VERSION = "2017-11-09";
+        public static final String TARGET_STORAGE_VERSION = "2018-03-28";
 
         /**
          * The header that specifies the next visible time for a queue message.

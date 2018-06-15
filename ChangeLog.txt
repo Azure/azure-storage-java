@@ -1,3 +1,7 @@
+XXXX.XX.XX Version X.X.X
+ * Support for 2018-03-28 REST version. Please see our REST API documentation and blogs for information about the related added features.
+ * Added support for static website properties.
+
 2018.05.22 Version 7.1.0
  * Support for 2017-11-09 REST version. Please see our REST API documentation and blogs for information about the related added features.
  * Added OAuth token support for authentication with HTTPS requests.

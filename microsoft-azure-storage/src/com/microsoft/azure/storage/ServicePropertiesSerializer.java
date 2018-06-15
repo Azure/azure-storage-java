@@ -81,6 +81,11 @@ final class ServicePropertiesSerializer {
             writeDeleteRetentionPolicy(xmlw, properties.getDeleteRetentionPolicy());
         }
 
+        // Static websites properties
+        if (properties.getStaticWebsiteProperties() != null) {
+            writeStaticWebsiteProperties(xmlw, properties.getStaticWebsiteProperties());
+        }
+
         // end StorageServiceProperties
         xmlw.writeEndElement();
 
@@ -121,6 +126,39 @@ final class ServicePropertiesSerializer {
         }
 
         // end deleteRetentionPolicy
+        xmlw.writeEndElement();
+    }
+
+    /**
+     * Writes the given static website policy to the XMLStreamWriter.
+     * @param xmlw
+     *           the XMLStreamWriter to write to.
+     * @param staticWebsiteProperties
+     *           the static website properties to write.
+     * @throws XMLStreamException
+     */
+    private static void writeStaticWebsiteProperties(final XMLStreamWriter xmlw, final StaticWebsiteProperties staticWebsiteProperties) throws XMLStreamException {
+        // staticWebsiteProperties
+        xmlw.writeStartElement(Constants.AnalyticsConstants.STATIC_WEBSITE_ELEMENT);
+
+        // Enabled
+        xmlw.writeStartElement(Constants.AnalyticsConstants.ENABLED_ELEMENT);
+        xmlw.writeCharacters(staticWebsiteProperties.getEnabled() ? Constants.TRUE : Constants.FALSE);
+        xmlw.writeEndElement();
+
+        if (staticWebsiteProperties.getEnabled()) {
+            // Include static websites index document.
+            xmlw.writeStartElement(Constants.AnalyticsConstants.STATIC_WEBSITE_INDEX_DOCUMENT_ELEMENT);
+            xmlw.writeCharacters(staticWebsiteProperties.getIndexDocument());
+            xmlw.writeEndElement();
+
+            // Include static websites 404 path name.
+            xmlw.writeStartElement(Constants.AnalyticsConstants.STATIC_WEBSITE_ERROR_DOCUMENT_404_PATH_ELEMENT);
+            xmlw.writeCharacters(staticWebsiteProperties.getErrorDocument404Path());
+            xmlw.writeEndElement();
+        }
+
+        // end staticWebsiteProperties
         xmlw.writeEndElement();
     }
 
