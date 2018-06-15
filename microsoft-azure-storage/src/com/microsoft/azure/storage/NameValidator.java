@@ -45,7 +45,7 @@ public class NameValidator {
 	 *            A String representing the container name to validate.
 	 */
 	public static void validateContainerName(String containerName) {
-		if (!("$root".equals(containerName) || "$logs".equals(containerName))) {
+		if (!("$root".equals(containerName) || "$logs".equals(containerName) || "$web".equals(containerName))) {
 			NameValidator.validateShareContainerQueueHelper(containerName, SR.CONTAINER);
 		}
 	}

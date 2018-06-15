@@ -63,6 +63,7 @@ final class ServicePropertiesHandler extends DefaultHandler {
         handler.props.setMinuteMetrics(null);
         handler.props.setCors(null);
         handler.props.setDeleteRetentionPolicy(null);
+        handler.props.setStaticWebsiteProperties(null);
         saxParser.parse(stream, handler);
 
         return handler.props;
@@ -89,6 +90,9 @@ final class ServicePropertiesHandler extends DefaultHandler {
         }
         else if (Constants.AnalyticsConstants.DELETE_RETENTION_POLICY_ELEMENT.equals(localName)) {
             this.props.setDeleteRetentionPolicy(new DeleteRetentionPolicy());
+        }
+        else if (Constants.AnalyticsConstants.STATIC_WEBSITE_ELEMENT.equals(localName)) {
+            this.props.setStaticWebsiteProperties(new StaticWebsiteProperties());
         }
     }
 
@@ -230,6 +234,23 @@ final class ServicePropertiesHandler extends DefaultHandler {
             else if (Constants.AnalyticsConstants.DAYS_ELEMENT.equals(currentNode)) {
                 if (value != null) {
                     this.props.getDeleteRetentionPolicy().setRetentionIntervalInDays(Integer.parseInt(value));
+                }
+            }
+        }
+        else if (Constants.AnalyticsConstants.STATIC_WEBSITE_ELEMENT.equals(parentNode)) {
+            if (Constants.AnalyticsConstants.ENABLED_ELEMENT.equals(currentNode)) {
+                if (value != null) {
+                    this.props.getStaticWebsiteProperties().setEnabled(Boolean.parseBoolean(value));
+                }
+            }
+            else if (Constants.AnalyticsConstants.STATIC_WEBSITE_INDEX_DOCUMENT_ELEMENT.equals(currentNode)) {
+                if (value != null) {
+                    this.props.getStaticWebsiteProperties().setIndexDocument(value);
+                }
+            }
+            else if (Constants.AnalyticsConstants.STATIC_WEBSITE_ERROR_DOCUMENT_404_PATH_ELEMENT.equals(currentNode)) {
+                if (value != null) {
+                    this.props.getStaticWebsiteProperties().setErrorDocument404Path(value);
                 }
             }
         }
