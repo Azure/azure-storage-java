@@ -254,7 +254,7 @@ public final class CloudBlockBlob extends CloudBlob {
      *
      */
     @DoesServiceRequest
-    public final String startCopy(final CloudBlockBlob sourceBlob, String contentMd5, boolean syncCopy, final AccessCondition sourceAccessCondition,
+    private final String startCopy(final CloudBlockBlob sourceBlob, String contentMd5, boolean syncCopy, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException, URISyntaxException {
         Utility.assertNotNull("sourceBlob", sourceBlob);
@@ -265,7 +265,7 @@ public final class CloudBlockBlob extends CloudBlob {
             source = sourceBlob.getServiceClient().getCredentials().transformUri(sourceBlob.getSnapshotQualifiedUri());
         }
 
-        return this.startCopy(source, contentMd5, syncCopy, null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(source, null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
@@ -318,7 +318,7 @@ public final class CloudBlockBlob extends CloudBlob {
            throws StorageException, URISyntaxException {
        Utility.assertNotNull("sourceFile", sourceFile);
        return this.startCopy(
-               sourceFile.getServiceClient().getCredentials().transformUri(sourceFile.getUri()), null, false,
+               sourceFile.getServiceClient().getCredentials().transformUri(sourceFile.getUri()),
                null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
    }
 

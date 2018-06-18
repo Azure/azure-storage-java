@@ -740,7 +740,7 @@ public abstract class CloudBlob implements ListBlobItem {
      *
      */
     @DoesServiceRequest
-    protected final String startCopy(final URI source, String contentMd5, boolean syncCopy, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
+    private final String startCopy(final URI source, String contentMd5, boolean syncCopy, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException {
         if (opContext == null) {

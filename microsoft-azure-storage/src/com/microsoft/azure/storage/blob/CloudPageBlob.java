@@ -258,7 +258,7 @@ public final class CloudPageBlob extends CloudBlob {
             source = sourceBlob.getServiceClient().getCredentials().transformUri(sourceBlob.getSnapshotQualifiedUri());
         }
 
-        return this.startCopy(source, Constants.EMPTY_STRING,false, premiumBlobTier, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(source, premiumBlobTier, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**

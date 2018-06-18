@@ -601,14 +601,14 @@ public class CloudBlockBlobTests {
         this.doCloudBlockBlobCopy(false, false, false);
     }
 
-    @Test
+    /*@Test
     @Category({ DevFabricTests.class, DevStoreTests.class, SlowTests.class })
     public void testCopyBlockBlobSyncTest() throws InterruptedException, IOException, StorageException,
             InvalidKeyException, URISyntaxException {
         this.doCloudBlockBlobCopy(false, false, true);
-    }
+    }*/
 
-    @Test
+    /*@Test
     public void testCopyBlockBlobWithSyncMd5() throws URISyntaxException, StorageException, IOException, NoSuchAlgorithmException {
         // Create source on server. We must copy from a different account or the service will not validate the md5.
         CloudBlobContainer container = BlobTestHelper.getRandomCopySourceContainerReference();
@@ -678,7 +678,7 @@ public class CloudBlockBlobTests {
         destination.delete();
         source.delete();
         container.deleteIfExists();
-    }
+    }*/
 
     @Test
     public void testCopyWithChineseChars() throws StorageException, IOException, URISyntaxException {
@@ -712,8 +712,8 @@ public class CloudBlockBlobTests {
             }
         });
 
-        copyDestination.startCopy(copySource.getUri(), null, false, null, null, null, null, ctx);
-        copyDestination.startCopy(copySource, null, false, null, null, null, ctx);
+        copyDestination.startCopy(copySource.getUri(), null, null, null, null, ctx);
+        copyDestination.startCopy(copySource, null, null, null, ctx);
     }
 
     @Test
@@ -2418,7 +2418,7 @@ public class CloudBlockBlobTests {
         Thread.sleep(30000);
 
         // Start copy and wait for completion
-        String copyId = copyDestination.startCopy(copySource, null, syncCopy, null, null, null, null);
+        String copyId = copyDestination.startCopy(copySource, null, null, null, null);
         BlobTestHelper.waitForCopy(copyDestination);
         Calendar calendar = Calendar.getInstance(Utility.UTC_ZONE);
         destination.downloadAttributes();

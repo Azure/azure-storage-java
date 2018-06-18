@@ -224,7 +224,7 @@ public final class CloudAppendBlob extends CloudBlob {
             source = sourceBlob.getServiceClient().getCredentials().transformUri(sourceBlob.getSnapshotQualifiedUri());
         }
 
-        return this.startCopy(source, null /* contentMd5 */ , false /* syncCopy */, null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(source, null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
