@@ -21,6 +21,7 @@ import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 
+import com.microsoft.azure.storage.AccountInformation;
 import com.microsoft.azure.storage.Constants;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.StorageUri;
@@ -240,6 +241,22 @@ final class BlobResponse extends BaseResponse {
         }
 
         return containerAttributes;
+    }
+
+    /**
+     * Gets the accountInformation
+     *
+     * @param request
+     *           The response from the server.
+     * @return The AccountInformation.
+     * @throws StorageException
+     */
+    public static AccountInformation getAccountInformation(final HttpURLConnection request) throws StorageException {
+        AccountInformation accountInformation = new AccountInformation();
+        accountInformation.setSkuName(request.getHeaderField(Constants.HeaderConstants.SKU_NAME));
+        accountInformation.setAccountKind(request.getHeaderField(Constants.HeaderConstants.ACCOUNT_KIND));
+
+        return accountInformation;
     }
 
     /**

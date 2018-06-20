@@ -325,6 +325,11 @@ public final class Constants {
         public static final String ACCEPT_CHARSET = "Accept-Charset";
 
         /**
+         * The header that represents the kind of storage account.
+         */
+        public static final String ACCOUNT_KIND = PREFIX_FOR_STORAGE_HEADER + "account-kind";
+
+        /**
          * The Authorization header.
          */
         public static final String AUTHORIZATION = "Authorization";
@@ -624,6 +629,11 @@ public final class Constants {
          * The header that acknowledges data used for a write operation is encrypted server-side
          */
         public static final String SERVER_REQUEST_ENCRYPTED = PREFIX_FOR_STORAGE_HEADER + "request-server-encrypted";
+
+        /**
+         * The header that specifies the sku name for an account.
+         */
+        public static final String SKU_NAME = PREFIX_FOR_STORAGE_HEADER + "sku-name";
 
         /**
          * The header that specifies the snapshot ID.

@@ -23,28 +23,14 @@ import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.util.*;
 
+import com.microsoft.azure.storage.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import com.microsoft.azure.storage.Constants;
 import com.microsoft.azure.storage.core.SR;
 import com.microsoft.azure.storage.core.UriQueryBuilder;
-import com.microsoft.azure.storage.NameValidator;
-import com.microsoft.azure.storage.OperationContext;
-import com.microsoft.azure.storage.ResultContinuation;
-import com.microsoft.azure.storage.ResultSegment;
-import com.microsoft.azure.storage.SendingRequestEvent;
-import com.microsoft.azure.storage.SharedAccessAccountPermissions;
-import com.microsoft.azure.storage.SharedAccessAccountPolicy;
-import com.microsoft.azure.storage.SharedAccessAccountResourceType;
-import com.microsoft.azure.storage.SharedAccessAccountService;
-import com.microsoft.azure.storage.StorageCredentialsSharedAccessSignature;
-import com.microsoft.azure.storage.StorageErrorCodeStrings;
-import com.microsoft.azure.storage.StorageEvent;
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.TestHelper;
 import com.microsoft.azure.storage.TestRunners.CloudTests;
 import com.microsoft.azure.storage.TestRunners.DevFabricTests;
 import com.microsoft.azure.storage.TestRunners.DevStoreTests;
@@ -909,7 +895,7 @@ public class CloudBlobContainerTests {
             assertEquals(Long.valueOf(length), state2.getTotalBytes());
         }
     }
-
+    
     private void validateWebContainer(CloudBlobContainer webContainer) throws URISyntaxException, StorageException, IOException {
         CloudBlockBlob blob0 = webContainer.getBlockBlobReference("blob");
         // Content type is important for the $web container
@@ -947,19 +933,18 @@ public class CloudBlobContainerTests {
             assertFalse(webContainer.exists());
             long now = System.currentTimeMillis();
 
-            while(true) {
-                try{
-                    if (webContainer.createIfNotExists() || (System.currentTimeMillis()-now)/1000 < 30) {
+            while (true) {
+                try {
+                    if (webContainer.createIfNotExists() || (System.currentTimeMillis() - now) / 1000 < 30) {
                         break;
                     }
-                }
-                catch (Exception e){
+                } catch (Exception e) {
                     Thread.sleep(1000);
                 }
             }
             assertTrue(webContainer.exists());
             boolean webContainerFound = false;
-            for(CloudBlobContainer container :blobClient.listContainers("$")) {
+            for (CloudBlobContainer container : blobClient.listContainers("$")) {
                 if (container.getName().equals(webContainer.getName())) {
                     webContainerFound = true;
                 }
@@ -970,7 +955,7 @@ public class CloudBlobContainerTests {
 
             // Clearing out the old data is faster than deleting/recreating.
             for (ListBlobItem blob : webContainer.listBlobs("", true)) {
-                CloudBlob cloudBlob = (CloudBlob)blob;
+                CloudBlob cloudBlob = (CloudBlob) blob;
                 cloudBlob.delete();
             }
 
@@ -988,15 +973,36 @@ public class CloudBlobContainerTests {
             webContainer.delete();
 
             webContainerFound = false;
-            for(CloudBlobContainer container :blobClient.listContainers("$")) {
+            for (CloudBlobContainer container : blobClient.listContainers("$")) {
                 if (container.getName().equals(webContainer.getName())) {
                     webContainerFound = true;
                 }
             }
             assertFalse(webContainerFound);
-        }
-        finally {
+        } finally {
             webContainer.deleteIfExists();
         }
+    }
+
+    @Test
+    @Category({ DevFabricTests.class, DevStoreTests.class })
+    public void testGetAccountInfo() throws StorageException, InvalidKeyException, URISyntaxException {
+        // Test using Shared Key.
+        AccountInformation accountInformation = this.container.downloadAccountInfo();
+        assertNotNull(accountInformation.getAccountKind());
+        assertNotNull(accountInformation.getSkuName());
+
+        // Test using SAS.
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        cal.setTime(new Date());
+        cal.add(Calendar.SECOND, 60);
+        SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy();
+        policy.setSharedAccessExpiryTime(cal.getTime());
+        policy.setPermissionsFromString("r");
+        String sas = container.generateSharedAccessSignature(policy, null);
+        CloudBlobContainer sasContainer = new CloudBlobContainer(container.getUri(), new StorageCredentialsSharedAccessSignature(sas));
+        accountInformation = sasContainer.downloadAccountInfo();
+        assertNotNull(accountInformation.getAccountKind());
+        assertNotNull(accountInformation.getSkuName());
     }
 }

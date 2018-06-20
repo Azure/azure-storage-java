@@ -14,16 +14,7 @@
  */
 package com.microsoft.azure.storage.blob;
 
-import com.microsoft.azure.storage.AccessCondition;
-import com.microsoft.azure.storage.Constants;
-import com.microsoft.azure.storage.NameValidator;
-import com.microsoft.azure.storage.OperationContext;
-import com.microsoft.azure.storage.RetryNoRetry;
-import com.microsoft.azure.storage.SendingRequestEvent;
-import com.microsoft.azure.storage.StorageCredentialsAnonymous;
-import com.microsoft.azure.storage.StorageCredentialsSharedAccessSignature;
-import com.microsoft.azure.storage.StorageEvent;
-import com.microsoft.azure.storage.StorageException;
+import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.core.Utility;
 import com.microsoft.azure.storage.file.CloudFile;
 import com.microsoft.azure.storage.file.CloudFileShare;
@@ -50,7 +41,6 @@ import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.util.*;
 
-import com.microsoft.azure.storage.StorageErrorCodeStrings;
 import com.microsoft.azure.storage.TestRunners.CloudTests;
 import com.microsoft.azure.storage.TestRunners.DevFabricTests;
 import com.microsoft.azure.storage.TestRunners.DevStoreTests;
@@ -2450,5 +2440,28 @@ public class CloudBlockBlobTests {
         assertEquals(StandardBlobTier.ARCHIVE, listBlob2.getProperties().getStandardBlobTier());
         assertNull(listBlob2.getProperties().getPremiumPageBlobTier());
         assertNotNull(listBlob2.getProperties().getTierChangeTime());
+    }
+
+    @Test
+    @Category({ DevFabricTests.class, DevStoreTests.class })
+    public void testGetAccountInfo() throws StorageException, URISyntaxException, InvalidKeyException {
+        // Test using Shared Key.
+        CloudBlob blob = BlobTestHelper.getBlobReference(BlobType.BLOCK_BLOB, this.container, "infoblob");
+        AccountInformation accountInformation = blob.downloadAccountInfo();
+        assertNotNull(accountInformation.getAccountKind());
+        assertNotNull(accountInformation.getSkuName());
+
+        // Test using SAS.
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        cal.setTime(new Date());
+        cal.add(Calendar.SECOND, 60);
+        SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy();
+        policy.setSharedAccessExpiryTime(cal.getTime());
+        policy.setPermissionsFromString("r");
+        String sas = blob.generateSharedAccessSignature(policy, null);
+        CloudBlob sasBlob = BlobTestHelper.getBlobReference(BlobType.BLOCK_BLOB, new StorageCredentialsSharedAccessSignature(sas), blob.getUri());
+        accountInformation = sasBlob.downloadAccountInfo();
+        assertNotNull(accountInformation.getAccountKind());
+        assertNotNull(accountInformation.getSkuName());
     }
 }
