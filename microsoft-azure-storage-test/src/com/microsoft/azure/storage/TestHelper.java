@@ -76,7 +76,7 @@ public class TestHelper {
     private static StorageCredentialsAccountAndKey copySourceCredentials;
     private static CloudStorageAccount copySourceAccount;
 
-    private final static boolean enableFiddler = true;
+    private final static boolean enableFiddler = false;
     private final static boolean requireSecondaryEndpoint = false;
 
     public static String generateOAuthToken() throws MalformedURLException, InterruptedException, ExecutionException, ServiceUnavailableException, StorageException {

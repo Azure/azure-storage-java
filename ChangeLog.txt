@@ -1,7 +1,10 @@
-XXXX.XX.XX Version X.X.X
+2018.06.26 Version 8.0.0
  * Support for 2018-03-28 REST version. Please see our REST API documentation and blogs for information about the related added features.
  * Added support for static website properties.
  * Added support for the getAccountInfo feature. Sku name and account kind may be retrieved using a CloudBlobClient, CloudBlobContainer, or CloudBlob with SharedKey or SAS.
+ * Added support for putBlockFromURI. A block may be created with another block blob as its source.
+ * Upgraded the language version to Java 7.
+ * Updated the Jackson-Core dependency to version 2.9.4 to pull in security fix.
 
 2018.05.22 Version 7.1.0
  * Support for 2017-11-09 REST version. Please see our REST API documentation and blogs for information about the related added features.
