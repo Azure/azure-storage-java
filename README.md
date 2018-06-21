@@ -11,8 +11,6 @@ This README page is a reference to the SDK v7. For the new asynchronous SDK v10,
 | [Storage SDK for Android](https://github.com/Azure/azure-storage-android) | v2 | Storage SDK for Android | [azure-storage-android](https://mvnrepository.com/artifact/com.microsoft.azure.android/azure-storage-android)
 | [Azure Managemnt Libraries for Java](https://github.com/Azure/azure-libraries-for-java) | v1 | Management libraries including Storage Resource Provider APIs | [azure-mgmt-resources](https://mvnrepository.com/artifact/com.microsoft.azure/azure-mgmt-resources) |
 
-If you are looking for the Azure Storage Android SDK, please visit [https://github.com/Azure/azure-storage-android](https://github.com/Azure/azure-storage-android).
-
 # Features
   * Blob
       * Create/Read/Update/Delete containers
