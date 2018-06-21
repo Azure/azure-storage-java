@@ -6,9 +6,9 @@ This README page is a reference to the SDK v7. For the new asynchronous SDK v10,
 
 | SDK Name      | Version       | Description | Maven |
 | ------------- | ------------- | ----------- | ----- |
-| [Storage SDK for Java v10 (Preview)](https://github.com/Azure/azure-storage-java/tree/New-Storage-SDK-V10-Preview)  | v10-Preview  | The next generation async Storage SDK (Blob only) | [azure-storage-blob](https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage-blob) |
-| [Storage SDK for Java v7 (GA)](https://github.com/Azure/azure-storage-java)  | v7  | Legacy Storage SDK (sync only) | [azure-storage] (https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage) |
-| [Storage SDK for Android (GA)](https://github.com/Azure/azure-storage-android) | v2 | Storage SDK for Android | [azure-storage-android] (https://mvnrepository.com/artifact/com.microsoft.azure.android/azure-storage-android)
+| [Storage SDK for Java v10](https://github.com/Azure/azure-storage-java/tree/New-Storage-SDK-V10-Preview)  | v10-Preview  | The next generation async Storage SDK (Blob only) | [azure-storage-blob](https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage-blob) |
+| [Storage SDK for Java v7](https://github.com/Azure/azure-storage-java)  | v7  | Legacy Storage SDK (sync only) | [azure-storage](https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage) |
+| [Storage SDK for Android](https://github.com/Azure/azure-storage-android) | v2 | Storage SDK for Android | [azure-storage-android](https://mvnrepository.com/artifact/com.microsoft.azure.android/azure-storage-android)
 | [Azure Managemnt Libraries for Java](https://github.com/Azure/azure-libraries-for-java) | v1 | Management libraries including Storage Resource Provider APIs | [azure-mgmt-resources](https://mvnrepository.com/artifact/com.microsoft.azure/azure-mgmt-resources) |
 
 If you are looking for the Azure Storage Android SDK, please visit [https://github.com/Azure/azure-storage-android](https://github.com/Azure/azure-storage-android).
