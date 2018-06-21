@@ -1,8 +1,15 @@
-# Microsoft Azure Storage SDK for Java
+# Microsoft Azure Storage SDK for Java v7
 
 This project provides a client library in Java that makes it easy to consume Microsoft Azure Storage services. For documentation, please see the Microsoft Azure [Java Developer Center](http://azure.microsoft.com/en-us/develop/java/) and the [Java client library reference for Azure Storage](https://docs.microsoft.com/en-us/java/api/overview/azure/storage).
 
-NOTE: There is a new version of this library in development, which supports asynchronous APIs in a reactive model. This entails a significant architectural overhaul and a redesign of the current interface.  If this interests you, please feel free to check it out in the New-Storage-SDK-V10-Preview branch. Feedback is always appreciated. The rest of the document below applies to the existing generally available library.
+This README page is a reference to the SDK v7. For the new asynchronous SDK v10, go to [Storage SDK for Java v10 (Preview)](https://github.com/Azure/azure-storage-java/tree/New-Storage-SDK-V10-Preview).
+
+| SDK Name      | Version       | Description | Maven |
+| ------------- | ------------- | ----------- | ----- |
+| [Storage SDK for Java v10 (Preview)](https://github.com/Azure/azure-storage-java/tree/New-Storage-SDK-V10-Preview)  | v10-Preview  | The next generation async Storage SDK (Blob only) | [azure-storage-blob](https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage-blob) |
+| [Storage SDK for Java v7 (GA)](https://github.com/Azure/azure-storage-java)  | v7  | Legacy Storage SDK (sync only) | [azure-storage] |(https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage) |
+| [Storage SDK for Android (GA)](https://github.com/Azure/azure-storage-android) | v2 | Storage SDK for Android | [azure-storage-android] |(https://mvnrepository.com/artifact/com.microsoft.azure.android/azure-storage-android)
+| [Azure Managemnt Libraries for Java](https://github.com/Azure/azure-libraries-for-java) | v1 | Management libraries including Storage Resource Provider APIs | [azure-mgmt-resources](https://mvnrepository.com/artifact/com.microsoft.azure/azure-mgmt-resources) |
 
 If you are looking for the Azure Storage Android SDK, please visit [https://github.com/Azure/azure-storage-android](https://github.com/Azure/azure-storage-android).
 
