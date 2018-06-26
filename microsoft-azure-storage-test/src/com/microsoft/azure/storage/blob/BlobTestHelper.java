@@ -60,6 +60,14 @@ public class BlobTestHelper extends TestHelper {
         return container;
     }
 
+    public static CloudBlobContainer getRandomCopySourceContainerReference() throws URISyntaxException, StorageException {
+        String containerName = generateRandomContainerName();
+        CloudBlobClient bClient = TestHelper.createCopySourceBlobClient();
+        CloudBlobContainer container = bClient.getContainerReference(containerName);
+
+        return container;
+    }
+
     public static String generateRandomBlobNameWithPrefix(String prefix) {
         if (prefix == null) {
             prefix = "";

@@ -32,7 +32,7 @@ To get the binaries of this library as distributed by Microsoft, ready for use w
 <dependency>
 	<groupId>com.microsoft.azure</groupId>
 	<artifactId>azure-storage</artifactId>
-	<version>7.0.0</version>
+	<version>8.0.0</version>
 </dependency>
 ```
 
@@ -50,7 +50,7 @@ To download a copy of the source code, click "Download ZIP" on the right side of
 
 ## Minimum Requirements
 
-* Java 1.6+
+* Java 1.7+
 * [Jackson-Core](https://github.com/FasterXML/jackson-core) is used for JSON parsing. 
 * (Optional) [SLF4J](http://www.slf4j.org/) is a logging facade.
 * (Optional) [SLF4J binding](http://www.slf4j.org/manual.html) is used to associate a specific logging framework with SLF4J.
