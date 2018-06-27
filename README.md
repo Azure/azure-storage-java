@@ -1,10 +1,15 @@
-# Microsoft Azure Storage SDK for Java
+# Microsoft Azure Storage SDK v7 for Java
 
 This project provides a client library in Java that makes it easy to consume Microsoft Azure Storage services. For documentation, please see the Microsoft Azure [Java Developer Center](http://azure.microsoft.com/en-us/develop/java/) and the [Java client library reference for Azure Storage](https://docs.microsoft.com/en-us/java/api/overview/azure/storage).
 
-NOTE: There is a new version of this library in development, which supports asynchronous APIs in a reactive model. This entails a significant architectural overhaul and a redesign of the current interface.  If this interests you, please feel free to check it out in the New-Storage-SDK-V10-Preview branch. Feedback is always appreciated. The rest of the document below applies to the existing generally available library.
+This README page is a reference to the SDK v7. For the new asynchronous SDK v10, go to [Storage SDK v10 for Java (Preview)](https://github.com/Azure/azure-storage-java/tree/New-Storage-SDK-V10-Preview).
 
-If you are looking for the Azure Storage Android SDK, please visit [https://github.com/Azure/azure-storage-android](https://github.com/Azure/azure-storage-android).
+| SDK Name      | Version       | Description | Maven/API Reference Links |
+| ------------- | ------------- | ----------- | ----- |
+| [Storage SDK v10 for Java](https://github.com/Azure/azure-storage-java/tree/New-Storage-SDK-V10-Preview)  | v10-Preview  | The next generation async Storage SDK (Blob only) | [Maven](https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage-blob) - [Reference](https://docs.microsoft.com/en-us/java/api/storage/client?view=azure-java-preview) |
+| [Storage SDK v7 for Java](https://github.com/Azure/azure-storage-java)  | v7  | Legacy Storage SDK (sync only) | [Maven](https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage) - [Reference](https://docs.microsoft.com/en-us/java/api/storage/client?view=azure-java-stable)|
+| [Storage SDK for Android](https://github.com/Azure/azure-storage-android) | v2 | Storage SDK for Android | [Maven](https://mvnrepository.com/artifact/com.microsoft.azure.android/azure-storage-android) - [Reference](http://azure.github.io/azure-storage-android/)
+| [Azure Management Libraries for Java](https://github.com/Azure/azure-libraries-for-java) | v1 | Management libraries including Storage Resource Provider APIs | [Maven](https://mvnrepository.com/artifact/com.microsoft.azure/azure-mgmt-resources) - [Reference](http://azure.github.io/azure-storage-android/)|
 
 # Features
   * Blob
