@@ -202,7 +202,7 @@ final class BlobRequest {
 
     /**
      * Creates a request to copy a blob, Sign with 0 length.
-     * 
+     *
      * @param uri
      *            A <code>java.net.URI</code> object that specifies the absolute URI.
      * @param blobOptions
@@ -233,10 +233,60 @@ final class BlobRequest {
      * @throws URISyntaxException
      */
     public static HttpURLConnection copyFrom(final URI uri, final BlobRequestOptions blobOptions,
+                                             final OperationContext opContext, final AccessCondition sourceAccessCondition,
+                                             final AccessCondition destinationAccessCondition, String source, final String sourceSnapshotID,
+                                             final boolean incrementalCopy, final PremiumPageBlobTier premiumPageBlobTier)
+            throws StorageException, IOException, URISyntaxException {
+
+        return copyFrom(uri, blobOptions, opContext, sourceAccessCondition, destinationAccessCondition, source, sourceSnapshotID, incrementalCopy, false, null, premiumPageBlobTier);
+    }
+
+    /**
+     * Creates a request to copy a blob, Sign with 0 length.
+     * 
+     * @param uri
+     *            A <code>java.net.URI</code> object that specifies the absolute URI.
+     * @param blobOptions
+     *            A {@link BlobRequestOptions} object that specifies execution options such as retry policy and timeout
+     *            settings for the operation. Specify <code>null</code> to use the request options specified on the
+     *            {@link CloudBlobClient}.
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @param sourceAccessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the source blob.
+     * @param destinationAccessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the destination blob.
+     * @param source
+     *            The canonical path to the source blob, in the form /<account-name>/<container-name>/<blob-name>.
+     * @param contentMd5
+     *            An optional hash value used to ensure transactional integrity for the operation. May be {@code null}
+     *            or an empty string. If the blob being copied is within the same account, this value will be ignored.
+     * @param sourceSnapshotID
+     *            The snapshot version, if the source blob is a snapshot.
+     * @param incrementalCopy
+     *            A boolean indicating whether or not this is an incremental copy.
+     * @param syncCopy
+     *            A boolean to enable synchronous server copy of blobs.
+     * @param premiumPageBlobTier
+     *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
+     * @return a HttpURLConnection configured for the operation.
+     * @throws StorageException
+     *             an exception representing any error which occurred during the operation.
+     * @throws IllegalArgumentException
+     * @throws IOException
+     * @throws URISyntaxException
+     */
+    public static HttpURLConnection copyFrom(final URI uri, final BlobRequestOptions blobOptions,
             final OperationContext opContext, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, String source, final String sourceSnapshotID,
-            final boolean incrementalCopy, final PremiumPageBlobTier premiumPageBlobTier)
+            final boolean incrementalCopy, final boolean syncCopy, final String contentMd5, final PremiumPageBlobTier premiumPageBlobTier)
             throws StorageException, IOException, URISyntaxException {
+
+        if (!syncCopy && !Utility.isNullOrEmpty(contentMd5)) {
+            throw new IllegalArgumentException(SR.INVALID_COPY_MD5_OPERATION);
+        }
 
         if (sourceSnapshotID != null) {
             source = source.concat("?snapshot=");
@@ -268,6 +318,14 @@ final class BlobRequest {
 
         if (destinationAccessCondition != null) {
             destinationAccessCondition.applyConditionToRequest(request);
+        }
+
+        if (syncCopy) {
+            request.setRequestProperty(HeaderConstants.REQUIRES_SYNC_HEADER, Constants.TRUE);
+        }
+
+        if (!Utility.isNullOrEmpty(contentMd5)) {
+            request.setRequestProperty(HeaderConstants.SOURCE_CONTENT_MD5_HEADER, contentMd5);
         }
 
         return request;
@@ -549,7 +607,7 @@ final class BlobRequest {
 
     /**
      * Adds the Range Header for Blob Service Operations.
-     * 
+     *
      * @param request
      *            The request to add the range header to.
      * @param offset
@@ -558,16 +616,48 @@ final class BlobRequest {
      *            Number of bytes in the range.
      */
     private static void addRange(HttpURLConnection request, Long offset, Long count) {
+        addRangeImpl(Constants.HeaderConstants.STORAGE_RANGE_HEADER, request, offset, count);
+    }
+
+    /**
+     * Adds the Range Header for Blob Service Operations.
+     *
+     * @param request
+     *            The request to add the range header to.
+     * @param offset
+     *            Starting byte of the range.
+     * @param count
+     *            Number of bytes in the range.
+     */
+    private static void addSourceRange(HttpURLConnection request, Long offset, Long count) {
+        addRangeImpl(HeaderConstants.STORAGE_SOURCE_RANGE_HEADER, request, offset, count);
+    }
+
+    /**
+     * Adds the Range Header for Blob Service Operations.
+     * 
+     * @param request
+     *            The request to add the range header to.
+     * @param offset
+     *            Starting byte of the range.
+     * @param count
+     *            Number of bytes in the range.
+     */
+    private static void addRangeImpl(String header, HttpURLConnection request, Long offset, Long count) {
+        if (count != null) {
+            Utility.assertNotNull("offset", offset);
+            Utility.assertInBounds("count", count, 1, Long.MAX_VALUE);
+        }
         if (offset != null) {
             long rangeStart = offset;
             long rangeEnd;
             if (count != null) {
                 rangeEnd = offset + count - 1;
-                request.setRequestProperty(Constants.HeaderConstants.STORAGE_RANGE_HEADER, String.format(
+                request.setRequestProperty(header, String.format(
                         Utility.LOCALE_US, Constants.HeaderConstants.RANGE_HEADER_FORMAT, rangeStart, rangeEnd));
             }
             else {
-                request.setRequestProperty(Constants.HeaderConstants.STORAGE_RANGE_HEADER, String.format(
+                request.setRequestProperty(header, String.format(
                         Utility.LOCALE_US, Constants.HeaderConstants.BEGIN_RANGE_HEADER_FORMAT, rangeStart));
             }
         }
@@ -1266,7 +1356,7 @@ final class BlobRequest {
     }
 
     /**
-     * Constructs a HttpURLConnection to upload a block. Sign with length of block data.
+     * Constructs a HttpURLConnection to create a block. Sign with length of block data.
      * 
      * @param uri
      *            A <code>java.net.URI</code> object that specifies the absolute URI.
@@ -1306,6 +1396,71 @@ final class BlobRequest {
         if (accessCondition != null) {
             accessCondition.applyConditionToRequest(request);
         }
+
+        return request;
+    }
+
+    /**
+     * Constructs a HttpURLConnection to upload a block. Sign with length of block data.
+     *
+     * @param uri
+     *            A <code>java.net.URI</code> object that specifies the absolute URI.
+     * @param source
+     *            The <code>String</code> form of a URI to the source data. It can point to any Azure Blob or File that
+     *            is public or the URL can include a shared access signature.
+     * @param offset
+     *           A <code>long</code> which represents the offset to use as the starting point for the source.
+     * @param length
+     *           A <code>Long</code> which represents the number of bytes to copy or <code>null</code> to copy until the
+     *           end of the blob.
+     * @param md5
+     *           A <code>String</code> which represents the MD5 caluclated for the range of bytes of the source.
+     * @param blobOptions
+     *            A {@link BlobRequestOptions} object that specifies execution options such as retry policy and timeout
+     *            settings for the operation. Specify <code>null</code> to use the request options specified on the
+     *            {@link CloudBlobClient}.
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @param accessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the blob.
+     * @param blockId
+     *            the Base64 ID for the block
+     * @return a HttpURLConnection to use to perform the operation.
+     * @throws IOException
+     *             if there is an error opening the connection
+     * @throws URISyntaxException
+     *             if the resource URI is invalid
+     * @throws StorageException
+     *             an exception representing any error which occurred during the operation.
+     * @throws IllegalArgumentException
+     */
+    public static HttpURLConnection putBlock(final URI uri, final String source, long offset, Long length,
+                                             final BlobRequestOptions blobOptions, String md5,
+                                             final OperationContext opContext, final AccessCondition accessCondition,
+                                             final String blockId)
+            throws IOException, URISyntaxException, StorageException {
+        final UriQueryBuilder builder = new UriQueryBuilder();
+        builder.add(Constants.QueryConstants.COMPONENT, BLOCK_QUERY_ELEMENT_NAME);
+        builder.add(BLOCK_ID_QUERY_ELEMENT_NAME, blockId);
+
+        final HttpURLConnection request = createURLConnection(uri, builder, blobOptions, opContext);
+
+        request.setDoOutput(true);
+        request.setRequestMethod(Constants.HTTP_PUT);
+
+        request.setFixedLengthStreamingMode(0);
+        request.setRequestProperty(Constants.HeaderConstants.CONTENT_LENGTH, "0");
+        request.setRequestProperty(Constants.HeaderConstants.COPY_SOURCE_HEADER, source);
+
+        if (accessCondition != null) {
+            accessCondition.applyConditionToRequest(request);
+        }
+
+        addSourceRange(request, offset, length);
+
+        BaseRequest.addOptionalHeader(request, HeaderConstants.SOURCE_CONTENT_MD5_HEADER, md5);
 
         return request;
     }

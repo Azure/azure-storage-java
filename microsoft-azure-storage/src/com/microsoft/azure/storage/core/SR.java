@@ -39,6 +39,7 @@ public class SR {
     public static final String CANNOT_TRANSFORM_NON_HTTPS_URI_WITH_HTTPS_ONLY_CREDENTIALS = "Cannot use HTTP with credentials that only support HTTPS.";
     public static final String CONTAINER = "container";
     public static final String CONTENT_LENGTH_MISMATCH = "An incorrect number of bytes was read from the connection. The connection may have been closed.";
+    public static final String COPY_SIZE_GREATER_THAN_100MB = "Invalid copy length, length must be less than or equal to 100 MB in size.";
     public static final String CREATING_NETWORK_STREAM = "Creating a NetworkInputStream and expecting to read %s bytes.";
     public static final String CREDENTIALS_CANNOT_SIGN_REQUEST = "CloudBlobClient, CloudQueueClient and CloudTableClient require credentials that can sign a request.";
     public static final String CUSTOM_RESOLVER_THREW = "The custom property resolver delegate threw an exception. Check the inner exception for more details.";
@@ -89,6 +90,7 @@ public class SR {
     public static final String INVALID_CONNECTION_STRING_DEV_STORE_NOT_TRUE = "Invalid connection string, the UseDevelopmentStorage key must always be paired with 'true'.  Remove the flag entirely otherwise.";
     public static final String INVALID_CONTENT_LENGTH = "ContentLength must be set to -1 or positive Long value.";
     public static final String INVALID_CONTENT_TYPE = "An incorrect Content-Type was returned from the server.";
+    public static final String INVALID_COPY_MD5_OPERATION = "MD5 can only be specified with a synchronous copy operation.";
     public static final String INVALID_CORS_RULE = "A CORS rule must contain at least one allowed origin and allowed method, and MaxAgeInSeconds cannot have a value less than zero.";
     public static final String INVALID_DATE_STRING = "Invalid Date String: %s.";
     public static final String INVALID_EDMTYPE_VALUE = "Invalid value '%s' for EdmType.";

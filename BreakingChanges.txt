@@ -1,4 +1,10 @@
-﻿Changes in 7.0.0
+﻿Changes in 8.0.0
+
+OTHER
+ * Upgraded the language version to Java 7.
+ * Updated the Jackson-Core dependency to version 2.9.4 to pull in security fix.
+
+Changes in 7.0.0
 
 OTHER
  * Upgraded Key Vault dependency to 1.0. Users of the IKey and IKeyResolver interfaces should note the interface changes in this version.
