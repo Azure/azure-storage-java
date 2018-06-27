@@ -4,7 +4,7 @@ This project provides a client library in Java that makes it easy to consume Mic
 
 This README page is a reference to the SDK v7. For the new asynchronous SDK v10, go to [Storage SDK v10 for Java (Preview)](https://github.com/Azure/azure-storage-java/tree/New-Storage-SDK-V10-Preview).
 
-| SDK Name      | Version       | Description | Maven/Ref Links |
+| SDK Name      | Version       | Description | Maven/API Reference Links |
 | ------------- | ------------- | ----------- | ----- |
 | [Storage SDK v10 for Java](https://github.com/Azure/azure-storage-java/tree/New-Storage-SDK-V10-Preview)  | v10-Preview  | The next generation async Storage SDK (Blob only) | [Maven](https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage-blob) - [Reference](https://docs.microsoft.com/en-us/java/api/storage/client?view=azure-java-preview) |
 | [Storage SDK v7 for Java](https://github.com/Azure/azure-storage-java)  | v7  | Legacy Storage SDK (sync only) | [Maven](https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage) - [Reference](https://docs.microsoft.com/en-us/java/api/storage/client?view=azure-java-stable)|
