@@ -14,16 +14,8 @@
  */
 package com.microsoft.azure.storage.blob;
 
-import com.microsoft.azure.storage.AccessCondition;
-import com.microsoft.azure.storage.Constants;
-import com.microsoft.azure.storage.NameValidator;
-import com.microsoft.azure.storage.OperationContext;
-import com.microsoft.azure.storage.RetryNoRetry;
-import com.microsoft.azure.storage.SendingRequestEvent;
-import com.microsoft.azure.storage.StorageCredentialsAnonymous;
-import com.microsoft.azure.storage.StorageCredentialsSharedAccessSignature;
-import com.microsoft.azure.storage.StorageEvent;
-import com.microsoft.azure.storage.StorageException;
+import com.microsoft.azure.storage.*;
+import com.microsoft.azure.storage.core.Base64;
 import com.microsoft.azure.storage.core.Utility;
 import com.microsoft.azure.storage.file.CloudFile;
 import com.microsoft.azure.storage.file.CloudFileShare;
@@ -48,9 +40,10 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import com.microsoft.azure.storage.StorageErrorCodeStrings;
 import com.microsoft.azure.storage.TestRunners.CloudTests;
 import com.microsoft.azure.storage.TestRunners.DevFabricTests;
 import com.microsoft.azure.storage.TestRunners.DevStoreTests;
@@ -584,29 +577,108 @@ public class CloudBlockBlobTests {
     @Category(SlowTests.class)
     public void testCopyBlockBlobSasToSasTest() throws InvalidKeyException, URISyntaxException, StorageException,
             IOException, InterruptedException {
-        this.doCloudBlockBlobCopy(true, true);
+        this.doCloudBlockBlobCopy(true, true, false);
     }
 
     @Test
     @Category(SlowTests.class)
     public void testCopyBlockBlobToSasTest() throws InvalidKeyException, URISyntaxException, StorageException,
             IOException, InterruptedException {
-        this.doCloudBlockBlobCopy(false, true);
+        this.doCloudBlockBlobCopy(false, true, false);
     }
 
     @Test
     @Category(SlowTests.class)
     public void testCopyBlockBlobSasTest() throws InvalidKeyException, URISyntaxException, StorageException,
             IOException, InterruptedException {
-        this.doCloudBlockBlobCopy(true, false);
+        this.doCloudBlockBlobCopy(true, false, false);
     }
 
     @Test
     @Category({ DevFabricTests.class, DevStoreTests.class, SlowTests.class })
     public void testCopyBlockBlobTest() throws InvalidKeyException, URISyntaxException, StorageException, IOException,
             InterruptedException {
-        this.doCloudBlockBlobCopy(false, false);
+        this.doCloudBlockBlobCopy(false, false, false);
     }
+
+    /*@Test
+    @Category({ DevFabricTests.class, DevStoreTests.class, SlowTests.class })
+    public void testCopyBlockBlobSyncTest() throws InterruptedException, IOException, StorageException,
+            InvalidKeyException, URISyntaxException {
+        this.doCloudBlockBlobCopy(false, false, true);
+    }*/
+
+    /*@Test
+    public void testCopyBlockBlobWithSyncMd5() throws URISyntaxException, StorageException, IOException, NoSuchAlgorithmException {
+        // Create source on server. We must copy from a different account or the service will not validate the md5.
+        CloudBlobContainer container = BlobTestHelper.getRandomCopySourceContainerReference();
+        container.create(BlobContainerPublicAccessType.CONTAINER, null, null);
+        CloudBlockBlob source = container.getBlockBlobReference("source");
+
+        String data = "String data";
+        source.uploadText(data, Constants.UTF8_CHARSET, null, null, null);
+
+        source.getMetadata().put("Test", "value");
+        source.uploadMetadata();
+
+        // Get destination reference
+        CloudBlockBlob destination = this.container.getBlockBlobReference("destination");
+        destination.commitBlockList(new ArrayList<BlockEntry>());
+
+        boolean exceptionThrown = false;
+        // Test that setting an md5 without sync copy is disallowed.
+        try {
+            destination.startCopy(source, "md5", false, null, null, null, null);
+        }
+        catch(StorageException e) {
+            assertTrue(e.getCause() instanceof IllegalArgumentException);
+            assertTrue(e.getMessage().contains("MD5"));
+            exceptionThrown = true;
+        }
+        assertTrue(exceptionThrown);
+
+        // Test that the md5 header is set correctly by using an incorrect md5.
+        exceptionThrown = false;
+        try {
+            destination.startCopy(source, Base64.encode(MessageDigest.getInstance("MD5").digest("garbage".getBytes())),
+                    true, null, null, null, null);
+        }
+        catch (StorageException e) {
+            exceptionThrown = true;
+            assertEquals("Md5Mismatch", e.getErrorCode());
+            String md5 = Base64.encode(MessageDigest.getInstance("MD5").digest(data.getBytes()));
+
+            // Start a sync copy with a correct md5. Should succeed.
+            destination.startCopy(source, md5,true, null, null, null, null);
+        }
+        assertTrue(exceptionThrown);
+
+        Calendar calendar = Calendar.getInstance(Utility.UTC_ZONE);
+        destination.downloadAttributes();
+
+        source.downloadAttributes();
+        assertNotNull(destination.getProperties().getEtag());
+        assertFalse(source.getProperties().getEtag().equals(destination.getProperties().getEtag()));
+        assertTrue(destination.getProperties().getLastModified().compareTo(new Date(calendar.get(Calendar.MINUTE) - 1)) > 0);
+
+        String copyData = destination.downloadText(Constants.UTF8_CHARSET, null, null, null);
+        assertEquals(data, copyData);
+
+        BlobProperties prop1 = destination.getProperties();
+        BlobProperties prop2 = source.getProperties();
+
+        assertEquals(prop1.getCacheControl(), prop2.getCacheControl());
+        assertEquals(prop1.getContentEncoding(), prop2.getContentEncoding());
+        assertEquals(prop1.getContentLanguage(), prop2.getContentLanguage());
+        assertEquals(prop1.getContentMD5(), prop2.getContentMD5());
+        assertEquals(prop1.getContentType(), prop2.getContentType());
+
+        assertEquals("value", destination.getMetadata().get("Test"));
+
+        destination.delete();
+        source.delete();
+        container.deleteIfExists();
+    }*/
 
     @Test
     public void testCopyWithChineseChars() throws StorageException, IOException, URISyntaxException {
@@ -640,7 +712,7 @@ public class CloudBlockBlobTests {
             }
         });
 
-        copyDestination.startCopy(copySource.getUri(), null, null, null, ctx);
+        copyDestination.startCopy(copySource.getUri(), null, null, null, null, ctx);
         copyDestination.startCopy(copySource, null, null, null, ctx);
     }
 
@@ -1165,6 +1237,46 @@ public class CloudBlockBlobTests {
         //Download block list.
         blockBlobRef.downloadBlockList();
         assertEquals(length, blockBlobRef.getProperties().getLength());
+    }
+
+    @Test
+    @Category({ DevFabricTests.class, DevStoreTests.class })
+    public void testUploadBlockFromURI() throws URISyntaxException, StorageException, IOException, NoSuchAlgorithmException {
+        CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
+        container.create(BlobContainerPublicAccessType.CONTAINER, null, null);
+        final CloudBlockBlob blob = container.getBlockBlobReference(BlobTestHelper
+                .generateRandomBlobNameWithPrefix("testBlob"));
+
+        String text = "Test data.";
+
+        // create
+        blob.uploadText(text);
+        assertTrue(blob.exists());
+
+        final CloudBlockBlob blob2 = container.getBlockBlobReference(BlobTestHelper
+                .generateRandomBlobNameWithPrefix("copyBlob"));
+        Map<String, BlockEntry> blocks = BlobTestHelper.getBlockEntryList(2);
+        // Copy the first half of the blob.
+        blob2.createBlockFromURI(((BlockEntry)blocks.values().toArray()[0]).getId(), blob.getUri(), 0L, 5L);
+
+        // Copy the second half of the blob, specifying the MD5 and setting null for the length to indicate the remainder of the blob.
+        String md5 = Base64.encode(MessageDigest.getInstance("MD5").digest(text.substring(5).getBytes()));
+        boolean exceptionThrown = false;
+        try {
+            blob2.createBlockFromURI(((BlockEntry) blocks.values().toArray()[1]).getId(), blob.getUri(), 5L, null,
+                    Base64.encode(MessageDigest.getInstance("MD5").digest("garbage".getBytes())), null, null, null);
+        }
+        catch (StorageException e) {
+            exceptionThrown = true;
+            assertEquals("Md5Mismatch", e.getErrorCode());
+            blob2.createBlockFromURI(((BlockEntry) blocks.values().toArray()[1]).getId(), blob.getUri(), 5L, null, md5, null, null, null);
+        }
+        assertTrue(exceptionThrown);
+
+        blob2.commitBlockList(blocks.values());
+        assertEquals(blob2.downloadText(), text);
+
+        container.deleteIfExists();
     }
 
     @Test
@@ -2240,7 +2352,7 @@ public class CloudBlockBlobTests {
         return new String(codePoints, 0, length);
     }
 
-    private void doCloudBlockBlobCopy(boolean sourceIsSas, boolean destinationIsSas) throws URISyntaxException,
+    private void doCloudBlockBlobCopy(boolean sourceIsSas, boolean destinationIsSas, boolean syncCopy) throws URISyntaxException,
             StorageException, IOException, InvalidKeyException, InterruptedException {
 
         // Create source on server.
@@ -2306,7 +2418,7 @@ public class CloudBlockBlobTests {
         Thread.sleep(30000);
 
         // Start copy and wait for completion
-        String copyId = copyDestination.startCopy(copySource);
+        String copyId = copyDestination.startCopy(copySource, null, null, null, null);
         BlobTestHelper.waitForCopy(copyDestination);
         Calendar calendar = Calendar.getInstance(Utility.UTC_ZONE);
         destination.downloadAttributes();
@@ -2450,5 +2562,28 @@ public class CloudBlockBlobTests {
         assertEquals(StandardBlobTier.ARCHIVE, listBlob2.getProperties().getStandardBlobTier());
         assertNull(listBlob2.getProperties().getPremiumPageBlobTier());
         assertNotNull(listBlob2.getProperties().getTierChangeTime());
+    }
+
+    @Test
+    @Category({ DevFabricTests.class, DevStoreTests.class })
+    public void testGetAccountInfo() throws StorageException, URISyntaxException, InvalidKeyException {
+        // Test using Shared Key.
+        CloudBlob blob = BlobTestHelper.getBlobReference(BlobType.BLOCK_BLOB, this.container, "infoblob");
+        AccountInformation accountInformation = blob.downloadAccountInfo();
+        assertNotNull(accountInformation.getAccountKind());
+        assertNotNull(accountInformation.getSkuName());
+
+        // Test using SAS.
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        cal.setTime(new Date());
+        cal.add(Calendar.SECOND, 60);
+        SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy();
+        policy.setSharedAccessExpiryTime(cal.getTime());
+        policy.setPermissionsFromString("r");
+        String sas = blob.generateSharedAccessSignature(policy, null);
+        CloudBlob sasBlob = BlobTestHelper.getBlobReference(BlobType.BLOCK_BLOB, new StorageCredentialsSharedAccessSignature(sas), blob.getUri());
+        accountInformation = sasBlob.downloadAccountInfo();
+        assertNotNull(accountInformation.getAccountKind());
+        assertNotNull(accountInformation.getSkuName());
     }
 }

@@ -19,22 +19,14 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.UUID;
+import java.security.InvalidKeyException;
+import java.util.*;
 
+import com.microsoft.azure.storage.*;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import com.microsoft.azure.storage.Constants;
 import com.microsoft.azure.storage.core.SR;
-import com.microsoft.azure.storage.LocationMode;
-import com.microsoft.azure.storage.OperationContext;
-import com.microsoft.azure.storage.ResultContinuation;
-import com.microsoft.azure.storage.ResultSegment;
-import com.microsoft.azure.storage.SendingRequestEvent;
-import com.microsoft.azure.storage.StorageEvent;
-import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.TestRunners.CloudTests;
 import com.microsoft.azure.storage.TestRunners.DevFabricTests;
 import com.microsoft.azure.storage.TestRunners.DevStoreTests;
@@ -243,6 +235,33 @@ public class CloudBlobClientTests {
         CloudBlobClient bClient = BlobTestHelper.createCloudBlobClient();
         bClient.getDefaultRequestOptions().setLocationMode(LocationMode.SECONDARY_ONLY);
         BlobTestHelper.verifyServiceStats(bClient.getServiceStats());
+    }
+
+    @Test
+    @Category({ CloudTests.class})
+    public void testGetAccountInformation() throws StorageException, URISyntaxException, InvalidKeyException {
+        // Shared key
+        CloudBlobClient bClient = BlobTestHelper.createCloudBlobClient();
+        bClient.getDefaultRequestOptions().setLocationMode(LocationMode.PRIMARY_ONLY);
+
+        AccountInformation accountInformation = bClient.downloadAccountInfo();
+        assertNotNull(accountInformation.getAccountKind());
+        assertNotNull(accountInformation.getSkuName());
+
+        // SAS
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        cal.setTime(new Date());
+        cal.add(Calendar.SECOND, 60);
+        SharedAccessAccountPolicy policy = new SharedAccessAccountPolicy();
+        policy.setSharedAccessExpiryTime(cal.getTime());
+        policy.setPermissionsFromString("r");
+        policy.setResourceTypes(EnumSet.of(SharedAccessAccountResourceType.SERVICE));
+        policy.setServiceFromString("b");
+        CloudBlobClient sasClient = TestHelper.createCloudBlobClient(policy, false);
+
+        accountInformation = sasClient.downloadAccountInfo();
+        assertNotNull(accountInformation.getAccountKind());
+        assertNotNull(accountInformation.getSkuName());
     }
 
     @Test

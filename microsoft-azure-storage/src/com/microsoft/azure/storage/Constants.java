@@ -204,6 +204,21 @@ public final class Constants {
         public static final String RETENTION_POLICY_ELEMENT = "RetentionPolicy";
 
         /**
+         * The XML element for Static Website.
+         */
+        public static final String STATIC_WEBSITE_ELEMENT = "StaticWebsite";
+
+        /**
+         * The XML element for IndexDocument
+         */
+        public static final String STATIC_WEBSITE_INDEX_DOCUMENT_ELEMENT = "IndexDocument";
+
+        /**
+         * THe XML element for ErroDocument404PathName.
+         */
+        public static final String STATIC_WEBSITE_ERROR_DOCUMENT_404_PATH_ELEMENT = "ErrorDocument404Path";
+
+        /**
          * The XML element for the StorageServiceProperties
          */
         public static final String STORAGE_SERVICE_PROPERTIES_ELEMENT = "StorageServiceProperties";
@@ -308,6 +323,11 @@ public final class Constants {
          * The Accept header.
          */
         public static final String ACCEPT_CHARSET = "Accept-Charset";
+
+        /**
+         * The header that represents the kind of storage account.
+         */
+        public static final String ACCOUNT_KIND = PREFIX_FOR_STORAGE_HEADER + "account-kind";
 
         /**
          * The Authorization header.
@@ -596,6 +616,11 @@ public final class Constants {
         public static final String REQUEST_ID_HEADER = PREFIX_FOR_STORAGE_HEADER + "request-id";
 
         /**
+         * The header for copy sync.
+         */
+        public static final String REQUIRES_SYNC_HEADER = PREFIX_FOR_STORAGE_HEADER + "requires-sync";
+
+        /**
          * The header field value received that indicates which server was accessed
          */
         public static final String SERVER = "Server";
@@ -611,9 +636,19 @@ public final class Constants {
         public static final String SERVER_REQUEST_ENCRYPTED = PREFIX_FOR_STORAGE_HEADER + "request-server-encrypted";
 
         /**
+         * The header that specifies the sku name for an account.
+         */
+        public static final String SKU_NAME = PREFIX_FOR_STORAGE_HEADER + "sku-name";
+
+        /**
          * The header that specifies the snapshot ID.
          */
         public static final String SNAPSHOT_ID_HEADER = PREFIX_FOR_STORAGE_HEADER + "snapshot";
+
+        /**
+         * The header that specifies source content MD5.
+         */
+        public static final String SOURCE_CONTENT_MD5_HEADER = PREFIX_FOR_STORAGE_HEADER + "source-content-md5";
 
         /**
          * The header for the If-Match condition.
@@ -648,6 +683,11 @@ public final class Constants {
         public static final String STORAGE_RANGE_HEADER = PREFIX_FOR_STORAGE_HEADER + "range";
 
         /**
+         * The header for data ranges.
+         */
+        public static final String STORAGE_SOURCE_RANGE_HEADER = PREFIX_FOR_STORAGE_HEADER + "source-range";
+
+        /**
          * The header for storage version.
          */
         public static final String STORAGE_VERSION_HEADER = PREFIX_FOR_STORAGE_HEADER + "version";
@@ -655,7 +695,7 @@ public final class Constants {
         /**
          * The current storage version header value.
          */
-        public static final String TARGET_STORAGE_VERSION = "2017-11-09";
+        public static final String TARGET_STORAGE_VERSION = "2018-03-28";
 
         /**
          * The header that specifies the next visible time for a queue message.

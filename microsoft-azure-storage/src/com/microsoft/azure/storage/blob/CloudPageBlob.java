@@ -377,7 +377,7 @@ public final class CloudPageBlob extends CloudBlob {
         options = BlobRequestOptions.populateAndApplyDefaults(options, this.properties.getBlobType(), this.blobServiceClient);
 
         return ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.startCopyImpl(sourceSnapshot, true /* incrementalCopy */, null /* premiumPageBlobTier */, null /* sourceAccesCondition */,
+                this.startCopyImpl(sourceSnapshot, Constants.EMPTY_STRING,false /* syncCopy */, true /* incrementalCopy */, null /* premiumPageBlobTier */, null /* sourceAccesCondition */,
                         destinationAccessCondition, options),
                 options.getRetryPolicyFactory(), opContext);
     }

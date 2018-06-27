@@ -1,10 +1,10 @@
 # Microsoft Azure Storage SDK for Java
 
-This project provides a client library in Java that makes it easy to consume Microsoft Azure Storage services. For documentation please see the [Storage API doc page](https://docs.microsoft.com/en-us/java/api/overview/azure/storage) and the generated [javadoc](http://azure.github.io/azure-storage-java/).
+This project provides a client library in Java that makes it easy to consume Microsoft Azure Storage services. For documentation, please see the Microsoft Azure [Java Developer Center](http://azure.microsoft.com/en-us/develop/java/) and the [Java client library reference for Azure Storage](https://docs.microsoft.com/en-us/java/api/overview/azure/storage).
 
 NOTE: There is a new version of this library in development, which supports asynchronous APIs in a reactive model. This entails a significant architectural overhaul and a redesign of the current interface.  If this interests you, please feel free to check it out in the New-Storage-SDK-V10-Preview branch. Feedback is always appreciated. The rest of the document below applies to the existing generally available library.
 
-> If you are looking for the Azure Storage Android SDK, please visit [https://github.com/Azure/azure-storage-android](https://github.com/Azure/azure-storage-android).
+If you are looking for the Azure Storage Android SDK, please visit [https://github.com/Azure/azure-storage-android](https://github.com/Azure/azure-storage-android).
 
 # Features
   * Blob
@@ -32,7 +32,7 @@ To get the binaries of this library as distributed by Microsoft, ready for use w
 <dependency>
 	<groupId>com.microsoft.azure</groupId>
 	<artifactId>azure-storage</artifactId>
-	<version>7.0.0</version>
+	<version>8.0.0</version>
 </dependency>
 ```
 
@@ -50,7 +50,7 @@ To download a copy of the source code, click "Download ZIP" on the right side of
 
 ## Minimum Requirements
 
-* Java 1.6+
+* Java 1.7+
 * [Jackson-Core](https://github.com/FasterXML/jackson-core) is used for JSON parsing. 
 * (Optional) [SLF4J](http://www.slf4j.org/) is a logging facade.
 * (Optional) [SLF4J binding](http://www.slf4j.org/manual.html) is used to associate a specific logging framework with SLF4J.
@@ -136,4 +136,4 @@ When sending pull requests, please send non-breaking PRs to the dev branch and b
 * [Java on Azure Developer Center](http://azure.microsoft.com/en-us/java/azure)
 * [Azure Storage Service](http://azure.microsoft.com/en-us/documentation/services/storage/)
 * [Azure Storage Team Blog](http://blogs.msdn.com/b/windowsazurestorage/)
-* [Javadoc](http://azure.github.io/azure-storage-java/)
+* [Java client library reference for Azure Storage](https://docs.microsoft.com/en-us/java/api/overview/azure/storage)

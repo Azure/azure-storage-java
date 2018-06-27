@@ -18,24 +18,8 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import com.microsoft.azure.storage.DoesServiceRequest;
-import com.microsoft.azure.storage.OperationContext;
-import com.microsoft.azure.storage.ResultContinuation;
-import com.microsoft.azure.storage.ResultContinuationType;
-import com.microsoft.azure.storage.ResultSegment;
-import com.microsoft.azure.storage.ServiceClient;
-import com.microsoft.azure.storage.ServiceProperties;
-import com.microsoft.azure.storage.ServiceStats;
-import com.microsoft.azure.storage.StorageCredentials;
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.StorageUri;
-import com.microsoft.azure.storage.core.ExecutionEngine;
-import com.microsoft.azure.storage.core.LazySegmentedIterable;
-import com.microsoft.azure.storage.core.ListResponse;
-import com.microsoft.azure.storage.core.ListingContext;
-import com.microsoft.azure.storage.core.SegmentedStorageRequest;
-import com.microsoft.azure.storage.core.StorageRequest;
-import com.microsoft.azure.storage.core.Utility;
+import com.microsoft.azure.storage.*;
+import com.microsoft.azure.storage.core.*;
 
 /**
  * Provides a client for accessing the Microsoft Azure Blob service.
@@ -468,6 +452,81 @@ public final class CloudBlobClient extends ServiceClient {
 
         return ExecutionEngine.executeWithRetry(this, null, this.getServiceStatsImpl(options, false),
                 options.getRetryPolicyFactory(), opContext);
+    }
+
+    /**
+     * Gets information related to the storage account.
+     *
+     * @return A {@link AccountInformation} object for the given storage account.
+     * @throws StorageException
+     *            If a storage service error occurred.
+     */
+    @DoesServiceRequest
+    public AccountInformation downloadAccountInfo() throws StorageException {
+        return this.downloadAccountInfo(null /* options */, null /* opContext */);
+    }
+
+    /**
+     * Gets information related to the storage account.
+     *
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     *
+     * @return A {@link AccountInformation} object for the given storage account.
+     *
+     * @throws StorageException
+     *            If a storage service error occurred.
+     */
+    @DoesServiceRequest
+    public AccountInformation downloadAccountInfo(BlobRequestOptions options, OperationContext opContext) throws StorageException {
+        if (opContext == null) {
+            opContext = new OperationContext();
+        }
+
+        opContext.initialize();
+        options = BlobRequestOptions.populateAndApplyDefaults(options, BlobType.UNSPECIFIED, this);
+
+        return ExecutionEngine.executeWithRetry(this, null, this.downloadAccountInformationImpl(options),
+                options.getRetryPolicyFactory(), opContext);
+    }
+
+    protected StorageRequest<ServiceClient, Void, AccountInformation> downloadAccountInformationImpl(
+            final RequestOptions options) {
+        final StorageRequest<ServiceClient, Void, AccountInformation> headRequest = new StorageRequest<ServiceClient, Void, AccountInformation>(
+                options, this.getStorageUri()) {
+            @Override
+            public void setRequestLocationMode() {
+                this.setRequestLocationMode(RequestLocationMode.PRIMARY_OR_SECONDARY);
+            }
+
+            @Override
+            public HttpURLConnection buildRequest(ServiceClient client, Void parentObject, OperationContext context) throws Exception {
+                return BaseRequest.getAccountInfo(credentials.transformUri(client.getStorageUri().getUri(this.getCurrentLocation())),
+                        options, null, context);
+            }
+
+            @Override
+            public void signRequest(HttpURLConnection connection, ServiceClient client, OperationContext context) throws Exception {
+                StorageRequest.signBlobQueueAndFileRequest(connection, client, -1, context);
+            }
+
+            @Override
+            public AccountInformation preProcessResponse(Void parentObject, ServiceClient client, OperationContext context) throws Exception {
+                if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_OK) {
+                    this.setNonExceptionedRetryableFailure(true);
+                }
+
+                return BlobResponse.getAccountInformation(this.getConnection());
+            }
+        };
+
+        return headRequest;
     }
 
     /**

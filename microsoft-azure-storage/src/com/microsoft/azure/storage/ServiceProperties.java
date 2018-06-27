@@ -51,6 +51,11 @@ public final class ServiceProperties {
     private DeleteRetentionPolicy deleteRetentionPolicy;
 
     /**
+     * The static website properties.
+     */
+    private StaticWebsiteProperties staticWebsiteProperties;
+
+    /**
      * Initializes a new instances of the ServiceProperties class.
      */
     public ServiceProperties() {
@@ -58,6 +63,7 @@ public final class ServiceProperties {
         this.setHourMetrics(new MetricsProperties());
         this.setMinuteMetrics(new MetricsProperties());
         this.setCors(new CorsProperties());
+        // DeleteRetentionPolicy and StaticWebsiteProperties are not included by default because they are not accepted by services other than blob.
     }
 
     /**
@@ -169,5 +175,21 @@ public final class ServiceProperties {
      */
     public DeleteRetentionPolicy getDeleteRetentionPolicy() {
         return deleteRetentionPolicy;
+    }
+
+    /**
+     * @param staticWebsiteProperties
+     *      The static website properties.
+     */
+    public void setStaticWebsiteProperties(StaticWebsiteProperties staticWebsiteProperties) {
+        this.staticWebsiteProperties = staticWebsiteProperties;
+    }
+
+    /**
+     * @return
+     *      The static website properties.
+     */
+    public StaticWebsiteProperties getStaticWebsiteProperties() {
+        return staticWebsiteProperties;
     }
 }

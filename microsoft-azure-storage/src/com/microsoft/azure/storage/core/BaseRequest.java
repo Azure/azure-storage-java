@@ -1,11 +1,11 @@
 /**
  * Copyright Microsoft Corporation
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,6 +28,8 @@ import com.microsoft.azure.storage.OperationContext;
 import com.microsoft.azure.storage.RequestOptions;
 import com.microsoft.azure.storage.StorageException;
 
+import static com.microsoft.azure.storage.Constants.QueryConstants.PROPERTIES;
+
 /**
  * RESERVED FOR INTERNAL USE. The Base Request class for the protocol layer.
  */
@@ -41,6 +43,8 @@ public final class BaseRequest {
 
     private static final String TIMEOUT = "timeout";
 
+    private static final String ACCOUNT = "account";
+
     /**
      * Stores the user agent to send over the wire to identify the client.
      */
@@ -48,7 +52,7 @@ public final class BaseRequest {
 
     /**
      * Adds the metadata.
-     * 
+     *
      * @param request
      *            The request.
      * @param metadata
@@ -65,7 +69,7 @@ public final class BaseRequest {
 
     /**
      * Adds the metadata.
-     * 
+     *
      * @param opContext
      *            an object used to track the execution of the operation
      * @param request
@@ -89,7 +93,7 @@ public final class BaseRequest {
 
     /**
      * Adds the optional header.
-     * 
+     *
      * @param request
      *            a HttpURLConnection for the operation.
      * @param name
@@ -105,7 +109,7 @@ public final class BaseRequest {
 
     /**
      * Creates the specified resource. Note request is set to setFixedLengthStreamingMode(0); Sign with 0 length.
-     * 
+     *
      * @param uri
      *            the request Uri.
      * @param options
@@ -115,7 +119,7 @@ public final class BaseRequest {
      *            the UriQueryBuilder for the request
      * @param opContext
      *            an object used to track the execution of the operation
-     * 
+     *
      * @return a HttpURLConnection to perform the operation.
      * @throws IOException
      *             if there is an error opening the connection
@@ -140,7 +144,7 @@ public final class BaseRequest {
 
     /**
      * Creates the web request.
-     * 
+     *
      * @param uri
      *            the request Uri.
      * @param options
@@ -167,20 +171,20 @@ public final class BaseRequest {
         if (options.getTimeoutIntervalInMs() != null && options.getTimeoutIntervalInMs() != 0) {
             builder.add(TIMEOUT, String.valueOf(options.getTimeoutIntervalInMs() / 1000));
         }
-        
+
         final URL resourceUrl = builder.addToURI(uri).toURL();
-        
+
         // Get the proxy settings
         Proxy proxy = OperationContext.getDefaultProxy();
         if (opContext != null && opContext.getProxy() != null) {
             proxy = opContext.getProxy();
         }
-        
+
         // Set up connection, optionally with proxy settings
         final HttpURLConnection retConnection;
         if (proxy != null) {
             retConnection = (HttpURLConnection) resourceUrl.openConnection(proxy);
-        } 
+        }
         else {
             retConnection = (HttpURLConnection) resourceUrl.openConnection();
         }
@@ -215,7 +219,7 @@ public final class BaseRequest {
 
     /**
      * Deletes the specified resource. Sign with no length specified.
-     * 
+     *
      * @param uri
      *            the request Uri.
      * @param builder
@@ -273,16 +277,16 @@ public final class BaseRequest {
 
     /**
      * Gets a {@link UriQueryBuilder} for listing.
-     * 
+     *
      * @param listingContext
      *            A {@link ListingContext} object that specifies parameters for
      *            the listing operation, if any. May be <code>null</code>.
-     *            
+     *
      * @throws StorageException
      *             If a storage service error occurred during the operation.
      */
     public static UriQueryBuilder getListUriQueryBuilder(final ListingContext listingContext) throws StorageException {
-        final UriQueryBuilder builder = new UriQueryBuilder();    
+        final UriQueryBuilder builder = new UriQueryBuilder();
         builder.add(Constants.QueryConstants.COMPONENT, Constants.QueryConstants.LIST);
 
         if (listingContext != null) {
@@ -301,10 +305,10 @@ public final class BaseRequest {
 
         return builder;
     }
-    
+
     /**
      * Gets the properties. Sign with no length specified.
-     * 
+     *
      * @param uri
      *            The Uri to query.
      * @param builder
@@ -330,7 +334,7 @@ public final class BaseRequest {
 
     /**
      * Creates a HttpURLConnection used to retrieve the Analytics service properties from the storage service.
-     * 
+     *
      * @param uri
      *            The service endpoint.
      * @param builder
@@ -349,7 +353,7 @@ public final class BaseRequest {
             builder = new UriQueryBuilder();
         }
 
-        builder.add(Constants.QueryConstants.COMPONENT, Constants.QueryConstants.PROPERTIES);
+        builder.add(Constants.QueryConstants.COMPONENT, PROPERTIES);
         builder.add(Constants.QueryConstants.RESOURCETYPE, SERVICE);
 
         final HttpURLConnection retConnection = createURLConnection(uri, options, builder, opContext);
@@ -360,7 +364,7 @@ public final class BaseRequest {
 
     /**
      * Creates a web request to get the stats of the service.
-     * 
+     *
      * @param uri
      *            The service endpoint.
      * @param builder
@@ -388,9 +392,25 @@ public final class BaseRequest {
         return retConnection;
     }
 
+    public static HttpURLConnection getAccountInfo(final URI uri, final RequestOptions options,
+            UriQueryBuilder builder, final OperationContext opContext) throws IOException, URISyntaxException,
+            StorageException {
+        if (builder == null) {
+            builder = new UriQueryBuilder();
+        }
+
+        builder.add(Constants.QueryConstants.RESOURCETYPE, ACCOUNT);
+        builder.add(Constants.QueryConstants.COMPONENT, PROPERTIES);
+
+        final HttpURLConnection retConnection = createURLConnection(uri, options, builder, opContext);
+        retConnection.setRequestMethod("HEAD");
+
+        return retConnection;
+    }
+
     /**
      * Gets the user agent to send over the wire to identify the client.
-     * 
+     *
      * @return the user agent to send over the wire to identify the client.
      */
     public static String getUserAgent() {
@@ -404,10 +424,10 @@ public final class BaseRequest {
 
         return userAgent;
     }
-    
+
     /**
      * Sets the metadata. Sign with 0 length.
-     * 
+     *
      * @param uri
      *            The blob Uri.
      * @param builder
@@ -438,7 +458,7 @@ public final class BaseRequest {
 
     /**
      * Creates a HttpURLConnection used to set the Analytics service properties on the storage service.
-     * 
+     *
      * @param uri
      *            The service endpoint.
      * @param builder
@@ -457,7 +477,7 @@ public final class BaseRequest {
             builder = new UriQueryBuilder();
         }
 
-        builder.add(Constants.QueryConstants.COMPONENT, Constants.QueryConstants.PROPERTIES);
+        builder.add(Constants.QueryConstants.COMPONENT, PROPERTIES);
         builder.add(Constants.QueryConstants.RESOURCETYPE, SERVICE);
 
         final HttpURLConnection retConnection = createURLConnection(uri, options, builder, opContext);
