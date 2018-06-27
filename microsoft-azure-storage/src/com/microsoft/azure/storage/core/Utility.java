@@ -347,7 +347,7 @@ public final class Utility {
             if (!(continuationToken.getContinuationType() == ResultContinuationType.NONE || continuationToken
                     .getContinuationType() == continuationType)) {
                 final String errorMessage = String.format(Utility.LOCALE_US, SR.UNEXPECTED_CONTINUATION_TYPE,
-                        continuationToken.getContinuationType(), continuationType);
+                        continuationType, continuationToken.getContinuationType());
                 throw new IllegalArgumentException(errorMessage);
             }
         }
