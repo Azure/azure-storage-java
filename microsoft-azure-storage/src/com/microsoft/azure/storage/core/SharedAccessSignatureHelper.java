@@ -317,6 +317,7 @@ public class SharedAccessSignatureHelper {
             stringToSign = String.format("%s\n%s\n%s", stringToSign,
                     service == null ? Constants.EMPTY_STRING : service,
                     snapshotId == null ? Constants.EMPTY_STRING : snapshotId);
+
         }
 
 
@@ -345,6 +346,7 @@ public class SharedAccessSignatureHelper {
 
     /**
      * Get the signature hash embedded inside the user delegation Shared Access Signature for the blob service.
+     *
      * @param policy
      *            The shared access policy to hash.
      * @param headers
@@ -362,7 +364,6 @@ public class SharedAccessSignatureHelper {
     public static String generateUserDelegationSharedAccessSignatureHashForBlob(final SharedAccessBlobPolicy policy,
                                                                                 SharedAccessBlobHeaders headers, final String resourceName, final IPRange ipRange,
                                                                                 final SharedAccessProtocols protocols, final UserDelegationKey delegationKey) {
-
         Utility.assertNotNullOrEmpty("resourceName", resourceName);
         Utility.assertNotNull("delegationKey", delegationKey);
         Utility.assertNotNull("delegationKey.SignedOid", delegationKey.getSignedOid());

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 XXXX.XX.XX Version X.X.X
  * Support for 2018-11-09 REST version. Please see our REST API documentation and blogs for information about the related added features.
  * Added appendBlockFromURL method. A block may be created with another blob as its source.
