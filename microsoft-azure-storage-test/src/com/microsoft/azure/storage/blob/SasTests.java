@@ -15,6 +15,20 @@
 
 package com.microsoft.azure.storage.blob;
 
+import com.microsoft.azure.storage.*;
+import com.microsoft.azure.storage.TestRunners.CloudTests;
+import com.microsoft.azure.storage.TestRunners.DevFabricTests;
+import com.microsoft.azure.storage.TestRunners.DevStoreTests;
+import com.microsoft.azure.storage.TestRunners.SlowTests;
+import com.microsoft.azure.storage.core.PathUtility;
+import com.microsoft.azure.storage.core.SR;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+
+import javax.naming.ServiceUnavailableException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -23,43 +37,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.TimeZone;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-
-import com.microsoft.azure.storage.Constants;
-import com.microsoft.azure.storage.core.PathUtility;
-import com.microsoft.azure.storage.core.SR;
-import com.microsoft.azure.storage.IPRange;
-import com.microsoft.azure.storage.OperationContext;
-import com.microsoft.azure.storage.ResponseReceivedEvent;
-import com.microsoft.azure.storage.SecondaryTests;
-import com.microsoft.azure.storage.SendingRequestEvent;
-import com.microsoft.azure.storage.SharedAccessProtocols;
-import com.microsoft.azure.storage.SharedAccessAccountPermissions;
-import com.microsoft.azure.storage.SharedAccessAccountPolicy;
-import com.microsoft.azure.storage.SharedAccessAccountResourceType;
-import com.microsoft.azure.storage.SharedAccessAccountService;
-import com.microsoft.azure.storage.StorageCredentials;
-import com.microsoft.azure.storage.StorageCredentialsAnonymous;
-import com.microsoft.azure.storage.StorageCredentialsSharedAccessSignature;
-import com.microsoft.azure.storage.StorageEvent;
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.TestHelper;
-import com.microsoft.azure.storage.TestRunners.CloudTests;
-import com.microsoft.azure.storage.TestRunners.DevFabricTests;
-import com.microsoft.azure.storage.TestRunners.DevStoreTests;
-import com.microsoft.azure.storage.TestRunners.SlowTests;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.*;
 
@@ -651,6 +630,56 @@ public class SasTests {
         snapshot.delete();
         source.delete();
         copySas.delete();
+    }
+
+    @Test
+    public void testIdentitySas()
+            throws InterruptedException, IOException, StorageException, ExecutionException,
+            ServiceUnavailableException, URISyntaxException {
+        StorageCredentials creds = new StorageCredentialsToken(TestHelper.getAccountName(), TestHelper.generateOAuthToken());
+        CloudBlobClient client = new CloudBlobClient(TestHelper.getAccount().getBlobEndpoint(), creds);
+
+
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.MINUTE, -5);
+        Date start = cal.getTime();
+        cal.add(Calendar.MINUTE, 10);
+        Date end = cal.getTime();
+
+        UserDelegationKey key = client.getUserDelegationKey(start, end);
+        UserDelegationKey key2 = client.getUserDelegationKey(start, end);
+
+        Assert.assertNotNull(key.getSignedOid());
+        Assert.assertNotNull(key.getSignedTid());
+        Assert.assertNotNull(key.getSignedStart());
+        Assert.assertNotNull(key.getSignedExpiry());
+        Assert.assertNotNull(key.getSignedService());
+        Assert.assertNotNull(key.getSignedVersion());
+        Assert.assertNotNull(key.getValue());
+        Assert.assertEquals(key.getSignedOid(), key2.getSignedOid());
+        Assert.assertEquals(key.getSignedTid(), key2.getSignedTid());
+        Assert.assertEquals(key.getSignedStart(), key2.getSignedStart());
+        Assert.assertEquals(key.getSignedExpiry(), key2.getSignedExpiry());
+        Assert.assertEquals(key.getSignedVersion(), key2.getSignedVersion());
+        Assert.assertEquals(key.getSignedService(), key2.getSignedService());
+        Assert.assertEquals(key.getValue(), key2.getValue());
+
+        final String data = "placeholder";
+        final String newData = "additional placeholder";
+
+        CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
+        container.createIfNotExists();
+        CloudBlockBlob blob = container.getBlockBlobReference("testblob");
+        blob.uploadText(data);
+
+        SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy();
+        policy.setPermissions(EnumSet.of(SharedAccessBlobPermissions.READ, SharedAccessBlobPermissions.WRITE));
+        policy.setSharedAccessExpiryTime(end);
+        CloudBlockBlob sasBlob = new CloudBlockBlob(new URI(blob.getUri() + "?" + blob.generateIdentitySharedAccessSignature(key, policy)));
+
+        Assert.assertEquals(sasBlob.downloadText(), data);
+        sasBlob.uploadText(newData);
+        Assert.assertEquals(sasBlob.downloadText(), newData);
     }
 
     private final static SharedAccessBlobPolicy createSharedAccessPolicy(EnumSet<SharedAccessBlobPermissions> sap,

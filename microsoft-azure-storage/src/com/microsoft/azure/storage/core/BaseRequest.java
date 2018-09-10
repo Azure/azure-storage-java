@@ -45,6 +45,8 @@ public final class BaseRequest {
 
     private static final String ACCOUNT = "account";
 
+    private static final String USER_DELEGATION_KEY = "userdelegationkey";
+
     /**
      * Stores the user agent to send over the wire to identify the client.
      */
@@ -484,6 +486,40 @@ public final class BaseRequest {
 
         retConnection.setDoOutput(true);
         retConnection.setRequestMethod(Constants.HTTP_PUT);
+
+        return retConnection;
+    }
+
+    /**
+     * Creates a HttpURLConnection used to request a {@link com.microsoft.azure.storage.UserDelegationKey}
+     * from the service.
+     * @param uri
+     *            The service endpoint.
+     * @param options
+     *            The options for the http request.
+     * @param builder
+     *            The builder.
+     * @param opContext
+     *            An object used to track the execution of the operation.
+     * @return a web request for performing the operation.
+     * @throws IOException
+     * @throws URISyntaxException
+     * @throws StorageException
+     */
+    public static HttpURLConnection getUserDelegationKey(final URI uri, final RequestOptions options,
+            UriQueryBuilder builder, final OperationContext opContext)
+            throws IOException, URISyntaxException, StorageException {
+        if (builder == null) {
+            builder = new UriQueryBuilder();
+        }
+
+        builder.add(Constants.QueryConstants.COMPONENT, USER_DELEGATION_KEY);
+        builder.add(Constants.QueryConstants.RESOURCETYPE, SERVICE);
+
+        final HttpURLConnection retConnection = createURLConnection(uri, options, builder, opContext);
+
+        retConnection.setDoOutput(true);
+        retConnection.setRequestMethod(Constants.HTTP_POST);
 
         return retConnection;
     }

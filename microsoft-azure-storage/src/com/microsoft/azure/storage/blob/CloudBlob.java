@@ -14,14 +14,10 @@
  */
 package com.microsoft.azure.storage.blob;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import com.microsoft.azure.storage.*;
+import com.microsoft.azure.storage.core.*;
+
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -29,9 +25,6 @@ import java.security.InvalidKeyException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-
-import com.microsoft.azure.storage.*;
-import com.microsoft.azure.storage.core.*;
 
 /**
  * Represents a Microsoft Azure blob. This is the base class for the {@link CloudBlockBlob} and {@link CloudPageBlob}
@@ -2159,10 +2152,61 @@ public abstract class CloudBlob implements ListBlobItem {
         final String resourceName = this.getCanonicalName(true);
 
         final String signature = SharedAccessSignatureHelper.generateSharedAccessSignatureHashForBlobAndFile(
-                policy, headers, groupPolicyIdentifier, resourceName, ipRange, protocols, this.blobServiceClient);
+                policy, headers, groupPolicyIdentifier, resourceName, ipRange, protocols, this.blobServiceClient,
+                Constants.QueryConstants.BLOB_SERVICE);
 
         final UriQueryBuilder builder = SharedAccessSignatureHelper.generateSharedAccessSignatureForBlobAndFile(
                 policy, headers, groupPolicyIdentifier, "b", ipRange, protocols, signature);
+
+        return builder.toString();
+    }
+
+    /**
+     * Returns an identity-based shared access signature for the blob using the specified group policy identifier and
+     * operation context. Note this does not contain the leading "?".
+     * @param delegationKey
+     *            A <code>{@link UserDelegationKey}</code> representing the key used to sign this signature.
+     * @param policy
+     *            A <code>{@link SharedAccessPolicy}</code> object that represents the access policy for the shared
+     *            access signature.
+     * @return A <code>String</code> that represents the shared access signature.
+     * @throws StorageException
+     *            If a storage service error occurred.
+     */
+    public String generateIdentitySharedAccessSignature(UserDelegationKey delegationKey, SharedAccessBlobPolicy policy)
+            throws StorageException {
+        return generateIdentitySharedAccessSignature(delegationKey, policy, null, null, null);
+    }
+
+    /**
+     * Returns an identity-based shared access signature for the blob using the specified group policy identifier and
+     * operation context. Note this does not contain the leading "?".
+     * @param delegationKey
+     *            A <code>{@link UserDelegationKey}</code> representing the key used to sign this signature.
+     * @param policy
+     *            A <code>{@link SharedAccessPolicy}</code> object that represents the access policy for the shared
+     *            access signature.
+     * @param headers
+     *            A <code>{@link SharedAccessBlobHeaders}</code> object that represents the optional header values to
+     *            set for a blob accessed with this shared access signature.
+     * @param ipRange
+     *            A {@link IPRange} object containing the range of allowed IP addresses.
+     * @param protocols
+     *            A {@link SharedAccessProtocols} representing the allowed Internet protocols.
+     * @return A <code>String</code> that represents the shared access signature.
+     * @throws StorageException
+     *            If a storage service error occurred.
+     */
+    public String generateIdentitySharedAccessSignature(
+            final UserDelegationKey delegationKey, final SharedAccessBlobPolicy policy,
+            final SharedAccessBlobHeaders headers, final IPRange ipRange,
+            final SharedAccessProtocols protocols) throws StorageException {
+
+        final String resourceName = this.getCanonicalName(true);
+        final String signature = SharedAccessSignatureHelper.generateIdentityBasedSharedAccessSignatureHashForBlob(
+                policy, headers, resourceName, ipRange, protocols, delegationKey);
+        final UriQueryBuilder builder = SharedAccessSignatureHelper.generateIdentityBasedSharedAccessSignatureForBlob(
+                policy, headers, Constants.QueryConstants.BLOB_SERVICE, ipRange, protocols, signature, delegationKey);
 
         return builder.toString();
     }

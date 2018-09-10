@@ -16,9 +16,12 @@ package com.microsoft.azure.storage.core;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 import com.microsoft.azure.storage.*;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.HttpsURLConnection;
 
 /**
@@ -75,6 +78,19 @@ public final class StorageCredentialsHelper {
         else {
             return null;
         }
+    }
+
+    public static synchronized byte[] computeHmac256(final byte[] data, final byte[] key) throws InvalidKeyException {
+        Mac hmacSha256 = null;
+        try {
+            hmacSha256 = Mac.getInstance("HmacSHA256");
+        }
+        catch (final NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException();
+        }
+        hmacSha256.init(new SecretKeySpec(key, "HmacSHA256"));
+
+        return hmacSha256.doFinal(data);
     }
 
     /**
