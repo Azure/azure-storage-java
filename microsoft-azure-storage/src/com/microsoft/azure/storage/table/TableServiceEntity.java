@@ -58,8 +58,9 @@ import com.microsoft.azure.storage.core.SR;
  * <p>
  * The following table shows the supported property data types in Microsoft Azure storage and the corresponding Java
  * types when deserialized.
- * <TABLE BORDER="1" WIDTH="100%" CELLPADDING="3" CELLSPACING="0" summary="Supported property data types in Microsoft Azure storage">
- * <TR BGCOLOR="#EEEEFF" CLASS="TableSubHeadingColor">
+ * <table BORDER="1">
+ * <caption>Supported property data types in Microsoft Azure storage</caption>
+ * <TR CLASS="TableSubHeadingColor">
  * <th>Storage Type</th>
  * <th>EdmType Value</th>
  * <th>Java Type</th>
