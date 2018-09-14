@@ -146,7 +146,7 @@ public class SharedAccessSignatureHelper {
      * @return The finished query builder.
      * @throws StorageException
      */
-    public static UriQueryBuilder generateIdentityBasedSharedAccessSignatureForBlob(
+    public static UriQueryBuilder generateUserDelegationSharedAccessSignatureForBlob(
             final SharedAccessPolicy policy, final SharedAccessHeaders headers, final String resourceType,
             final IPRange ipRange, final SharedAccessProtocols protocols, final String signature,
             final UserDelegationKey delegationKey) throws StorageException {
@@ -343,7 +343,7 @@ public class SharedAccessSignatureHelper {
     }
 
     /**
-     * Get the signature hash embedded inside the identity-based Shared Access Signature for the blob service.
+     * Get the signature hash embedded inside the user delegation Shared Access Signature for the blob service.
      * @param policy
      *            The shared access policy to hash.
      * @param headers
@@ -358,9 +358,9 @@ public class SharedAccessSignatureHelper {
      *            The key data to sign and the secret to sign with.
      * @return The signature hash to embed inside the Shared Access Signature.
      */
-    public static String generateIdentityBasedSharedAccessSignatureHashForBlob(final SharedAccessBlobPolicy policy,
-            SharedAccessBlobHeaders headers, final String resourceName, final IPRange ipRange,
-            final SharedAccessProtocols protocols, final UserDelegationKey delegationKey) {
+    public static String generateUserDelegationSharedAccessSignatureHashForBlob(final SharedAccessBlobPolicy policy,
+                                                                                SharedAccessBlobHeaders headers, final String resourceName, final IPRange ipRange,
+                                                                                final SharedAccessProtocols protocols, final UserDelegationKey delegationKey) {
 
         Utility.assertNotNullOrEmpty("resourceName", resourceName);
         Utility.assertNotNull("delegationKey", delegationKey);

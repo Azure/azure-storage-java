@@ -2162,7 +2162,7 @@ public abstract class CloudBlob implements ListBlobItem {
     }
 
     /**
-     * Returns an identity-based shared access signature for the blob using the specified group policy identifier and
+     * Returns a shared access signature based on a user delegation key for the blob using the specified group policy identifier and
      * operation context. Note this does not contain the leading "?".
      * @param delegationKey
      *            A <code>{@link UserDelegationKey}</code> representing the key used to sign this signature.
@@ -2173,13 +2173,13 @@ public abstract class CloudBlob implements ListBlobItem {
      * @throws StorageException
      *            If a storage service error occurred.
      */
-    public String generateIdentitySharedAccessSignature(UserDelegationKey delegationKey, SharedAccessBlobPolicy policy)
+    public String generateUserDelegationSharedAccessSignature(UserDelegationKey delegationKey, SharedAccessBlobPolicy policy)
             throws StorageException {
-        return generateIdentitySharedAccessSignature(delegationKey, policy, null, null, null);
+        return generateUserDelegationSharedAccessSignature(delegationKey, policy, null, null, null);
     }
 
     /**
-     * Returns an identity-based shared access signature for the blob using the specified group policy identifier and
+     * Returns a shared access signature based on a user delegation key for the blob using the specified group policy identifier and
      * operation context. Note this does not contain the leading "?".
      * @param delegationKey
      *            A <code>{@link UserDelegationKey}</code> representing the key used to sign this signature.
@@ -2197,15 +2197,15 @@ public abstract class CloudBlob implements ListBlobItem {
      * @throws StorageException
      *            If a storage service error occurred.
      */
-    public String generateIdentitySharedAccessSignature(
+    public String generateUserDelegationSharedAccessSignature(
             final UserDelegationKey delegationKey, final SharedAccessBlobPolicy policy,
             final SharedAccessBlobHeaders headers, final IPRange ipRange,
             final SharedAccessProtocols protocols) throws StorageException {
 
         final String resourceName = this.getCanonicalName(true);
-        final String signature = SharedAccessSignatureHelper.generateIdentityBasedSharedAccessSignatureHashForBlob(
+        final String signature = SharedAccessSignatureHelper.generateUserDelegationSharedAccessSignatureHashForBlob(
                 policy, headers, resourceName, ipRange, protocols, delegationKey);
-        final UriQueryBuilder builder = SharedAccessSignatureHelper.generateIdentityBasedSharedAccessSignatureForBlob(
+        final UriQueryBuilder builder = SharedAccessSignatureHelper.generateUserDelegationSharedAccessSignatureForBlob(
                 policy, headers, Constants.QueryConstants.BLOB_SERVICE, ipRange, protocols, signature, delegationKey);
 
         return builder.toString();

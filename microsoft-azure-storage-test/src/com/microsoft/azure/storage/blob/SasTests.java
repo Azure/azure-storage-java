@@ -633,7 +633,7 @@ public class SasTests {
     }
 
     @Test
-    public void testIdentitySas()
+    public void testUserDelegationSas()
             throws InterruptedException, IOException, StorageException, ExecutionException,
             ServiceUnavailableException, URISyntaxException {
         StorageCredentials creds = new StorageCredentialsToken(TestHelper.getAccountName(), TestHelper.generateOAuthToken());
@@ -675,7 +675,7 @@ public class SasTests {
         SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy();
         policy.setPermissions(EnumSet.of(SharedAccessBlobPermissions.READ, SharedAccessBlobPermissions.WRITE));
         policy.setSharedAccessExpiryTime(end);
-        CloudBlockBlob sasBlob = new CloudBlockBlob(new URI(blob.getUri() + "?" + blob.generateIdentitySharedAccessSignature(key, policy)));
+        CloudBlockBlob sasBlob = new CloudBlockBlob(new URI(blob.getUri() + "?" + blob.generateUserDelegationSharedAccessSignature(key, policy)));
 
         Assert.assertEquals(sasBlob.downloadText(), data);
         sasBlob.uploadText(newData);
