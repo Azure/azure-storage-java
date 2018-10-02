@@ -2144,19 +2144,18 @@ public abstract class CloudBlob implements ListBlobItem {
         if (!StorageCredentialsHelper.canCredentialsSignRequest(this.blobServiceClient.getCredentials())) {
             throw new IllegalArgumentException(SR.CANNOT_CREATE_SAS_WITHOUT_ACCOUNT_KEY);
         }
-        
-        if (this.isSnapshot()) {
-            throw new IllegalArgumentException(SR.CANNOT_CREATE_SAS_FOR_SNAPSHOTS);
-        }
 
         final String resourceName = this.getCanonicalName(true);
 
         final String signature = SharedAccessSignatureHelper.generateSharedAccessSignatureHashForBlobAndFile(
                 policy, headers, groupPolicyIdentifier, resourceName, ipRange, protocols, this.blobServiceClient,
-                Constants.QueryConstants.BLOB_SERVICE);
+                this.isSnapshot() ? Constants.QueryConstants.BLOB_SNAPSHOT_SERVICE : Constants.QueryConstants.BLOB_SERVICE,
+                this.getSnapshotID());
 
         final UriQueryBuilder builder = SharedAccessSignatureHelper.generateSharedAccessSignatureForBlobAndFile(
-                policy, headers, groupPolicyIdentifier, "b", ipRange, protocols, signature);
+                policy, headers, groupPolicyIdentifier,
+                this.isSnapshot() ? Constants.QueryConstants.BLOB_SNAPSHOT_SERVICE : Constants.QueryConstants.BLOB_SERVICE,
+                ipRange, protocols, signature);
 
         return builder.toString();
     }

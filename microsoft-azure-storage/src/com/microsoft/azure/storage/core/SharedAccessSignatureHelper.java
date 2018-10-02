@@ -308,14 +308,15 @@ public class SharedAccessSignatureHelper {
     public static String generateSharedAccessSignatureHashForBlobAndFile(final SharedAccessPolicy policy,
             SharedAccessHeaders headers, final String accessPolicyIdentifier, final String resourceName,
             final IPRange ipRange, final SharedAccessProtocols protocols, final ServiceClient client,
-            final String service) throws InvalidKeyException, StorageException {
+            final String service, final String snapshotId) throws InvalidKeyException, StorageException {
         
         String stringToSign = generateSharedAccessSignatureStringToSign(
                 policy, resourceName, ipRange, protocols, accessPolicyIdentifier);
 
         if (client instanceof CloudBlobClient) {
             stringToSign = String.format("%s\n%s\n%s", stringToSign,
-                    service == null ? Constants.EMPTY_STRING : service, Constants.EMPTY_STRING);
+                    service == null ? Constants.EMPTY_STRING : service,
+                    snapshotId == null ? Constants.EMPTY_STRING : snapshotId);
         }
 
 

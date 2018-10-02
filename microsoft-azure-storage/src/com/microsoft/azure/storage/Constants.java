@@ -868,6 +868,11 @@ public final class Constants {
         public static final String BLOB_SERVICE = "b";
 
         /**
+         * The query value for blob snapshot as the signed service.
+         */
+        public static final String BLOB_SNAPSHOT_SERVICE = "bs";
+
+        /**
          * The query value for container as the signed service.
          */
         public static final String CONTAINER_SERVICE = "c";

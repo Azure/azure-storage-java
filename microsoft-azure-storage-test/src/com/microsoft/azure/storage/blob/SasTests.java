@@ -682,6 +682,38 @@ public class SasTests {
         Assert.assertEquals(sasBlob.downloadText(), newData);
     }
 
+    @Test
+    public void testSnapshotSas()
+            throws URISyntaxException, StorageException, IOException, InvalidKeyException {
+        CloudBlockBlob blob2snap = container.getBlockBlobReference("blob--" + UUID.randomUUID());
+        blob2snap.uploadText("placeholder");
+        CloudBlockBlob snap = (CloudBlockBlob)blob2snap.createSnapshot();
+
+        SharedAccessBlobPolicy genericSASPolicy = createSharedAccessPolicy(
+                EnumSet.of(SharedAccessBlobPermissions.READ, SharedAccessBlobPermissions.DELETE), 5000);
+        CloudBlockBlob sasSnap = new CloudBlockBlob(new URI(snap.getSnapshotQualifiedUri() + "&"
+                + snap.generateSharedAccessSignature(genericSASPolicy, null)));
+
+        Assert.assertTrue("CloudBlob made from snapshot SAS is not a snapshot", sasSnap.isSnapshot());
+        Assert.assertNotNull("CloudBlob made from snapshot SAS has no snapshot time", sasSnap.getSnapshotID());
+        Assert.assertEquals("placeholder", sasSnap.downloadText()); // the actual REST interaction and validating data
+        sasSnap.delete();
+        Assert.assertFalse("Blob snapshot sas was unable to delete the snapshot", sasSnap.exists());
+
+        // base blob with a blob snapshot sas
+        CloudBlockBlob badSasSnap = new CloudBlockBlob(new URI(snap.getUri() + "?"
+                + snap.generateSharedAccessSignature(genericSASPolicy, null)));
+
+        boolean thrown = false;
+        try {
+            badSasSnap.downloadText();
+        }
+        catch (Exception ignored) {
+            thrown = true;
+        }
+        Assert.assertTrue("Attempt to access base blob through snapshot sas was successful.", thrown);
+    }
+
     private final static SharedAccessBlobPolicy createSharedAccessPolicy(EnumSet<SharedAccessBlobPermissions> sap,
             int expireTimeInSeconds) {
 

@@ -1753,7 +1753,7 @@ public final class CloudFile implements ListFileItem {
 
         final String signature = SharedAccessSignatureHelper.generateSharedAccessSignatureHashForBlobAndFile(
                 policy, headers, groupPolicyIdentifier, this.getCanonicalName(),
-                ipRange, protocols, this.fileServiceClient, Constants.QueryConstants.FILE_SERVICE);
+                ipRange, protocols, this.fileServiceClient, Constants.QueryConstants.FILE_SERVICE, null /* snapshotId */);
 
         final UriQueryBuilder builder = SharedAccessSignatureHelper.generateSharedAccessSignatureForBlobAndFile(
                 policy, headers, groupPolicyIdentifier, "f", ipRange, protocols, signature);
