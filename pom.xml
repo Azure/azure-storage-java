@@ -13,11 +13,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.microsoft.azure</groupId>
-    <artifactId>azure-storage-blob</artifactId>
-    <version>10.1.0</version>
+    <artifactId>azure-storage-java</artifactId>
+    <version>10</version>
+    <packaging>pom</packaging>
 
-    <name>Azure Storage Blob</name>
-    <description>The Azure Storage Java Blob library.</description>
+    <name>Azure Storage Java</name>
+    <description>The Azure Storage Java library.</description>
     <url>https://github.com/Azure/azure-storage-java</url>
 
     <licenses>
@@ -33,7 +34,10 @@
         <connection>scm:git:git@github.com:Azure/azure-storage-java.git</connection>
         <tag>HEAD</tag>
     </scm>
-
+    <modules>
+        <module>blob</module>
+        <module>queue</module>
+    </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <legal>
@@ -61,19 +65,6 @@
         </pluginRepository>
     </pluginRepositories>
 
-    <repositories>
-        <repository>
-            <id>ossrh</id>
-            <name>Sonatype Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-            <layout>default</layout>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
             <groupId>com.microsoft.rest.v2</groupId>
@@ -98,96 +89,5 @@
             <version>2.4.13</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>cglib</groupId>
-            <artifactId>cglib-nodep</artifactId>
-            <version>3.2.7</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.objenesis</groupId>
-            <artifactId>objenesis</artifactId>
-            <version>2.6</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
-
-    <build>
-        <testSourceDirectory>src/test/java</testSourceDirectory>
-
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
-                <configuration>
-                    <compilerId>groovy-eclipse-compiler</compilerId>
-                    <compilerArgument>-Xlint:unchecked</compilerArgument>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                    <showDeprecation>true</showDeprecation>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.codehaus.groovy</groupId>
-                        <artifactId>groovy-eclipse-compiler</artifactId>
-                        <version>2.9.3-01</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.codehaus.groovy</groupId>
-                        <artifactId>groovy-eclipse-batch</artifactId>
-                        <version>2.4.15-01</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.20.1</version>
-                <configuration>
-                    <includes>
-                        <include>**/Test*.*</include>
-                        <include>**/*Test.*</include>
-                        <include>**/*Tests.*</include>
-                        <include>**/*Samples*.*</include>
-                    </includes>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.1</version>
-                <configuration>
-                    <!-- force links to Java 8 documentation (should happen automatically
-						but doesn't) -->
-                    <javaApiLinks>
-                        <property>
-                            <name>api_1.8</name>
-                            <value>https://docs.oracle.com/javase/8/docs/api/</value>
-                        </property>
-                    </javaApiLinks>
-                    <!-- add license notice -->
-                    <bottom>
-                        <![CDATA[This documentation was released into the public domain.]]>
-                    </bottom>
-                    <tags>
-                        <tag>
-                            <name>apiNote</name>
-                            <placement>m</placement>
-                            <head>API Note:</head>
-                        </tag>
-                    </tags>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.5.2</version>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 </project>

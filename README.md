@@ -1,6 +1,7 @@
 # Microsoft Azure Storage SDK v10 for Java
 
-This project provides a client library in Java that makes it easy to consume Microsoft Azure Storage services. For documentation please see the [Storage API doc page](https://docs.microsoft.com/en-us/java/api/overview/azure/storage/client?view=azure-java-preview) and the [quick start document](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-java-v10).
+This project provides a client library in Java that makes it easy to consume Microsoft Azure Storage services. For documentation please see the [Storage API doc page](https://docs.microsoft.com/en-us/java/api/overview/azure/storage/client?view=azure-java-stable), the [blob quickstart](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-java-v10)
+for blobs and the [queue quickstart](https://docs.microsoft.com/en-us/azure/storage/queues/storage-java-how-to-use-queue-storage) for queues.
 Please note that this version of the library is a compete overhaul of the current Azure Storage Java Client Library, and is based on the new Storage SDK architecture, also referred to as V10.
 
 > If you are looking for the Azure Storage Android SDK, please visit [https://github.com/Azure/azure-storage-android](https://github.com/Azure/azure-storage-android).
@@ -14,6 +15,9 @@ Migrating to the newest version of the SDK will require a substantial rewrite of
       * Create/Read/Update/Delete containers
       * Create/Read/Update/Delete blobs
       * Advanced Blob Operations wrapped in the TransferManager class
+  * Queue
+      * Create/List/Delete queues
+      * Put/Get/Peek/Delete/Clear/Update queue messages.
   * Features new to V10
       * Asynchronous I/O for all operations using the [ReactiveX](https://github.com/ReactiveX/RxJava) framework
       * HttpPipeline which enables a high degree of per-request configurability and guaranteed thread safety
@@ -26,7 +30,6 @@ Migrating to the newest version of the SDK will require a substantial rewrite of
 ### Option 1: Via Maven
 
 To get the binaries of this library as distributed by Microsoft, ready for use within your project, you can use Maven.
-
 ```xml
 <dependency>
 	<groupId>com.microsoft.azure</groupId>
@@ -34,7 +37,13 @@ To get the binaries of this library as distributed by Microsoft, ready for use w
 	<version>10.1.0</version>
 </dependency>
 ```
-
+```xml
+<dependency>
+	<groupId>com.microsoft.azure</groupId>
+	<artifactId>azure-storage-queue</artifactId>
+	<version>10.0.0-Preview</version>
+</dependency>
+```
 ### Option 2: Source Via Git
 
 To get the source code of the SDK via git just type:
@@ -62,11 +71,11 @@ The three dependencies, [Jackson-Core](https://github.com/FasterXML/jackson-core
 
 To use this SDK to call Microsoft Azure storage services, you need to first [create an account](https://azure.microsoft.com/free).
 
-Samples are provided in azure-storage/src/test/groovy/com/microsoft/azure/storage/Samples.java. The unit tests in the same directory can also be helpful.
+Samples are provided in azure-storage-java/blob/src/test/java/com/microsoft/azure/storage/Samples.java for blobs and azure-storage-java/queue/src/test/java/com/microsoft/azure/storage/Samples.java for queues. The unit tests in the same directories can also be helpful.
 
 ## Code Sample
 
-The following is a quick example on how to upload some data to an azure blob and download it back. You may also run the samples in azure-storage/src/test/groovy/com/microsoft/azure/storage/Samples.java. For additional information on using the client libraries to access Azure services see the How To guides for [blobs](http://azure.microsoft.com/en-us/documentation/articles/storage-java-how-to-use-blob-storage/) and the [general documentation](http://azure.microsoft.com/en-us/develop/java/).
+The following is a quick example on how to upload some data to an azure blob and download it back. You may also run the samples in azure-storage-java/blob/src/test/java/com/microsoft/azure/storage/Samples.java. For additional information on using the client libraries to access Azure services see the How To guides for [blobs](http://azure.microsoft.com/en-us/documentation/articles/storage-java-how-to-use-blob-storage/) and the [general documentation](http://azure.microsoft.com/en-us/develop/java/).
 
 ```java
 public class Sample {
@@ -152,6 +161,78 @@ public class Sample {
     }
 }
 ```
+
+The following is a quick example on how to enqueue some messages to an azure queue and dequeue the messages and process them. You may also run the samples in azure-storage-java/queue/src/test/java/com/microsoft/azure/storage/Samples.java. For additional information on using the client libraries to access Azure services see the How To guides for [queues](https://docs.microsoft.com/en-us/azure/storage/queues/storage-java-how-to-use-queue-storage) and the [general documentation](http://azure.microsoft.com/en-us/develop/java/).
+
+```java
+public class Sample {
+    /**
+    *  This example shows how to get started using the Azure Storage Queue SDK for Java.
+    */
+    public void basicExample() throws MalformedURLException, InterruptedException{
+        String accountName = getAccountName();
+        String accountKey = getAccountKey();
+
+        // Use your Storage account's name and key to create a credential object; this is required to sign a SAS.
+        SharedKeyCredentials credential = new SharedKeyCredentials(accountName, accountKey);
+
+        /*
+        Create a request pipeline that is used to process HTTP(S) requests and responses. It requires your account
+        credentials. In more advanced scenarios, you can configure telemetry, retry policies, logging, and other
+        options. Also you can configure multiple pipelines for different scenarios.
+         */
+        HttpPipeline pipeline = StorageURL.createPipeline(credential);
+
+        /*
+        From the Azure portal, get your Storage account queue service URL endpoint.
+        The URL typically looks like this:
+         */
+        URL u = new URL(String.format(Locale.ROOT, "https://%s.queue.core.windows.net", accountName));
+
+        /*
+        Create a URL that references a queue in your Azure Storage account.
+        This returns a QueueURL object that wraps the queue's URL and a request pipeline (inherited from serviceURL).
+        */
+        QueueURL qu = new ServiceURL(u, pipeline).
+                createQueueUrl(queuePrefix + String.valueOf(new Random().nextInt(100000) + 1));
+
+        // Creates a queue Single which stages an operation to create a queue.
+        Single<QueueCreateResponse> queueCreateSingle = qu.create();
+
+        // Create messageUrl which allows to enqueue, dequeue and to further manipulate the queues message.
+        MessagesURL mu = qu.createMessagesUrl();
+
+        queueCreateSingle
+                .flatMap(response ->
+                        mu.enqueue("This is message 1"))
+                .flatMap(response ->
+                        mu.enqueue("This is message 2"))
+                .flatMap(response ->
+                        mu.dequeue(1, 5))
+                .doOnSuccess(messageDequeueResponse -> {
+                    if (messageDequeueResponse.body().get(0).messageId().startsWith("This is message")){
+                        throw new Exception("The dequeued message does not match enqueued message.");
+                    }
+                })
+                .flatMap(response ->
+                        mu.dequeue(1, 5))
+                .doOnSuccess(messageDequeueResponse -> {
+                    if (messageDequeueResponse.body().get(0).messageId().startsWith("This is message")){
+                        throw new Exception("The dequeued message does not match enqueued message.");
+                    }
+                })
+                .flatMap(response ->
+                        qu.delete())
+                /*
+                This will synchronize all the above operations. This is strongly discouraged for use in production as
+                it eliminates the benefits of asynchronous IO. We use it here to enable the sample to complete and
+                demonstrate its effectiveness.
+                 */
+                .blockingGet();
+    }
+}
+```
+
 ## Building
 
 If building from sources, run mvn compile to build. No build steps are necessary if including the package as a maven dependency.
