@@ -1457,7 +1457,8 @@ public class Samples {
         URL u = new URL(String.format(Locale.ROOT, "https://%s.blob.core.windows.net/", accountName));
         ServiceURL s = new ServiceURL(u,
                 StorageURL.createPipeline(new SharedKeyCredentials(accountName, accountKey), new PipelineOptions()));
-        ContainerURL containerURL = s.createContainerURL("myjavacontainercreateifnotexist");
+        ContainerURL containerURL = s.createContainerURL("myjavacontainercreateifnotexist" +
+                System.currentTimeMillis());
 
         createContainerIfNotExists(containerURL)
                 .flatMap(r -> {
@@ -1495,7 +1496,7 @@ public class Samples {
         URL u = new URL(String.format(Locale.ROOT, "https://%s.blob.core.windows.net/", accountName));
         ServiceURL s = new ServiceURL(u,
                 StorageURL.createPipeline(new SharedKeyCredentials(accountName, accountKey), new PipelineOptions()));
-        ContainerURL containerURL = s.createContainerURL("myjavacontainerlistlazy");
+        ContainerURL containerURL = s.createContainerURL("myjavacontainerlistlazy" + System.currentTimeMillis());
 
         containerURL.create(null, null, null).toCompletable()
                 .andThen(Observable.range(0, 5))
