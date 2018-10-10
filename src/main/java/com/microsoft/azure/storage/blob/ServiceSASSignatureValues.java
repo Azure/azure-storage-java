@@ -52,6 +52,8 @@ public final class ServiceSASSignatureValues {
 
     private String blobName;
 
+    private String snapshotId;
+
     private String identifier;
 
     private String cacheControl;
@@ -180,17 +182,32 @@ public final class ServiceSASSignatureValues {
     }
 
     /**
-     * The name of the container the SAS user may access.
+     * The name of the blob the SAS user may access.
      */
     public String blobName() {
         return blobName;
     }
 
     /**
-     * The name of the container the SAS user may access.
+     * The name of the blob the SAS user may access.
      */
     public ServiceSASSignatureValues withBlobName(String blobName) {
         this.blobName = blobName;
+        return this;
+    }
+
+    /**
+     * The specific snapshot the SAS user may access.
+     */
+    public String snapshotId() {
+        return snapshotId;
+    }
+
+    /**
+     * The specific snapshot the SAS user may access.
+     */
+    public ServiceSASSignatureValues withSnapshotId(String snapshotId) {
+        this.snapshotId = snapshotId;
         return this;
     }
 
@@ -301,6 +318,9 @@ public final class ServiceSASSignatureValues {
         Utility.assertNotNull("sharedKeyCredentials", sharedKeyCredentials);
         Utility.assertNotNull("version", this.version);
         Utility.assertNotNull("containerName", this.containerName);
+        if (blobName == null && snapshotId != null) {
+            throw new IllegalArgumentException("Cannot set a snapshotId without a blobName.");
+        }
 
         String resource = "c";
         String verifiedPermissions = null;
@@ -313,11 +333,11 @@ public final class ServiceSASSignatureValues {
             if (this.permissions != null) {
                 verifiedPermissions = BlobSASPermission.parse(this.permissions).toString();
             }
-            resource = "b";
+            resource = snapshotId != null && !snapshotId.isEmpty() ? "bs" : "b";
         }
 
         // Signature is generated on the un-url-encoded values.
-        final String stringToSign = stringToSign(verifiedPermissions, sharedKeyCredentials);
+        final String stringToSign = stringToSign(verifiedPermissions, resource, sharedKeyCredentials);
 
         String signature = null;
         try {
@@ -345,7 +365,7 @@ public final class ServiceSASSignatureValues {
         return canonicalName.toString();
     }
 
-    private String stringToSign(final String verifiedPermissions,
+    private String stringToSign(final String verifiedPermissions, final String resource,
             final SharedKeyCredentials sharedKeyCredentials) {
         return String.join("\n",
                 verifiedPermissions == null ? "" : verifiedPermissions,
@@ -356,6 +376,8 @@ public final class ServiceSASSignatureValues {
                 this.ipRange == null ? IPRange.DEFAULT.toString() : this.ipRange.toString(),
                 this.protocol == null ? "" : protocol.toString(),
                 this.version,
+                resource,
+                this.snapshotId == null ? "" : this.snapshotId,
                 this.cacheControl == null ? "" : this.cacheControl,
                 this.contentDisposition == null ? "" : this.contentDisposition,
                 this.contentEncoding == null ? "" : this.contentEncoding,

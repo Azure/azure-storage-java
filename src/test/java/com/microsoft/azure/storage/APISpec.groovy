@@ -28,6 +28,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import java.nio.ByteBuffer
+import java.text.SimpleDateFormat
 import java.time.OffsetDateTime
 
 class APISpec extends Specification {
@@ -143,7 +144,7 @@ class APISpec extends Specification {
         String suffix = ""
         suffix += System.currentTimeMillis() // For uniqueness between runs.
         suffix += entityNo // For easy identification of which call created this resource.
-        return prefix + getTestName(specificationContext) + suffix
+        return prefix + getTestName(specificationContext).take(63 - suffix.length() - prefix.length()) + suffix
     }
 
     static int updateIterationNo(ISpecificationContext specificationContext, int iterationNo) {
