@@ -1626,15 +1626,13 @@ class ContainerAPITest extends APISpec {
 
     def "Root explicit"() {
         setup:
-        cu = primaryServiceURL.createContainerURL(ContainerURL.ROOT_CONTAINER_NAME)
-        
-        // Create root container if not exist
+        cu = primaryServiceURL.createContainerURL(ContainerURL.ROOT_CONTAINER_NAME)        
+        // Create root container if not exist.
         try {
             cu.create(null, null, null).blockingGet()
         }
         catch (Exception e) {
         }
-
         BlobURL bu = cu.createAppendBlobURL("rootblob")
 
         expect:
