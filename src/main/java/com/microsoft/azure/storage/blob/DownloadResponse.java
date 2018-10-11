@@ -47,7 +47,9 @@ public final class DownloadResponse {
 
     private final Function<HTTPGetterInfo, Single<DownloadResponse>> getter;
 
-    public DownloadResponse(RestResponse<BlobDownloadHeaders, Flowable<ByteBuffer>> response,
+
+    // The constructor is package-private because customers should not be creating their own responses.
+    DownloadResponse(RestResponse<BlobDownloadHeaders, Flowable<ByteBuffer>> response,
             HTTPGetterInfo info, Function<HTTPGetterInfo, Single<DownloadResponse>> getter) {
         Utility.assertNotNull("getter", getter);
         Utility.assertNotNull("info", info);
