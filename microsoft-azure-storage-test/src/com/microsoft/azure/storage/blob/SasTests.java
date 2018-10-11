@@ -639,6 +639,8 @@ public class SasTests {
         StorageCredentials creds = new StorageCredentialsToken(TestHelper.getAccountName(), TestHelper.generateOAuthToken());
         CloudBlobClient client = new CloudBlobClient(TestHelper.getAccount().getBlobEndpoint(), creds);
 
+        BlobRequestOptions options = new BlobRequestOptions();
+        options.setUseTransactionalContentMD5(true);
 
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.MINUTE, -5);
@@ -646,7 +648,7 @@ public class SasTests {
         cal.add(Calendar.MINUTE, 10);
         Date end = cal.getTime();
 
-        UserDelegationKey key = client.getUserDelegationKey(start, end);
+        UserDelegationKey key = client.getUserDelegationKey(start, end, options, null); // ensuring MD5 header can be set
         UserDelegationKey key2 = client.getUserDelegationKey(start, end);
 
         Assert.assertNotNull(key.getSignedOid());

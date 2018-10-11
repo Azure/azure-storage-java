@@ -851,7 +851,7 @@ public final class CloudBlobContainer {
 
         final String signature = SharedAccessSignatureHelper.generateSharedAccessSignatureHashForBlobAndFile(
                 policy, null /* SharedAccessBlobHeaders */, groupPolicyIdentifier, resourceName,
-                ipRange, protocols, this.blobServiceClient, Constants.QueryConstants.CONTAINER_SERVICE, null /* snapshotID */);
+                ipRange, protocols, this.blobServiceClient, Constants.QueryConstants.CONTAINER_RESOURCE, null /* snapshotID */);
 
         final UriQueryBuilder builder = SharedAccessSignatureHelper.generateSharedAccessSignatureForBlobAndFile(policy,
                 null /* SharedAccessBlobHeaders */, groupPolicyIdentifier, "c", ipRange, protocols, signature);

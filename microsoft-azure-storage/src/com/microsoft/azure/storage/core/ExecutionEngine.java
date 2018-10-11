@@ -15,14 +15,14 @@
 
 package com.microsoft.azure.storage.core;
 
+import com.microsoft.azure.storage.*;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.Date;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeoutException;
-
-import com.microsoft.azure.storage.*;
 
 /**
  * RESERVED FOR INTERNAL USE. A class that handles execution of StorageOperations and enforces retry policies.

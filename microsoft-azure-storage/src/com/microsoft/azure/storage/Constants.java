@@ -865,7 +865,7 @@ public final class Constants {
         /**
          * The query value for blob as the signed service.
          */
-        public static final String BLOB_SERVICE = "b";
+        public static final String BLOB_RESOURCE = "b";
 
         /**
          * The query value for blob snapshot as the signed service.
@@ -875,7 +875,7 @@ public final class Constants {
         /**
          * The query value for container as the signed service.
          */
-        public static final String CONTAINER_SERVICE = "c";
+        public static final String CONTAINER_RESOURCE = "c";
 
         /**
          * The query value for container as the signed service.

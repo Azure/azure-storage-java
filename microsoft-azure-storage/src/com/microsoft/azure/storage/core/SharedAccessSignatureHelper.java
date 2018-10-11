@@ -402,7 +402,7 @@ public class SharedAccessSignatureHelper {
                 ipRange == null ? Constants.EMPTY_STRING : ipRange.toString(),
                 protocols == null ? Constants.EMPTY_STRING : protocols.toString(),
                 Constants.HeaderConstants.TARGET_STORAGE_VERSION,
-                Constants.QueryConstants.BLOB_SERVICE,
+                Constants.QueryConstants.BLOB_RESOURCE,
                 Constants.EMPTY_STRING,
                 cacheControl,
                 contentDisposition,

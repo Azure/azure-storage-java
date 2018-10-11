@@ -2149,12 +2149,12 @@ public abstract class CloudBlob implements ListBlobItem {
 
         final String signature = SharedAccessSignatureHelper.generateSharedAccessSignatureHashForBlobAndFile(
                 policy, headers, groupPolicyIdentifier, resourceName, ipRange, protocols, this.blobServiceClient,
-                this.isSnapshot() ? Constants.QueryConstants.BLOB_SNAPSHOT_SERVICE : Constants.QueryConstants.BLOB_SERVICE,
+                this.isSnapshot() ? Constants.QueryConstants.BLOB_SNAPSHOT_SERVICE : Constants.QueryConstants.BLOB_RESOURCE,
                 this.getSnapshotID());
 
         final UriQueryBuilder builder = SharedAccessSignatureHelper.generateSharedAccessSignatureForBlobAndFile(
                 policy, headers, groupPolicyIdentifier,
-                this.isSnapshot() ? Constants.QueryConstants.BLOB_SNAPSHOT_SERVICE : Constants.QueryConstants.BLOB_SERVICE,
+                this.isSnapshot() ? Constants.QueryConstants.BLOB_SNAPSHOT_SERVICE : Constants.QueryConstants.BLOB_RESOURCE,
                 ipRange, protocols, signature);
 
         return builder.toString();
@@ -2205,7 +2205,7 @@ public abstract class CloudBlob implements ListBlobItem {
         final String signature = SharedAccessSignatureHelper.generateUserDelegationSharedAccessSignatureHashForBlob(
                 policy, headers, resourceName, ipRange, protocols, delegationKey);
         final UriQueryBuilder builder = SharedAccessSignatureHelper.generateUserDelegationSharedAccessSignatureForBlob(
-                policy, headers, Constants.QueryConstants.BLOB_SERVICE, ipRange, protocols, signature, delegationKey);
+                policy, headers, Constants.QueryConstants.BLOB_RESOURCE, ipRange, protocols, signature, delegationKey);
 
         return builder.toString();
     }

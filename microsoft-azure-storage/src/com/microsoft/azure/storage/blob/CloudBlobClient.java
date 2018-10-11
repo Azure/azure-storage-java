@@ -18,10 +18,8 @@ import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.core.*;
 
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -700,6 +698,13 @@ public final class CloudBlobClient extends ServiceClient {
                     this.setLength(descriptor.getLength());
                     return BaseRequest.getUserDelegationKey(credentials.transformUri(client.getStorageUri().getUri(this.getCurrentLocation())),
                             options, null, context);
+                }
+
+                @Override
+                public void setHeaders(HttpURLConnection connection, Void parentObject, OperationContext context) {
+                    if (options.getUseTransactionalContentMD5()) {
+                        connection.setRequestProperty(Constants.HeaderConstants.CONTENT_MD5, descriptor.getMd5());
+                    }
                 }
 
                 @Override
