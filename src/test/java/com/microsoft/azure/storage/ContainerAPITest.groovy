@@ -1643,7 +1643,7 @@ class ContainerAPITest extends APISpec {
         setup:
         PipelineOptions po = new PipelineOptions()
         po.withClient(getHttpClient())
-        HttpPipeline pipeline = StorageURL.createPipeline(primaryCreds, po)        
+        HttpPipeline pipeline = StorageURL.createPipeline(primaryCreds, po)
         AppendBlobURL bu = new AppendBlobURL(new URL("http://" + primaryCreds.getAccountName() + ".blob.core.windows.net/rootblob"),
                 pipeline)
 
