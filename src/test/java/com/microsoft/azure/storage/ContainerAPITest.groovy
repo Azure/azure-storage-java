@@ -1627,6 +1627,14 @@ class ContainerAPITest extends APISpec {
     def "Root explicit"() {
         setup:
         cu = primaryServiceURL.createContainerURL(ContainerURL.ROOT_CONTAINER_NAME)
+        
+        // Create root container if not exist
+        try {
+            cu.create(null, null, null).blockingGet()
+        }
+        catch (Exception e) {
+        }
+
         BlobURL bu = cu.createAppendBlobURL("rootblob")
 
         expect:
@@ -1637,8 +1645,8 @@ class ContainerAPITest extends APISpec {
         setup:
         PipelineOptions po = new PipelineOptions()
         po.withClient(getHttpClient())
-        HttpPipeline pipeline = StorageURL.createPipeline(primaryCreds, po)
-        AppendBlobURL bu = new AppendBlobURL(new URL("http://xclientdev3.blob.core.windows.net/rootblob"),
+        HttpPipeline pipeline = StorageURL.createPipeline(primaryCreds, po)        
+        AppendBlobURL bu = new AppendBlobURL(new URL("http://" + primaryCreds.getAccountName() + ".blob.core.windows.net/rootblob"),
                 pipeline)
 
         when:
