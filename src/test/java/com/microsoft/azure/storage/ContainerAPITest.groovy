@@ -1631,7 +1631,10 @@ class ContainerAPITest extends APISpec {
         try {
             cu.create(null, null, null).blockingGet()
         }
-        catch (Exception e) {
+        catch (StorageException se) {
+            if (se.errorCode != StorageErrorCode.CONTAINER_ALREADY_EXISTS) {
+                throw se
+            }
         }
         BlobURL bu = cu.createAppendBlobURL("rootblob")
 
