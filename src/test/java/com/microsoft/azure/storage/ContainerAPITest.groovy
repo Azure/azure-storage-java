@@ -1632,7 +1632,7 @@ class ContainerAPITest extends APISpec {
             cu.create(null, null, null).blockingGet()
         }
         catch (StorageException se) {
-            if (se.errorCode != StorageErrorCode.CONTAINER_ALREADY_EXISTS) {
+            if (se.errorCode() != StorageErrorCode.CONTAINER_ALREADY_EXISTS) {
                 throw se
             }
         }
