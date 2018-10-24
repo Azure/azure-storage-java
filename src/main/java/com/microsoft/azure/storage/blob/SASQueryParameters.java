@@ -14,9 +14,12 @@
  */
 package com.microsoft.azure.storage.blob;
 
+import com.microsoft.azure.storage.blob.models.UserDelegationKey;
+
 import java.net.UnknownHostException;
 import java.time.OffsetDateTime;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.microsoft.azure.storage.blob.Utility.safeURLEncode;
 
@@ -45,6 +48,18 @@ public final class SASQueryParameters {
     private final IPRange ipRange;
 
     private final String identifier;
+
+    private final String keyOid;
+
+    private final String keyTid;
+
+    private final OffsetDateTime keyStart;
+
+    private final OffsetDateTime keyExpiry;
+
+    private final String keyService;
+
+    private final String keyVersion;
 
     private final String resource;
 
@@ -151,6 +166,66 @@ public final class SASQueryParameters {
             }
         } else {
             this.identifier = null;
+        }
+
+        queryValue = queryParamsMap.get("skoid");
+        if (queryValue != null) {
+            this.keyOid = queryValue[0];
+            if (removeSASParametersFromMap) {
+                queryParamsMap.remove("skoid");
+            }
+        } else {
+            this.keyOid = null;
+        }
+
+        queryValue = queryParamsMap.get("sktid");
+        if (queryValue != null) {
+            this.keyTid = queryValue[0];
+            if (removeSASParametersFromMap) {
+                queryParamsMap.remove("sktid");
+            }
+        } else {
+            this.keyTid = null;
+        }
+
+        queryValue = queryParamsMap.get("skt");
+        if (queryValue != null) {
+            this.keyStart = Utility.parseDate(queryValue[0]);
+            if (removeSASParametersFromMap) {
+                queryParamsMap.remove("skt");
+            }
+        } else {
+            this.keyStart = null;
+        }
+
+        queryValue = queryParamsMap.get("ske");
+        if (queryValue != null) {
+            this.keyExpiry = Utility.parseDate(queryValue[0]);
+            if (removeSASParametersFromMap) {
+                queryParamsMap.remove("ske");
+            }
+        } else {
+            this.keyExpiry = null;
+        }
+
+        queryValue = queryParamsMap.get("sks");
+        if (queryValue != null) {
+            this.keyService = queryValue[0];
+            if (removeSASParametersFromMap) {
+                queryParamsMap.remove("sks");
+            }
+        } else {
+            this.keyService = null;
+        }
+
+        queryValue = queryParamsMap.get("skv");
+        if (queryValue != null) {
+            this.keyVersion = queryValue[0];
+            if (removeSASParametersFromMap) {
+                queryParamsMap.remove("skv");
+            }
+        } else {
+            this.keyVersion = null;
         }
 
         queryValue = queryParamsMap.get("sr");
@@ -264,7 +339,7 @@ public final class SASQueryParameters {
     SASQueryParameters(String version, String services, String resourceTypes, SASProtocol protocol,
             OffsetDateTime startTime, OffsetDateTime expiryTime, IPRange ipRange, String identifier,
             String resource, String permissions, String signature, String cacheControl, String contentDisposition,
-            String contentEncoding, String contentLanguage, String contentType) {
+            String contentEncoding, String contentLanguage, String contentType, UserDelegationKey key) {
 
         this.version = version;
         this.services = services;
@@ -282,6 +357,23 @@ public final class SASQueryParameters {
         this.contentEncoding = contentEncoding;
         this.contentLanguage = contentLanguage;
         this.contentType = contentType;
+
+        if (key != null) {
+            this.keyOid = key.signedOid();
+            this.keyTid = key.signedTid();
+            this.keyStart = key.signedStart();
+            this.keyExpiry = key.signedExpiry();
+            this.keyService = key.signedService();
+            this.keyVersion = key.signedVersion();
+        }
+        else {
+            this.keyOid = null;
+            this.keyTid = null;
+            this.keyStart = null;
+            this.keyExpiry = null;
+            this.keyService = null;
+            this.keyVersion = null;
+        }
     }
 
     /**
@@ -422,8 +514,8 @@ public final class SASQueryParameters {
          We should be url-encoding each key and each value, but because we know all the keys and values will encode to
          themselves, we cheat except for the signature value.
          */
-        String[] params = {"sv", "ss", "srt", "spr", "st", "se", "sip", "si", "sr", "sp", "sig", "rscc", "rscd", "rsce",
-                "rscl", "rsct"};
+        String[] params = {"sv", "ss", "srt", "spr", "st", "se", "sip", "si", "skoid", "sktid", "skt", "ske", "sks",
+                "skv", "sr", "sp", "sig", "rscc", "rscd", "rsce", "rscl", "rsct"};
         StringBuilder sb = new StringBuilder();
         for (String param : params) {
             switch (param) {
@@ -452,6 +544,26 @@ public final class SASQueryParameters {
                     break;
                 case "si":
                     tryAppendQueryParameter(sb, param, this.identifier);
+                    break;
+                case "skoid":
+                    tryAppendQueryParameter(sb, param, this.keyOid);
+                    break;
+                case "sktid":
+                    tryAppendQueryParameter(sb, param, this.keyTid);
+                    break;
+                case "skt":
+                    tryAppendQueryParameter(sb, param,
+                            this.keyStart == null ? null : Utility.ISO8601UTCDateFormatter.format(this.keyStart));
+                    break;
+                case "ske":
+                    tryAppendQueryParameter(sb, param,
+                            this.keyExpiry == null ? null : Utility.ISO8601UTCDateFormatter.format(this.keyExpiry));
+                    break;
+                case "sks":
+                    tryAppendQueryParameter(sb, param, this.keyService);
+                    break;
+                case "skv":
+                    tryAppendQueryParameter(sb, param, this.keyVersion);
                     break;
                 case "sr":
                     tryAppendQueryParameter(sb, param, this.resource);

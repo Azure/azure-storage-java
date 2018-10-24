@@ -15,15 +15,22 @@
 package com.microsoft.azure.storage.blob;
 
 import com.microsoft.azure.storage.blob.models.StorageErrorException;
+import com.microsoft.azure.storage.blob.models.UserDelegationKey;
 import io.reactivex.Single;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.Locale;
 
 final class Utility {
@@ -249,5 +256,30 @@ final class Utility {
             }
             return Single.error(e);
         });
+    }
+
+    /**
+     * Computes a signature for the specified string using the HMAC-SHA256 algorithm.
+     *
+     * @param delegate
+     *         Key used to sign
+     * @param stringToSign
+     *         The UTF-8-encoded string to sign.
+     *
+     * @return A {@code String} that contains the HMAC-SHA256-encoded signature.
+     *
+     * @throws InvalidKeyException
+     *         If the accountKey is not a valid Base64-encoded string.
+     */
+    static String delegateComputeHmac256(final UserDelegationKey delegate, String stringToSign) throws InvalidKeyException {
+        try {
+            byte[] key = Base64.getDecoder().decode(delegate.value());
+            Mac hmacSha256 = Mac.getInstance("HmacSHA256");
+            hmacSha256.init(new SecretKeySpec(key, "HmacSHA256"));
+            byte[] utf8Bytes = stringToSign.getBytes(StandardCharsets.UTF_8);
+            return Base64.getEncoder().encodeToString(hmacSha256.doFinal(utf8Bytes));
+        } catch (final NoSuchAlgorithmException e) {
+            throw new Error(e);
+        }
     }
 }

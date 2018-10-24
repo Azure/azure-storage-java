@@ -21,6 +21,7 @@ import io.reactivex.Single;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.OffsetDateTime;
 
 import static com.microsoft.azure.storage.blob.Utility.addErrorWrappingToSingle;
 
@@ -223,6 +224,56 @@ public final class ServiceURL extends StorageURL {
         return addErrorWrappingToSingle(
                 this.storageClient.generatedServices().setPropertiesWithRestResponseAsync(context, properties, null,
                         null));
+    }
+
+    /**
+     * Gets a user delegation key for use with this account's blob storage.
+     * Note: This method call is only valid when using {@link TokenCredentials} in this object's {@link HttpPipeline}.
+     *
+     * @param start
+     *         Start time for the key's validity. Null indicates immediate start.
+     * @param expiry
+     *         Expiration of the key's validity.
+     *
+     * @return Emits the successful response.
+     */
+    public Single<ServiceGetUserDelegationKeyResponse> getUserDelegationKey(OffsetDateTime start, OffsetDateTime expiry) {
+        return this.getUserDelegationKey(start, expiry, null);
+    }
+
+    /**
+     * Gets a user delegation key for use with this account's blob storage.
+     * Note: This method call is only valid when using {@link TokenCredentials} in this object's {@link HttpPipeline}.
+     *
+     * @param start
+     *         Start time for the key's validity. Null indicates immediate start.
+     * @param expiry
+     *         Expiration of the key's validity.
+     * @param context
+     *         {@code Context} offers a means of passing arbitrary data (key/value pairs) to an
+     *         {@link com.microsoft.rest.v2.http.HttpPipeline}'s policy objects. Most applications do not need to pass
+     *         arbitrary data to the pipeline and can pass {@code Context.NONE} or {@code null}. Each context object is
+     *         immutable. The {@code withContext} with data method creates a new {@code Context} object that refers to
+     *         its parent, forming a linked list.
+     *
+     * @return Emits the successful response.
+     */
+    public Single<ServiceGetUserDelegationKeyResponse> getUserDelegationKey(OffsetDateTime start, OffsetDateTime expiry, Context context) {
+        Utility.assertNotNull("expiry", expiry);
+        if (start != null && !start.isBefore(expiry)) {
+            throw new IllegalArgumentException("`start` must be null or a datetime before `expiry`.");
+        }
+
+        context = context == null ? Context.NONE : context;
+
+        return addErrorWrappingToSingle(
+                this.storageClient.generatedServices().getUserDelegationKeyWithRestResponseAsync(
+                        context,
+                        new KeyInfo()
+                                .withStart(start == null ? "" : Utility.ISO8601UTCDateFormatter.format(start))
+                                .withExpiry(Utility.ISO8601UTCDateFormatter.format(expiry)),
+                        null, null)
+        );
     }
 
     /**

@@ -14,8 +14,15 @@
  */
 package com.microsoft.azure.storage.blob;
 
+import com.microsoft.azure.storage.blob.models.UserDelegationKey;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
+import java.util.Base64;
 
 /**
  * ServiceSASSignatureValues is used to generate a Shared Access Signature (SAS) for an Azure Storage service. Once
@@ -316,25 +323,10 @@ public final class ServiceSASSignatureValues {
      */
     public SASQueryParameters generateSASQueryParameters(SharedKeyCredentials sharedKeyCredentials) {
         Utility.assertNotNull("sharedKeyCredentials", sharedKeyCredentials);
-        Utility.assertNotNull("version", this.version);
-        Utility.assertNotNull("containerName", this.containerName);
-        if (blobName == null && snapshotId != null) {
-            throw new IllegalArgumentException("Cannot set a snapshotId without a blobName.");
-        }
+        assertGenerateOK();
 
-        String resource = "c";
-        String verifiedPermissions = null;
-        // Calling parse and toString guarantees the proper ordering and throws on invalid characters.
-        if (Utility.isNullOrEmpty(this.blobName)) {
-            if (this.permissions != null) {
-                verifiedPermissions = ContainerSASPermission.parse(this.permissions).toString();
-            }
-        } else {
-            if (this.permissions != null) {
-                verifiedPermissions = BlobSASPermission.parse(this.permissions).toString();
-            }
-            resource = snapshotId != null && !snapshotId.isEmpty() ? "bs" : "b";
-        }
+        String resource = getResource();
+        String verifiedPermissions = getVerifiedPermissions();
 
         // Signature is generated on the un-url-encoded values.
         final String stringToSign = stringToSign(verifiedPermissions, resource, sharedKeyCredentials);
@@ -349,7 +341,84 @@ public final class ServiceSASSignatureValues {
         return new SASQueryParameters(this.version, null, null,
                 this.protocol, this.startTime, this.expiryTime, this.ipRange, this.identifier, resource,
                 this.permissions, signature, this.cacheControl, this.contentDisposition, this.contentEncoding,
-                this.contentLanguage, this.contentType);
+                this.contentLanguage, this.contentType, null /* delegate */);
+    }
+
+    /**
+     * Uses a user delegation key to sign these signature values to produce the proper SAS query parameters.
+     *
+     * @param delegationKey
+     *         A {@link UserDelegationKey} object used to sign the SAS values.
+     *
+     * @param accountName
+     *         Name of the account holding the resource this SAS is authorizing.
+     *
+     * @return {@link SASQueryParameters}
+     */
+    public SASQueryParameters generateSASQueryParameters(UserDelegationKey delegationKey, String accountName) {
+        Utility.assertNotNull("delegationKey", delegationKey);
+        Utility.assertNotNull("accountName", accountName);
+        assertGenerateOK();
+
+        String resource = getResource();
+        String verifiedPermissions = getVerifiedPermissions();
+
+        // Signature is generated on the un-url-encoded values.
+        final String stringToSign = stringToSign(verifiedPermissions, resource, delegationKey, accountName);
+
+        String signature = null;
+        try {
+            signature = Utility.delegateComputeHmac256(delegationKey, stringToSign);
+        } catch (InvalidKeyException e) {
+            throw new Error(e); // The key should have been validated by now. If it is no longer valid here, we fail.
+        }
+
+        return new SASQueryParameters(this.version, null, null,
+                this.protocol, this.startTime, this.expiryTime, this.ipRange, null /* identifier */, resource,
+                this.permissions, signature, this.cacheControl, this.contentDisposition, this.contentEncoding,
+                this.contentLanguage, this.contentType, delegationKey);
+    }
+
+    /**
+     * Common assertions for generateSASQueryParameters overloads.
+     */
+    private void assertGenerateOK() {
+        Utility.assertNotNull("version", this.version);
+        Utility.assertNotNull("containerName", this.containerName);
+        if (blobName == null && snapshotId != null) {
+            throw new IllegalArgumentException("Cannot set a snapshotId without a blobName.");
+        }
+    }
+
+    /**
+     * Gets the resource string for SAS tokens based on object state.
+     */
+    private String getResource() {
+        String resource = "c";
+        if (!Utility.isNullOrEmpty(this.blobName)) {
+            resource = snapshotId != null && !snapshotId.isEmpty() ? "bs" : "b";
+        }
+
+        return resource;
+    }
+
+    /**
+     * Gets the verified permissions string for SAS tokens based on object state.
+     */
+    private String getVerifiedPermissions() {
+        String verifiedPermissions = null;
+        // Calling parse and toString guarantees the proper ordering and throws on invalid characters.
+        if (Utility.isNullOrEmpty(this.blobName)) {
+            if (this.permissions != null) {
+                verifiedPermissions = ContainerSASPermission.parse(this.permissions).toString();
+            }
+        } else {
+            if (this.permissions != null) {
+                verifiedPermissions = BlobSASPermission.parse(this.permissions).toString();
+            }
+        }
+
+        return verifiedPermissions;
     }
 
     private String getCanonicalName(String accountName) {
@@ -374,9 +443,35 @@ public final class ServiceSASSignatureValues {
                 getCanonicalName(sharedKeyCredentials.getAccountName()),
                 this.identifier == null ? "" : this.identifier,
                 this.ipRange == null ? IPRange.DEFAULT.toString() : this.ipRange.toString(),
-                this.protocol == null ? "" : protocol.toString(),
-                this.version,
-                resource,
+                this.protocol == null ? "" : this.protocol.toString(),
+                this.version == null ? "" : this.version,
+                resource == null ? "" : resource,
+                this.snapshotId == null ? "" : this.snapshotId,
+                this.cacheControl == null ? "" : this.cacheControl,
+                this.contentDisposition == null ? "" : this.contentDisposition,
+                this.contentEncoding == null ? "" : this.contentEncoding,
+                this.contentLanguage == null ? "" : this.contentLanguage,
+                this.contentType == null ? "" : this.contentType
+        );
+    }
+
+    private String stringToSign(final String verifiedPermissions, final String resource,
+            final UserDelegationKey key, final String accountName) {
+        return String.join("\n",
+                verifiedPermissions == null ? "" : verifiedPermissions,
+                this.startTime == null ? "" : Utility.ISO8601UTCDateFormatter.format(this.startTime),
+                this.expiryTime == null ? "" : Utility.ISO8601UTCDateFormatter.format(this.expiryTime),
+                getCanonicalName(accountName),
+                key.signedOid() == null ? "" : key.signedOid(),
+                key.signedTid() == null ? "" : key.signedTid(),
+                key.signedStart() == null ? "" : Utility.ISO8601UTCDateFormatter.format(key.signedStart()),
+                key.signedExpiry() == null ? "" : Utility.ISO8601UTCDateFormatter.format(key.signedExpiry()),
+                key.signedService() == null ? "" : key.signedService(),
+                key.signedVersion() == null ? "" : key.signedVersion(),
+                this.ipRange == null ? IPRange.DEFAULT.toString() : this.ipRange.toString(),
+                this.protocol == null ? "" : this.protocol.toString(),
+                this.version == null ? "" : this.version,
+                resource == null ? "" : resource,
                 this.snapshotId == null ? "" : this.snapshotId,
                 this.cacheControl == null ? "" : this.cacheControl,
                 this.contentDisposition == null ? "" : this.contentDisposition,
