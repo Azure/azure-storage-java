@@ -193,7 +193,7 @@ public final class LoggingFactory implements RequestPolicyFactory {
             URL url = initialRequest.url();
             try {
                 BlobURLParts urlParts = URLParser.parse(url);
-                if(urlParts.sasQueryParameters().signature() != null) {
+                if(urlParts.sasQueryParameters() != null && urlParts.sasQueryParameters().signature() != null) {
                     urlParts.withSasQueryParameters(null);
                     urlParts.unparsedParameters().put(Constants.UrlConstants.SIGNATURE, new String[] { Constants.REDACTED });
                     url = urlParts.toURL();
