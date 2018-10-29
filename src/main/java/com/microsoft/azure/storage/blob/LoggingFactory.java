@@ -24,6 +24,9 @@ import com.microsoft.rest.v2.policy.RequestPolicyOptions;
 import io.reactivex.Single;
 
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Locale;
 
 /**
@@ -164,12 +167,55 @@ public final class LoggingFactory implements RequestPolicyFactory {
                         }
 
                         if (options.shouldLog(currentLevel)) {
+                            String additionalMessageInfo = buildAdditionalMessageInfo(request);
                             String messageInfo = String.format(Locale.ROOT,
-                                    "Request try:'%d', request duration:'%d' ms, operation duration:'%d' ms%n",
-                                    tryCount, requestCompletionTime, operationDuration);
+                                    "Request try:'%d', request duration:'%d' ms, operation duration:'%d' ms%n%s",
+                                    tryCount, requestCompletionTime, operationDuration, additionalMessageInfo);
                             options.log(currentLevel, logMessage + messageInfo);
                         }
                     });
+        }
+
+        private String buildAdditionalMessageInfo(final HttpRequest httpRequest) {
+            if(httpRequest == null || httpRequest.httpMethod() == null || httpRequest.url() == null || httpRequest.headers() == null) {
+                return Constants.EMPTY_STRING;
+            }
+            HttpRequest sanitizedRequest = buildSanitizedRequest(httpRequest);
+            StringBuilder stringBuilder = new StringBuilder();
+            String format = "%s: %s" + System.lineSeparator();
+            stringBuilder.append(String.format("%s %s" + System.lineSeparator(), sanitizedRequest.httpMethod().toString(), sanitizedRequest.url().toString()));
+            sanitizedRequest.headers().forEach((header) -> stringBuilder.append(String.format(format, header.name(), header.value())));
+            return stringBuilder.toString();
+        }
+
+        private HttpRequest buildSanitizedRequest(final HttpRequest initialRequest) {
+            // Build new URL and redact SAS query parameters, if present
+            URL url = initialRequest.url();
+            try {
+                BlobURLParts urlParts = URLParser.parse(url);
+                if(urlParts.sasQueryParameters().signature() != null) {
+                    urlParts.withSasQueryParameters(null);
+                    urlParts.unparsedParameters().put(Constants.UrlConstants.SIGNATURE, new String[] { Constants.REDACTED });
+                    url = urlParts.toURL();
+                }
+
+            } catch(UnknownHostException | MalformedURLException e) {}
+
+            // Build resultRequest
+            HttpRequest resultRequest = new HttpRequest(
+                    initialRequest.callerMethod(),
+                    initialRequest.httpMethod(),
+                    url,
+                    initialRequest.headers(),
+                    initialRequest.body(),
+                    initialRequest.responseDecoder());
+
+            // Redact Authorization header, if present
+            if(resultRequest.headers().value(Constants.HeaderConstants.AUTHORIZATION) != null) {
+                resultRequest.headers().set(Constants.HeaderConstants.AUTHORIZATION, Constants.REDACTED);
+            }
+
+            return resultRequest;
         }
     }
 }

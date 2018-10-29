@@ -56,6 +56,10 @@ final class Constants {
      */
     static final String SNAPSHOT_QUERY_PARAMETER = "snapshot";
     /**
+     * The word redacted.
+     */
+    static final String REDACTED = "REDACTED";
+    /**
      * The default amount of parallelism for TransferManager operations.
      */
     // We chose this to match Go, which followed AWS' default.
@@ -153,6 +157,11 @@ final class Constants {
         static final String RANGE_HEADER_FORMAT = "bytes=%d-%d";
 
         /**
+         * The version header.
+         */
+        static final String VERSION = "x-ms-version";
+
+        /**
          * The current storage version header value.
          */
         static final String TARGET_STORAGE_VERSION = "2018-03-28";
@@ -173,6 +182,17 @@ final class Constants {
         static final String USER_AGENT_VERSION = "10.1.0";
 
         private HeaderConstants() {
+            // Private to prevent construction.
+        }
+    }
+
+    static final class UrlConstants {
+        /**
+         * The SAS signature parameter.
+         */
+        static final String SIGNATURE = "sig";
+
+        private UrlConstants() {
             // Private to prevent construction.
         }
     }
