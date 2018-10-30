@@ -198,8 +198,11 @@ public final class LoggingFactory implements RequestPolicyFactory {
                     urlParts.unparsedParameters().put(Constants.UrlConstants.SIGNATURE, new String[] { Constants.REDACTED });
                     url = urlParts.toURL();
                 }
-
-            } catch(UnknownHostException | MalformedURLException e) {}
+            /* We are only making valid changes to what has already been validated as a URL (since we got it from a URL object),
+               so there should be no need for either us or the caller to check this error. */
+            } catch(UnknownHostException | MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
 
             // Build resultRequest
             HttpRequest resultRequest = new HttpRequest(
@@ -213,6 +216,11 @@ public final class LoggingFactory implements RequestPolicyFactory {
             // Redact Authorization header, if present
             if(resultRequest.headers().value(Constants.HeaderConstants.AUTHORIZATION) != null) {
                 resultRequest.headers().set(Constants.HeaderConstants.AUTHORIZATION, Constants.REDACTED);
+            }
+
+            // React Copy Source header, if present
+            if(resultRequest.headers().value(Constants.HeaderConstants.COPY_SOURCE) != null) {
+                resultRequest.headers().set(Constants.HeaderConstants.COPY_SOURCE, Constants.REDACTED);
             }
 
             return resultRequest;

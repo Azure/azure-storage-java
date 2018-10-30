@@ -264,12 +264,14 @@ class LoggingTest extends APISpec {
         def authorizationValue = "authorizationValue"
         def dateValue = "Mon, 29 Oct 2018 21:12:12 GMT"
         def requestId = UUID.randomUUID().toString()
+        def copySource = "copySource"
         def httpHeaders = new HttpHeaders()
         httpHeaders.set(Constants.HeaderConstants.VERSION, Constants.HeaderConstants.TARGET_STORAGE_VERSION)
         httpHeaders.set(Constants.HeaderConstants.USER_AGENT, userAgentValue)
         httpHeaders.set(Constants.HeaderConstants.AUTHORIZATION, authorizationValue)
         httpHeaders.set(Constants.HeaderConstants.DATE, dateValue)
         httpHeaders.set(Constants.HeaderConstants.CLIENT_REQUEST_ID_HEADER, requestId)
+        httpHeaders.set(Constants.HeaderConstants.COPY_SOURCE, copySource)
         def urlString = "http://devtest.blob.core.windows.net/test-container/test-blob"
         def url = new URL(urlString)
 
@@ -290,7 +292,6 @@ class LoggingTest extends APISpec {
                             && message.contains(HttpMethod.HEAD.toString())
                             && message.contains(urlString)
                             && message.contains(url.toString())
-                            && !message.contains(authorizationValue)
                             && message.contains(Constants.HeaderConstants.VERSION)
                             && message.contains(Constants.HeaderConstants.TARGET_STORAGE_VERSION)
                             && message.contains(Constants.HeaderConstants.DATE)
@@ -298,7 +299,9 @@ class LoggingTest extends APISpec {
                             && message.contains(Constants.HeaderConstants.CLIENT_REQUEST_ID_HEADER)
                             && message.contains(requestId)
                             && message.contains(Constants.HeaderConstants.USER_AGENT)
-                            && message.contains(userAgentValue))) {
+                            && message.contains(userAgentValue)
+                            && !message.contains(authorizationValue)
+                            && !message.contains(copySource))) {
                         throw new IllegalArgumentException(message)
                     }
                 }
@@ -320,11 +323,13 @@ class LoggingTest extends APISpec {
         def userAgentValue = "Azure-Storage/0.1 "
         def dateValue = "Mon, 29 Oct 2018 21:12:12 GMT"
         def requestId = UUID.randomUUID().toString()
+        def copySource = "copySource"
         def httpHeaders = new HttpHeaders()
         httpHeaders.set(Constants.HeaderConstants.VERSION, Constants.HeaderConstants.TARGET_STORAGE_VERSION)
         httpHeaders.set(Constants.HeaderConstants.USER_AGENT, userAgentValue)
         httpHeaders.set(Constants.HeaderConstants.DATE, dateValue)
         httpHeaders.set(Constants.HeaderConstants.CLIENT_REQUEST_ID_HEADER, requestId)
+        httpHeaders.set(Constants.HeaderConstants.COPY_SOURCE, copySource)
         def urlString = "http://dev.blob.core.windows.net/test-container/test-blob?sv=2018-03-28&ss=b&srt=co&st=2018-10-29T20:45:11Z&se=2018-10-29T22:45:11Z&sp=rwdlac&sig=signature&comp=incrementalcopy"
         def url = new URL(urlString)
 
@@ -350,7 +355,8 @@ class LoggingTest extends APISpec {
                             && message.contains(Constants.HeaderConstants.CLIENT_REQUEST_ID_HEADER)
                             && message.contains(requestId)
                             && message.contains(Constants.HeaderConstants.USER_AGENT)
-                            && message.contains(userAgentValue))) {
+                            && message.contains(userAgentValue)
+                            && !message.contains(copySource))) {
                         throw new IllegalArgumentException(message)
                     }
                     if (message.contains("sv=2018-03-28")

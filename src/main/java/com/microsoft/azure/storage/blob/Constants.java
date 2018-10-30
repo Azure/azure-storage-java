@@ -157,6 +157,11 @@ final class Constants {
         static final String RANGE_HEADER_FORMAT = "bytes=%d-%d";
 
         /**
+         * The copy source header.
+         */
+        static final String COPY_SOURCE = "x-ms-copy-source";
+
+        /**
          * The version header.
          */
         static final String VERSION = "x-ms-version";
