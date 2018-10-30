@@ -39,14 +39,6 @@ class LoggingTest extends APISpec {
         }
     }
 
-    def getHttpRequest() {
-        HttpHeaders headers = new HttpHeaders()
-        headers.set(Constants.HeaderConstants.CONTENT_ENCODING, "en-US")
-        URL url = new URL("http://devtest.blob.core.windows.net/test-container/test-blob")
-        HttpRequest request = new HttpRequest(null, HttpMethod.POST, url, headers, null, null)
-        return request
-    }
-
     @Unroll
     def "Successful fast response"() {
         setup:
@@ -65,7 +57,7 @@ class LoggingTest extends APISpec {
         def policy = factory.create(mockDownstream, requestPolicyOptions)
 
         when:
-        policy.sendAsync(getHttpRequest()).blockingGet()
+        policy.sendAsync(getMockRequest()).blockingGet()
 
         then:
         /*
@@ -116,7 +108,7 @@ class LoggingTest extends APISpec {
         def policy = factory.create(mockDownstream, requestPolicyOptions)
 
         when:
-        policy.sendAsync(getHttpRequest()).blockingGet()
+        policy.sendAsync(getMockRequest()).blockingGet()
 
         then:
         logCount * logger.log(HttpPipelineLogLevel.WARNING, _, _) >>
@@ -148,7 +140,7 @@ class LoggingTest extends APISpec {
         def policy = factory.create(mockDownstream, requestPolicyOptions)
 
         when:
-        policy.sendAsync(getHttpRequest()).blockingGet()
+        policy.sendAsync(getMockRequest()).blockingGet()
 
         then:
         1 * logger.log(HttpPipelineLogLevel.ERROR, _, _) >>
@@ -182,7 +174,7 @@ class LoggingTest extends APISpec {
         def policy = factory.create(mockDownstream, requestPolicyOptions)
 
         when:
-        policy.sendAsync(getHttpRequest()).blockingGet()
+        policy.sendAsync(getMockRequest()).blockingGet()
 
         then:
         /*
@@ -221,7 +213,7 @@ class LoggingTest extends APISpec {
         def policy = factory.create(mockDownstream, requestPolicyOptions)
 
         when:
-        policy.sendAsync(getHttpRequest()).blockingGet()
+        policy.sendAsync(getMockRequest()).blockingGet()
 
         then:
         thrown(RuntimeException) // Because we return this from the downstream, it will be thrown when we blockingGet.

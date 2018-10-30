@@ -172,7 +172,6 @@ public final class LoggingFactory implements RequestPolicyFactory {
                                     "Request try:'%d', request duration:'%d' ms, operation duration:'%d' ms%n%s",
                                     tryCount, requestCompletionTime, operationDuration, additionalMessageInfo);
                             options.log(currentLevel, logMessage + messageInfo);
-                            System.out.println(logMessage + messageInfo);
                         }
                     });
         }
@@ -187,7 +186,7 @@ public final class LoggingFactory implements RequestPolicyFactory {
         }
 
         private HttpRequest buildSanitizedRequest(final HttpRequest initialRequest) {
-            // Build new URL and redact SAS query parameters, if present
+            // Build new URL and redact SAS signature, if present
             URL url = sanitizeURL(initialRequest.url());
 
             // Build resultRequest
@@ -204,7 +203,7 @@ public final class LoggingFactory implements RequestPolicyFactory {
                 resultRequest.headers().set(Constants.HeaderConstants.AUTHORIZATION, Constants.REDACTED);
             }
 
-            // React Copy Source header, if present
+            // Redact Copy Source header SAS signature, if present
             if(resultRequest.headers().value(Constants.HeaderConstants.COPY_SOURCE) != null) {
                 try {
                     URL copySourceUrl = sanitizeURL(new URL(resultRequest.headers().value(Constants.HeaderConstants.COPY_SOURCE)));
