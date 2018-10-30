@@ -20,12 +20,6 @@ package com.microsoft.azure.storage.blob;
  */
 public final class ListBlobsOptions {
 
-    /**
-     * An object representing the default options: no details, prefix, or delimiter. Uses the server default for
-     * maxResults.
-     */
-    public static final ListBlobsOptions DEFAULT = new ListBlobsOptions();
-
     private BlobListingDetails details;
 
     private String prefix;
@@ -33,7 +27,7 @@ public final class ListBlobsOptions {
     private Integer maxResults;
 
     public ListBlobsOptions() {
-        this.details = BlobListingDetails.NONE;
+        this.details = new BlobListingDetails();
     }
 
     /**

@@ -228,7 +228,7 @@ public final class AccountSASSignatureValues {
                 resourceTypes,
                 this.startTime == null ? "" : Utility.ISO8601UTCDateFormatter.format(this.startTime),
                 Utility.ISO8601UTCDateFormatter.format(this.expiryTime),
-                this.ipRange == null ? IPRange.DEFAULT.toString() : this.ipRange.toString(),
+                this.ipRange == null ? (new IPRange()).toString() : this.ipRange.toString(),
                 this.protocol == null ? "" : this.protocol.toString(),
                 this.version,
                 Constants.EMPTY_STRING // Account SAS requires an additional newline character

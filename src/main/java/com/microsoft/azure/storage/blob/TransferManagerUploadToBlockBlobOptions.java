@@ -22,12 +22,6 @@ import com.microsoft.azure.storage.blob.models.BlobHTTPHeaders;
  */
 public class TransferManagerUploadToBlockBlobOptions {
 
-    /**
-     * An object which represents the default parallel upload options.
-     */
-    public static final TransferManagerUploadToBlockBlobOptions DEFAULT = new TransferManagerUploadToBlockBlobOptions(
-            null, null, null, null, null);
-
     private final IProgressReceiver progressReceiver;
 
     private final BlobHTTPHeaders httpHeaders;
@@ -37,6 +31,10 @@ public class TransferManagerUploadToBlockBlobOptions {
     private final BlobAccessConditions accessConditions;
 
     private final int parallelism;
+
+    public TransferManagerUploadToBlockBlobOptions() {
+        this(null, null, null, null, null);
+    }
 
     /**
      * Creates a new object that configures the parallel upload behavior. Null may be passed to accept the default
@@ -68,7 +66,7 @@ public class TransferManagerUploadToBlockBlobOptions {
 
         this.httpHeaders = httpHeaders;
         this.metadata = metadata;
-        this.accessConditions = accessConditions == null ? BlobAccessConditions.NONE : accessConditions;
+        this.accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
     }
 
     /**

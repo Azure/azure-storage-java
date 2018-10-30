@@ -23,8 +23,6 @@ import java.net.Inet4Address;
  */
 public final class IPRange {
 
-    public static final IPRange DEFAULT = new IPRange();
-
     private String ipMin;
 
     private String ipMax;

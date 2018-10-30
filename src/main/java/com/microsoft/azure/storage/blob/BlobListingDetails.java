@@ -26,11 +26,6 @@ import java.util.ArrayList;
  */
 public final class BlobListingDetails {
 
-    /**
-     * An object representing no listing details.
-     */
-    public static final BlobListingDetails NONE = new BlobListingDetails();
-
     private boolean copy;
 
     private boolean metadata;

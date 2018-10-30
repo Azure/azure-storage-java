@@ -166,8 +166,8 @@ public final class BlockBlobURL extends BlobURL {
      */
     public Single<BlockBlobUploadResponse> upload(Flowable<ByteBuffer> data, long length, BlobHTTPHeaders headers,
             Metadata metadata, BlobAccessConditions accessConditions, Context context) {
-        metadata = metadata == null ? Metadata.NONE : metadata;
-        accessConditions = accessConditions == null ? BlobAccessConditions.NONE : accessConditions;
+        metadata = metadata == null ? new Metadata() : metadata;
+        accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
 
         return addErrorWrappingToSingle(this.storageClient.generatedBlockBlobs().uploadWithRestResponseAsync(context,
@@ -307,7 +307,7 @@ public final class BlockBlobURL extends BlobURL {
     public Single<BlockBlobStageBlockFromURLResponse> stageBlockFromURL(String base64BlockID, URL sourceURL,
             BlobRange sourceRange, byte[] sourceContentMD5, LeaseAccessConditions leaseAccessConditions,
             Context context) {
-        sourceRange = sourceRange == null ? BlobRange.DEFAULT : sourceRange;
+        sourceRange = sourceRange == null ? new BlobRange() : sourceRange;
         context = context == null ? Context.NONE : context;
 
         return addErrorWrappingToSingle(
@@ -423,8 +423,8 @@ public final class BlockBlobURL extends BlobURL {
      */
     public Single<BlockBlobCommitBlockListResponse> commitBlockList(List<String> base64BlockIDs,
             BlobHTTPHeaders headers, Metadata metadata, BlobAccessConditions accessConditions, Context context) {
-        metadata = metadata == null ? Metadata.NONE : metadata;
-        accessConditions = accessConditions == null ? BlobAccessConditions.NONE : accessConditions;
+        metadata = metadata == null ? new Metadata() : metadata;
+        accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
 
         return addErrorWrappingToSingle(this.storageClient.generatedBlockBlobs().commitBlockListWithRestResponseAsync(

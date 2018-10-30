@@ -75,7 +75,7 @@ public final class TransferManager {
         Utility.assertNotNull("blockBlobURL", blockBlobURL);
         Utility.assertInBounds("blockLength", blockLength, 1, BlockBlobURL.MAX_STAGE_BLOCK_BYTES);
         TransferManagerUploadToBlockBlobOptions optionsReal = options == null ?
-                TransferManagerUploadToBlockBlobOptions.DEFAULT : options;
+                new TransferManagerUploadToBlockBlobOptions() : options;
 
         // See ProgressReporter for an explanation on why this lock is necessary and why we use AtomicLong.
         AtomicLong totalProgress = new AtomicLong(0);
@@ -186,9 +186,9 @@ public final class TransferManager {
      */
     public static Single<BlobDownloadHeaders> downloadBlobToFile(AsynchronousFileChannel file, BlobURL blobURL,
             BlobRange range, TransferManagerDownloadFromBlobOptions options) {
-        BlobRange rangeReal = range == null ? BlobRange.DEFAULT : range;
+        BlobRange rangeReal = range == null ? new BlobRange() : range;
         TransferManagerDownloadFromBlobOptions optionsReal = options == null ?
-                TransferManagerDownloadFromBlobOptions.DEFAULT : options;
+                new TransferManagerDownloadFromBlobOptions() : options;
         Utility.assertNotNull("blobURL", blobURL);
         Utility.assertNotNull("file", file);
 

@@ -22,9 +22,13 @@ public final class LoggingOptions {
     /**
      * Default logging options. {@code MinDurationToLogSlowRequestsInMs} is set to 3000;
      */
-    public static final LoggingOptions DEFAULT = new LoggingOptions(3000);
+    public static final long defaultMinDurationToLogSlowRequests = 3000;
 
     private final long minDurationToLogSlowRequestsInMs;
+
+    public LoggingOptions() {
+        this(defaultMinDurationToLogSlowRequests);
+    }
 
     /**
      * Creates a new {@link LoggingOptions} object.
