@@ -39,6 +39,14 @@ class LoggingTest extends APISpec {
         }
     }
 
+    def getHttpRequest() {
+        HttpHeaders headers = new HttpHeaders()
+        headers.set(Constants.HeaderConstants.CONTENT_ENCODING, "en-US")
+        URL url = new URL("http://devtest.blob.core.windows.net/test-container/test-blob")
+        HttpRequest request = new HttpRequest(null, HttpMethod.POST, url, headers, null, null)
+        return request
+    }
+
     @Unroll
     def "Successful fast response"() {
         setup:
@@ -57,7 +65,7 @@ class LoggingTest extends APISpec {
         def policy = factory.create(mockDownstream, requestPolicyOptions)
 
         when:
-        policy.sendAsync(new HttpRequest(null, null, null, null)).blockingGet()
+        policy.sendAsync(getHttpRequest()).blockingGet()
 
         then:
         /*
@@ -108,7 +116,7 @@ class LoggingTest extends APISpec {
         def policy = factory.create(mockDownstream, requestPolicyOptions)
 
         when:
-        policy.sendAsync(new HttpRequest(null, null, null, null)).blockingGet()
+        policy.sendAsync(getHttpRequest()).blockingGet()
 
         then:
         logCount * logger.log(HttpPipelineLogLevel.WARNING, _, _) >>
@@ -140,7 +148,7 @@ class LoggingTest extends APISpec {
         def policy = factory.create(mockDownstream, requestPolicyOptions)
 
         when:
-        policy.sendAsync(new HttpRequest(null, null, null, null)).blockingGet()
+        policy.sendAsync(getHttpRequest()).blockingGet()
 
         then:
         1 * logger.log(HttpPipelineLogLevel.ERROR, _, _) >>
@@ -174,7 +182,7 @@ class LoggingTest extends APISpec {
         def policy = factory.create(mockDownstream, requestPolicyOptions)
 
         when:
-        policy.sendAsync(new HttpRequest(null, null, null, null)).blockingGet()
+        policy.sendAsync(getHttpRequest()).blockingGet()
 
         then:
         /*
@@ -213,7 +221,7 @@ class LoggingTest extends APISpec {
         def policy = factory.create(mockDownstream, requestPolicyOptions)
 
         when:
-        policy.sendAsync(new HttpRequest(null, null, null, null)).blockingGet()
+        policy.sendAsync(getHttpRequest()).blockingGet()
 
         then:
         thrown(RuntimeException) // Because we return this from the downstream, it will be thrown when we blockingGet.
@@ -247,7 +255,7 @@ class LoggingTest extends APISpec {
         2 * logger.log(*_)
     }
 
-    def "Additional logging shared key test"() {
+    def "Shared key logs"() {
         setup:
         def factory = new LoggingFactory(new LoggingOptions(2000))
 
@@ -264,14 +272,12 @@ class LoggingTest extends APISpec {
         def authorizationValue = "authorizationValue"
         def dateValue = "Mon, 29 Oct 2018 21:12:12 GMT"
         def requestId = UUID.randomUUID().toString()
-        def copySource = "copySource"
         def httpHeaders = new HttpHeaders()
         httpHeaders.set(Constants.HeaderConstants.VERSION, Constants.HeaderConstants.TARGET_STORAGE_VERSION)
         httpHeaders.set(Constants.HeaderConstants.USER_AGENT, userAgentValue)
         httpHeaders.set(Constants.HeaderConstants.AUTHORIZATION, authorizationValue)
         httpHeaders.set(Constants.HeaderConstants.DATE, dateValue)
         httpHeaders.set(Constants.HeaderConstants.CLIENT_REQUEST_ID_HEADER, requestId)
-        httpHeaders.set(Constants.HeaderConstants.COPY_SOURCE, copySource)
         def urlString = "http://devtest.blob.core.windows.net/test-container/test-blob"
         def url = new URL(urlString)
 
@@ -300,14 +306,15 @@ class LoggingTest extends APISpec {
                             && message.contains(requestId)
                             && message.contains(Constants.HeaderConstants.USER_AGENT)
                             && message.contains(userAgentValue)
-                            && !message.contains(authorizationValue)
-                            && !message.contains(copySource))) {
+                            && message.contains(Constants.HeaderConstants.AUTHORIZATION)
+                            && message.contains(Constants.REDACTED)
+                            && !message.contains(authorizationValue))) {
                         throw new IllegalArgumentException(message)
                     }
                 }
     }
 
-    def "Additional logging SAS test"() {
+    def "SAS logs"() {
         setup:
         def factory = new LoggingFactory(new LoggingOptions(2000))
 
@@ -323,14 +330,14 @@ class LoggingTest extends APISpec {
         def userAgentValue = "Azure-Storage/0.1 "
         def dateValue = "Mon, 29 Oct 2018 21:12:12 GMT"
         def requestId = UUID.randomUUID().toString()
-        def copySource = "copySource"
+        def copySource = "http://dev.blob.core.windows.net/test-container/test-blob?snapshot=2018-10-30T19:19:22.1016437Z&sv=2018-03-28&ss=b&srt=co&st=2018-10-29T20:45:11Z&se=2018-10-29T22:45:11Z&sp=rwdlac&sig=copySourceSignature"
         def httpHeaders = new HttpHeaders()
         httpHeaders.set(Constants.HeaderConstants.VERSION, Constants.HeaderConstants.TARGET_STORAGE_VERSION)
         httpHeaders.set(Constants.HeaderConstants.USER_AGENT, userAgentValue)
         httpHeaders.set(Constants.HeaderConstants.DATE, dateValue)
         httpHeaders.set(Constants.HeaderConstants.CLIENT_REQUEST_ID_HEADER, requestId)
         httpHeaders.set(Constants.HeaderConstants.COPY_SOURCE, copySource)
-        def urlString = "http://dev.blob.core.windows.net/test-container/test-blob?sv=2018-03-28&ss=b&srt=co&st=2018-10-29T20:45:11Z&se=2018-10-29T22:45:11Z&sp=rwdlac&sig=signature&comp=incrementalcopy"
+        def urlString = "http://dev.blob.core.windows.net/test-container/test-blob?sv=2018-03-29&ss=f&srt=s&st=2018-10-30T20%3A45%3A11Z&se=2019-10-29T22%3A45%3A11Z&sp=rw&sig=urlSignature&comp=incrementalcopy"
         def url = new URL(urlString)
 
         when:
@@ -356,16 +363,26 @@ class LoggingTest extends APISpec {
                             && message.contains(requestId)
                             && message.contains(Constants.HeaderConstants.USER_AGENT)
                             && message.contains(userAgentValue)
-                            && !message.contains(copySource))) {
-                        throw new IllegalArgumentException(message)
-                    }
-                    if (message.contains("sv=2018-03-28")
-                            || message.contains("ss=b")
-                            || message.contains("srt=co")
-                            || message.contains("st=2018-10-29T20:45:11Z")
-                            || message.contains("se=2018-10-29T22:45:11Z")
-                            || message.contains("sp=rwdlac")
-                            || message.contains("sig=signature")) {
+
+                            // SAS URL parameters
+                            && message.contains("sv=2018-03-29")
+                            && message.contains("ss=f")
+                            && message.contains("srt=s")
+                            && message.contains("st=2018-10-30T20%3A45%3A11Z")
+                            && message.contains("se=2019-10-29T22%3A45%3A11Z")
+                            && message.contains("sp=rw")
+                            && !message.contains("sig=urlSignature")
+
+                            // Copy Source URL parameters
+                            && message.contains("sv=2018-03-28")
+                            && message.contains("ss=b")
+                            && message.contains("srt=co")
+                            && message.contains("st=2018-10-29T20%3A45%3A11Z")
+                            && message.contains("se=2018-10-29T22%3A45%3A11Z")
+                            && message.contains("sp=rwdlac")
+                            && message.contains("sig=REDACTED")
+                            && !message.contains("copySourceSignature")
+                    )) {
                         throw new IllegalArgumentException(message)
                     }
                 }

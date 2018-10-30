@@ -192,10 +192,86 @@ final class Constants {
     }
 
     static final class UrlConstants {
+
+        /**
+         * The SAS service version parameter.
+         */
+        static final String SAS_SERVICE_VERSION = "sv";
+
+        /**
+         * The SAS services parameter.
+         */
+        static final String SAS_SERVICES = "ss";
+
+        /**
+         * The SAS resource types parameter.
+         */
+        static final String SAS_RESOURCES_TYPES = "srt";
+
+        /**
+         * The SAS protocol parameter.
+         */
+        static final String SAS_PROTOCOL = "spr";
+
+        /**
+         * The SAS start time parameter.
+         */
+        static final String SAS_START_TIME = "st";
+
+        /**
+         * The SAS expiration time parameter.
+         */
+        static final String SAS_EXPIRY_TIME = "se";
+
+        /**
+         * The SAS IP range parameter.
+         */
+        static final String SAS_IP_RANGE = "sip";
+
+        /**
+         * The SAS signed identifier parameter.
+         */
+        static final String SAS_SIGNED_IDENTIFIER = "si";
+
+        /**
+         * The SAS signed resource parameter.
+         */
+        static final String SAS_SIGNED_RESOURCE = "sr";
+
+        /**
+         * The SAS signed permissions parameter.
+         */
+        static final String SAS_SIGNED_PERMISSIONS = "sp";
+
         /**
          * The SAS signature parameter.
          */
-        static final String SIGNATURE = "sig";
+        static final String SAS_SIGNATURE = "sig";
+
+        /**
+         * The SAS cache control parameter.
+         */
+        static final String SAS_CACHE_CONTROL = "rscc";
+
+        /**
+         * The SAS content disposition parameter.
+         */
+        static final String SAS_CONTENT_DISPOSITION = "rscd";
+
+        /**
+         * The SAS content encoding parameter.
+         */
+        static final String SAS_CONTENT_ENCODING = "rsce";
+
+        /**
+         * The SAS content language parameter.
+         */
+        static final String SAS_CONTENT_LANGUAGE = "rscl";
+
+        /**
+         * The SAS content type parameter.
+         */
+        static final String SAS_CONTENT_TYPE = "rsct";
 
         private UrlConstants() {
             // Private to prevent construction.
