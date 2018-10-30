@@ -180,7 +180,7 @@ public final class LoggingFactory implements RequestPolicyFactory {
             HttpRequest sanitizedRequest = buildSanitizedRequest(httpRequest);
             StringBuilder stringBuilder = new StringBuilder();
             String format = "%s: %s" + System.lineSeparator();
-            stringBuilder.append(String.format("%s %s" + System.lineSeparator(), sanitizedRequest.httpMethod().toString(), sanitizedRequest.url().toString()));
+            stringBuilder.append(String.format(format, sanitizedRequest.httpMethod().toString(), sanitizedRequest.url().toString()));
             sanitizedRequest.headers().forEach((header) -> stringBuilder.append(String.format(format, header.name(), header.value())));
             return stringBuilder.toString();
         }
