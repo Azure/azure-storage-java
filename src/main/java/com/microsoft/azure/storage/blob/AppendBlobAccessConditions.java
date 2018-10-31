@@ -28,12 +28,6 @@ import com.microsoft.azure.storage.blob.models.ModifiedAccessConditions;
  */
 public final class AppendBlobAccessConditions {
 
-    /**
-     * An object representing no access conditions.
-     */
-    public static final AppendBlobAccessConditions NONE =
-            new AppendBlobAccessConditions();
-
     private AppendPositionAccessConditions appendPositionAccessConditions;
 
     private ModifiedAccessConditions modifiedAccessConditions;

@@ -131,7 +131,7 @@ public final class ServiceURL extends StorageURL {
      */
     public Single<ServiceListContainersSegmentResponse> listContainersSegment(String marker,
             ListContainersOptions options, Context context) {
-        options = options == null ? ListContainersOptions.DEFAULT : options;
+        options = options == null ? new ListContainersOptions() : options;
         context = context == null ? Context.NONE : context;
 
         return addErrorWrappingToSingle(
