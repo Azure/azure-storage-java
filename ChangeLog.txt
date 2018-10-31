@@ -1,3 +1,6 @@
+xxxx.xx.xx Version x.x.x-xx
+* Removed DEFAULT and NONE static variables, created empty constructors with defaults.
+
 2018.10.29 Version 10.2.0
 * Added overloads which only accept the required parameters.
 * Added CopyFromURL, which will do a synchronous server-side copy, meaning the service will not return an HTTP response until it has completed the copy.
@@ -6,7 +9,6 @@
 * Fixed a bug that would cause downloading large files with the TransferManager to fail.
 * Fixed a bug in BlobURL.download() logic for setting up reliable download. This had the potential to download the wrong range when a download stream was retried.
 * Added request Http Method, URL, and headers to logging messages.
-* Removed DEFAULT and NONE static variables, created empty constructors with defaults.
 
 2018.09.11 Version 10.1.0
 * Interfaces for helper types updated to be more consistent throughout the library. All types, with the exception of the options for pipeline factories, use a fluent pattern.
