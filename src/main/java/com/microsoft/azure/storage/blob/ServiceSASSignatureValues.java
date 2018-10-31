@@ -353,7 +353,7 @@ public final class ServiceSASSignatureValues {
                 this.expiryTime == null ? "" : Utility.ISO8601UTCDateFormatter.format(this.expiryTime),
                 getCanonicalName(sharedKeyCredentials.getAccountName()),
                 this.identifier == null ? "" : this.identifier,
-                this.ipRange == null ? IPRange.DEFAULT.toString() : this.ipRange.toString(),
+                this.ipRange == null ? (new IPRange()).toString() : this.ipRange.toString(),
                 this.protocol == null ? "" : protocol.toString(),
                 this.version,
                 this.cacheControl == null ? "" : this.cacheControl,

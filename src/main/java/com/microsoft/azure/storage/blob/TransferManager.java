@@ -75,7 +75,7 @@ public final class TransferManager {
         Utility.assertNotNull("blockBlobURL", blockBlobURL);
         Utility.assertInBounds("blockLength", blockLength, 1, BlockBlobURL.MAX_STAGE_BLOCK_BYTES);
         TransferManagerUploadToBlockBlobOptions optionsReal = options == null ?
-                TransferManagerUploadToBlockBlobOptions.DEFAULT : options;
+                new TransferManagerUploadToBlockBlobOptions() : options;
 
 
         // If the size of the file can fit in a single upload, do it this way.
@@ -174,9 +174,9 @@ public final class TransferManager {
      */
     public static Single<BlobDownloadHeaders> downloadBlobToFile(AsynchronousFileChannel file, BlobURL blobURL,
             BlobRange range, TransferManagerDownloadFromBlobOptions options) {
-        BlobRange r = range == null ? BlobRange.DEFAULT : range;
+        BlobRange r = range == null ? new BlobRange() : range;
         TransferManagerDownloadFromBlobOptions o = options == null ?
-                TransferManagerDownloadFromBlobOptions.DEFAULT : options;
+                new TransferManagerDownloadFromBlobOptions() : options;
         Utility.assertNotNull("blobURL", blobURL);
         Utility.assertNotNull("file", file);
 

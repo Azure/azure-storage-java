@@ -47,7 +47,7 @@ public final class RequestRetryFactory implements RequestPolicyFactory {
      *         {@link RequestRetryOptions}
      */
     public RequestRetryFactory(RequestRetryOptions requestRetryOptions) {
-        this.requestRetryOptions = requestRetryOptions == null ? RequestRetryOptions.DEFAULT : requestRetryOptions;
+        this.requestRetryOptions = requestRetryOptions == null ? new RequestRetryOptions() : requestRetryOptions;
     }
 
     @Override

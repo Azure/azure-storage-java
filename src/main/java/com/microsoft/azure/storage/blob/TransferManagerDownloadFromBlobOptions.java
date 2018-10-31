@@ -20,12 +20,6 @@ package com.microsoft.azure.storage.blob;
  */
 public final class TransferManagerDownloadFromBlobOptions {
 
-    /**
-     * The default download options.
-     */
-    public static final TransferManagerDownloadFromBlobOptions DEFAULT =
-            new TransferManagerDownloadFromBlobOptions(null, null, null, null, null);
-
     private final long chunkSize;
 
     private final IProgressReceiver progressReceiver;
@@ -36,6 +30,10 @@ public final class TransferManagerDownloadFromBlobOptions {
 
     // Cannot be final because we may have to set this property in order to lock on the etag.
     private BlobAccessConditions accessConditions;
+
+    public TransferManagerDownloadFromBlobOptions() {
+        this(null, null, null, null, null);
+    }
 
     /**
      * Returns an object that configures the parallel download behavior for methods on the {@link TransferManager}.
@@ -77,7 +75,7 @@ public final class TransferManagerDownloadFromBlobOptions {
             this.parallelism = Constants.TRANSFER_MANAGER_DEFAULT_PARALLELISM;
         }
 
-        this.accessConditions = accessConditions == null ? BlobAccessConditions.NONE : accessConditions;
+        this.accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         this.reliableDownloadOptionsPerBlock = reliableDownloadOptions == null ?
                 new ReliableDownloadOptions() : reliableDownloadOptions;
     }

@@ -132,8 +132,8 @@ public final class AppendBlobURL extends BlobURL {
      */
     public Single<AppendBlobCreateResponse> create(BlobHTTPHeaders headers, Metadata metadata,
             BlobAccessConditions accessConditions, Context context) {
-        metadata = metadata == null ? Metadata.NONE : metadata;
-        accessConditions = accessConditions == null ? BlobAccessConditions.NONE : accessConditions;
+        metadata = metadata == null ? new Metadata() : metadata;
+        accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
 
         return addErrorWrappingToSingle(this.storageClient.generatedAppendBlobs().createWithRestResponseAsync(context,
@@ -195,10 +195,10 @@ public final class AppendBlobURL extends BlobURL {
      */
     public Single<AppendBlobAppendBlockResponse> appendBlock(Flowable<ByteBuffer> data, long length,
             AppendBlobAccessConditions appendBlobAccessConditions, Context context) {
-        appendBlobAccessConditions = appendBlobAccessConditions == null ? AppendBlobAccessConditions.NONE :
+        appendBlobAccessConditions = appendBlobAccessConditions == null ? new AppendBlobAccessConditions() :
                 appendBlobAccessConditions;
         appendBlobAccessConditions = appendBlobAccessConditions == null
-                ? AppendBlobAccessConditions.NONE : appendBlobAccessConditions;
+                ? new AppendBlobAccessConditions() : appendBlobAccessConditions;
         context = context == null ? Context.NONE : context;
 
         return addErrorWrappingToSingle(this.storageClient.generatedAppendBlobs().appendBlockWithRestResponseAsync(

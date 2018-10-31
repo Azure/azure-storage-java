@@ -25,11 +25,6 @@ import com.microsoft.azure.storage.blob.models.ModifiedAccessConditions;
  */
 public final class ContainerAccessConditions {
 
-    /**
-     * An object representing no access conditions.
-     */
-    public static final ContainerAccessConditions NONE = new ContainerAccessConditions();
-
     private ModifiedAccessConditions modifiedAccessConditions;
 
     private LeaseAccessConditions leaseAccessConditions;
