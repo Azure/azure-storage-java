@@ -32,8 +32,10 @@ public class TransferManagerUploadToBlockBlobOptions {
 
     private final int parallelism;
 
+    private final int maxSingleShotSize;
+
     public TransferManagerUploadToBlockBlobOptions() {
-        this(null, null, null, null, null);
+        this(null, null, null, null, null, null);
     }
 
     /**
@@ -50,27 +52,42 @@ public class TransferManagerUploadToBlockBlobOptions {
      * @param accessConditions
      *         {@link BlobAccessConditions}
      * @param parallelism
-     *         A {@code int} that indicates the maximum number of blocks to upload in parallel. Must be greater than 0.
+     *         Indicates the maximum number of blocks to upload in parallel. Must be greater than 0.
      *         May be null to accept default behavior.
+     * @param maxSingleShotSize
+     *         If the size of the data is less than or equal to this value, it will be uploaded in a single put
+     *         rather than broken up into chunks. If the data is uploaded in a single shot, the block size will be
+     *         ignored. Some constraints to consider are that more requests cost more, but several small or mid-sized
+     *         requests may sometimes perform better. Must be greater than 0. May be null to accept default behavior.
      */
     public TransferManagerUploadToBlockBlobOptions(IProgressReceiver progressReceiver, BlobHTTPHeaders httpHeaders,
-            Metadata metadata, BlobAccessConditions accessConditions, Integer parallelism) {
+            Metadata metadata, BlobAccessConditions accessConditions, Integer parallelism, Integer maxSingleShotSize) {
         this.progressReceiver = progressReceiver;
-        if (progressReceiver != null) {
-            throw new UnsupportedOperationException("Progress reporting is not currently supported. Support will be" +
-                    "added in a later release.");
-        }
-        if (parallelism == null) {
-            this.parallelism = Constants.TRANSFER_MANAGER_DEFAULT_PARALLELISM;
-        } else if (parallelism <= 0) {
-            throw new IllegalArgumentException("Parallelism must be > 0");
-        } else {
+        if (parallelism != null) {
+            Utility.assertInBounds("parallelism", parallelism, 0, Integer.MAX_VALUE);
             this.parallelism = parallelism;
+        } else {
+            this.parallelism = Constants.TRANSFER_MANAGER_DEFAULT_PARALLELISM;
         }
 
         this.httpHeaders = httpHeaders;
         this.metadata = metadata;
         this.accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
+
+        if (maxSingleShotSize != null) {
+            Utility.assertInBounds("maxSingleShotSize", maxSingleShotSize, 0, BlockBlobURL.MAX_UPLOAD_BLOB_BYTES);
+            this.maxSingleShotSize = maxSingleShotSize;
+        }
+        else {
+            this.maxSingleShotSize = BlockBlobURL.MAX_UPLOAD_BLOB_BYTES;
+        }
+    }
+
+    /**
+     * {@link IProgressReceiver}
+     */
+    public IProgressReceiver progressReceiver() {
+        return progressReceiver;
     }
 
     /**
@@ -101,5 +118,9 @@ public class TransferManagerUploadToBlockBlobOptions {
      */
     public int parallelism() {
         return parallelism;
+    }
+
+    public int maxSingleShotSize() {
+        return maxSingleShotSize;
     }
 }

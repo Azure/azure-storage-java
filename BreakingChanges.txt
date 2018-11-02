@@ -8,6 +8,7 @@
 * Removed RetryReader type as it's functionality was moved to be built into the DownloadResponse. RetryReaderOptions are now named ReliableDownloadOptions.
 * Restructured the access conditions to be more logically adhere to their respective functions.
 * Added support for context parameter on each api to allow communication with the pipeline from the application level
+* Added an option to configure that maximum size data that will be uploaded in a single shot via the TransferManager.
 
 2018.08.22 Version 10.0.4-rc
 * Changed BlobURL.startCopy sourceAccessConditions parameter to be HTTPAccessConditions as lease is not actually supported.

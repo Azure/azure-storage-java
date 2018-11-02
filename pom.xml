@@ -14,7 +14,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-storage-blob</artifactId>
-    <version>10.1.0</version>
+    <version>10.2.0</version>
 
     <name>Azure Storage Blob</name>
     <description>The Azure Storage Java Blob library.</description>
@@ -60,19 +60,6 @@
             </snapshots>
         </pluginRepository>
     </pluginRepositories>
-
-    <repositories>
-        <repository>
-            <id>ossrh</id>
-            <name>Sonatype Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-            <layout>default</layout>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
-    </repositories>
 
     <dependencies>
         <dependency>
