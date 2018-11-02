@@ -63,7 +63,6 @@ public class TransferManagerUploadToBlockBlobOptions {
     public TransferManagerUploadToBlockBlobOptions(IProgressReceiver progressReceiver, BlobHTTPHeaders httpHeaders,
             Metadata metadata, BlobAccessConditions accessConditions, Integer parallelism, Integer maxSingleShotSize) {
         this.progressReceiver = progressReceiver;
-
         if (parallelism != null) {
             Utility.assertInBounds("parallelism", parallelism, 0, Integer.MAX_VALUE);
             this.parallelism = parallelism;

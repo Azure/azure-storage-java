@@ -347,7 +347,6 @@ class TransferManagerTest extends APISpec {
     Here we're testing that progress is properly added to a single upload. The size of the file must be less than
     the max upload value.
      */
-
     def "Upload file progress sequential"() {
         setup:
         def channel = AsynchronousFileChannel.open(getRandomFile(BlockBlobURL.MAX_UPLOAD_BLOB_BYTES - 1).toPath())
@@ -416,7 +415,7 @@ class TransferManagerTest extends APISpec {
         }
 
         // We should receive no notifications that report more progress than the size of the file.
-        0 * mockReceiver.reportProgress({ it > channel.size() })
+        0 * mockReceiver.reportProgress({it > channel.size()})
         notThrown(IllegalArgumentException)
 
         cleanup:
@@ -445,11 +444,12 @@ class TransferManagerTest extends APISpec {
         outChannel.close() == null
 
         where:
-        file                                 | _
-        getRandomFile(20)                    | _ // small file
-        getRandomFile(16 * 1024 * 1024)      | _ // medium file in several chunks
-        getRandomFile(8L * 1026 * 1024 + 10) | _ // medium file not aligned to block
-        getRandomFile(0)                     | _ // empty file
+        file                                   | _
+        getRandomFile(20)                      | _ // small file
+        getRandomFile(16 * 1024 * 1024)        | _ // medium file in several chunks
+        getRandomFile(8 * 1026 * 1024 + 10)    | _ // medium file not aligned to block
+        getRandomFile(0)                       | _ // empty file
+        // Files larger than 2GB to test no integer overflow are left to stress/perf tests to keep test passes short.
     }
 
     def compareFiles(AsynchronousFileChannel channel1, long offset, long count, AsynchronousFileChannel channel2) {

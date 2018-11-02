@@ -2,16 +2,17 @@ XXXX.XX.XX Version XX.X.X
 * HTTPGetterInfo was made an internal type as it is an internal implementation detail.
 * DownloadResponse constructor was made internal as there is no need for customers to construct their own responses; all HTTP responses should be generated internally.
 * Removed DEFAULT and NONE static variables. Empty constructors should be used instead. DEFAULT static values were error prone and unsafe to use because although the field was final, the objects were mutable, so it was possible the value could be changed accidentally and alter the behavior of the program.
+* Optimized the TransferManager download to file method to skip the initial HEAD request.
+* Added an option to configure that maximum size data that will be uploaded in a single shot via the TransferManager.
+* Added request Http Method, URL, and headers to logging messages.
 
-
-XXXX.XX.XX Version XX.X.X
+2018.10.29 Version 10.2.0
 * Added overloads which only accept the required parameters.
-* TransferManager options now throw if an IProgressReceiver is passed as it is not currently supported. Support will be added in a later release.
 * Added CopyFromURL, which will do a synchronous server-side copy, meaning the service will not return an HTTP response until it has completed the copy.
 * Added support for IProgressReceiver in TransferManager operations. This parameter was previously ignored but is now supported.
 * Removed internal dependency on javafx to be compatible with openjdk.
-* Optimized the TransferManager download to file method to skip the initial HEAD request.
-* Added an option to configure that maximum size data that will be uploaded in a single shot via the TransferManager.
+* Fixed a bug that would cause downloading large files with the TransferManager to fail.
+* Fixed a bug in BlobURL.download() logic for setting up reliable download. This had the potential to download the wrong range when a download stream was retried.
 
 2018.09.11 Version 10.1.0
 * Interfaces for helper types updated to be more consistent throughout the library. All types, with the exception of the options for pipeline factories, use a fluent pattern.
