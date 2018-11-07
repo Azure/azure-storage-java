@@ -116,10 +116,6 @@ public final class TransferManager {
                     data = ProgressReporter.addParallelProgressReporting(data, optionsReal.progressReceiver(),
                                 progressLock, totalProgress);
 
-                    // Report progress as necessary.
-                    data = ProgressReporter.addParallelProgressReporting(data, optionsReal.progressReceiver(),
-                                progressLock, totalProgress);
-
                     final String blockId = Base64.getEncoder().encodeToString(
                             UUID.randomUUID().toString().getBytes());
 
