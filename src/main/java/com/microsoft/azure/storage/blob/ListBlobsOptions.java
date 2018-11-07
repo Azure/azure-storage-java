@@ -20,27 +20,27 @@ package com.microsoft.azure.storage.blob;
  */
 public final class ListBlobsOptions {
 
-    private BlobListingDetails details;
+    private BlobListDetails details;
 
     private String prefix;
 
     private Integer maxResults;
 
     public ListBlobsOptions() {
-        this.details = new BlobListingDetails();
+        this.details = new BlobListDetails();
     }
 
     /**
-     * {@link BlobListingDetails}
+     * {@link BlobListDetails}
      */
-    public BlobListingDetails details() {
+    public BlobListDetails details() {
         return details;
     }
 
     /**
-     * {@link BlobListingDetails}
+     * {@link BlobListDetails}
      */
-    public ListBlobsOptions withDetails(BlobListingDetails details) {
+    public ListBlobsOptions withDetails(BlobListDetails details) {
         this.details = details;
         return this;
     }

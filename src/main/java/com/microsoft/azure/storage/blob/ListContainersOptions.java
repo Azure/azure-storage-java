@@ -21,27 +21,27 @@ package com.microsoft.azure.storage.blob;
  */
 public final class ListContainersOptions {
 
-    private ContainerListingDetails details;
+    private ContainerListDetails details;
 
     private String prefix;
 
     private Integer maxResults;
 
     public ListContainersOptions() {
-        this.details = new ContainerListingDetails();
+        this.details = new ContainerListDetails();
     }
 
     /**
-     * {@link ContainerListingDetails}
+     * {@link ContainerListDetails}
      */
-    public ContainerListingDetails details() {
+    public ContainerListDetails details() {
         return details;
     }
 
     /**
-     * {@link ContainerListingDetails}
+     * {@link ContainerListDetails}
      */
-    public ListContainersOptions withDetails(ContainerListingDetails details) {
+    public ListContainersOptions withDetails(ContainerListDetails details) {
         this.details = details;
         return this;
     }
