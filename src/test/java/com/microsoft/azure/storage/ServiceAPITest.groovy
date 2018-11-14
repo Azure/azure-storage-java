@@ -106,7 +106,7 @@ class ServiceAPITest extends APISpec {
 
         expect:
         primaryServiceURL.listContainersSegment(null,
-                new ListContainersOptions().withDetails(new ContainerListingDetails().withMetadata(true))
+                new ListContainersOptions().withDetails(new ContainerListDetails().withMetadata(true))
                         .withPrefix("aaa" + containerPrefix), null).blockingGet().body().containerItems()
                 .get(0).metadata() == metadata
         // Container with prefix "aaa" will not be cleaned up by normal test cleanup.

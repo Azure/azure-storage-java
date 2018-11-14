@@ -5,6 +5,7 @@ XXXX.XX.XX Version XX.X.X
 * Optimized the TransferManager download to file method to skip the initial HEAD request.
 * Added an option to configure that maximum size data that will be uploaded in a single shot via the TransferManager.
 * Added request Http Method, URL, and headers to logging messages.
+* Changed *ListingDetails to *ListDetails. These name changes are to mitigate conflicts with v8, allowing for side-by-side loading of different versions, which may help with upgrading.
 
 2018.10.29 Version 10.2.0
 * Added overloads which only accept the required parameters.
