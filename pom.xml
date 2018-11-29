@@ -37,6 +37,7 @@
     <modules>
         <module>blob</module>
         <module>queue</module>
+        <module>queue-encryption</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
