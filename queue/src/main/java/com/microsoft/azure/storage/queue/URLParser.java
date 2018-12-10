@@ -20,17 +20,13 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.regex.Pattern;
+
+import sun.net.util.IPAddressUtil;
 
 /**
  * A class used to conveniently parse URLs into {@link QueueURLParts} to modify the components of the URL.
  */
 public final class URLParser {
-
-    // ipv4PatternString represents the pattern of ipv4 addresses.
-    private final static String ipv4PatternString = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
-    // ipv4Pattern represents a compiled pattern of ipv4 address pattern.
-    private static Pattern ipv4Pattern = Pattern.compile(ipv4PatternString);
 
     /**
      * URLParser parses a URL initializing QueueURLParts' fields including any SAS-related query parameters.
@@ -54,7 +50,6 @@ public final class URLParser {
         boolean messages = false;
         String messageId = null;
         IPStyleEndPointInfo ipStyleEndPointInfo = null;
-        Integer port = null;
 
         String path = url.getPath();
         if (!Utility.isNullOrEmpty(path)) {
@@ -194,7 +189,7 @@ public final class URLParser {
         if ((host == null) || host.equals("")) {
             return false;
         }
-        // returns true if host represents an ipv4 address.
-        return ipv4Pattern.matcher(host).matches();
+
+        return IPAddressUtil.isIPv4LiteralAddress(host);
     }
 }
