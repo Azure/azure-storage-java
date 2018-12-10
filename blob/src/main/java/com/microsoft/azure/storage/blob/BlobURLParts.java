@@ -48,6 +48,8 @@ public final class BlobURLParts {
 
     private Map<String, String[]> unparsedParameters;
 
+    private IPStyleEndPointInfo ipStyleEndPointInfo;
+
     /**
      * The scheme. Ex: "https://".
      */
@@ -141,6 +143,21 @@ public final class BlobURLParts {
     }
 
     /**
+     * A {@link IPStyleEndPointInfo}
+     */
+    public IPStyleEndPointInfo ipEndPointStyleInfo() {
+        return ipStyleEndPointInfo;
+    }
+
+    /**
+     * A {@link IPStyleEndPointInfo}
+     */
+    public BlobURLParts withIPEndPointStyleInfo(IPStyleEndPointInfo ipStyleEndPointInfo) {
+        this.ipStyleEndPointInfo = ipStyleEndPointInfo;
+        return this;
+    }
+
+    /**
      * The query parameter key value pairs aside from SAS parameters and snapshot time or {@code null} if there were
      * no such parameters.
      */
@@ -179,6 +196,18 @@ public final class BlobURLParts {
         UrlBuilder url = new UrlBuilder().withScheme(this.scheme).withHost(this.host);
 
         StringBuilder path = new StringBuilder();
+
+        if (this.ipStyleEndPointInfo != null) {
+            if (this.ipStyleEndPointInfo.accountName() != null) {
+                /* Added a path separator after the account name. Anything that is added
+                 after the account name doesn't need to care about the "/". */
+                path.append(this.ipStyleEndPointInfo.accountName() + "/");
+            }
+            if (this.ipStyleEndPointInfo.port() != null) {
+                url.withPort(this.ipStyleEndPointInfo.port());
+            }
+        }
+
         if (this.containerName != null) {
             path.append(this.containerName);
             if (this.blobName != null) {

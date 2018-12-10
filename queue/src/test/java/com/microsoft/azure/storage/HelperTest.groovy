@@ -163,6 +163,7 @@ class HelperTest extends APISpec {
         "105.232.1.23" | 80   || "http://105.232.1.23:80/accountname/aqueue"
     }
 
+    @Unroll
     def "IP Style Host Url parse test"() {
         when:
         def u = new URL(url)
@@ -171,8 +172,10 @@ class HelperTest extends APISpec {
         then:
         q.scheme() == scheme
         q.host() == host
-        q.ipEndPointStyleInfo().port() == port
-        q.ipEndPointStyleInfo().accountName() == accountname
+        if (q.ipEndPointStyleInfo() != null) {
+            assert q.ipEndPointStyleInfo().port() == port
+            assert q.ipEndPointStyleInfo().accountName() == accountname
+        }
         q.queueName() == queuename
         q.messages() == messages
         q.messageId() == messageId
@@ -183,5 +186,6 @@ class HelperTest extends APISpec {
         "http://105.232.1.23:80/accountname/aqueue"                       || "http" | "105.232.1.23" | 80   | "accountname" | "aqueue"  | false    | null
         "http://105.232.1.23/accountname/aqueue/messages"                 || "http" | "105.232.1.23" | null | "accountname" | "aqueue"  | true     | null
         "http://105.232.1.23/accountname/aqueue/messages/randommessageId" || "http" | "105.232.1.23" | null | "accountname" | "aqueue"  | true     | "randommessageId"
+        "http://105.232.1.23/accountname"                                 || "http" | "105.232.1.23" | null | "accountname" | ""      | false    | null
     }
 }
