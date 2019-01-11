@@ -8,7 +8,7 @@
  * regenerated.
  */
 
-package com.microsoft.azure.storage;
+package com.microsoft.azure.storage.queue;
 
 import com.microsoft.azure.storage.queue.models.MessageIDDeleteResponse;
 import com.microsoft.azure.storage.queue.models.MessageIDUpdateResponse;

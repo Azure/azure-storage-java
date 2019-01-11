@@ -14,7 +14,6 @@
  */
 package com.microsoft.azure.storage.queue;
 
-import com.microsoft.azure.storage.GeneratedStorageClient;
 import com.microsoft.rest.v2.http.HttpPipeline;
 import com.microsoft.rest.v2.http.UrlBuilder;
 import com.microsoft.rest.v2.policy.DecodingPolicyFactory;

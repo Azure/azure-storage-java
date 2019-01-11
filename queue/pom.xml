@@ -18,7 +18,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>azure-storage-queue</artifactId>
-    <version>10.0.0-Preview</version>
+    <version>10.0.1-Preview</version>
     <name>Azure Storage Queue</name>
     <description>The Azure Storage Java Queue library.</description>
 
