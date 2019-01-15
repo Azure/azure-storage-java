@@ -8,7 +8,7 @@
  * regenerated.
  */
 
-package com.microsoft.azure.storage;
+package com.microsoft.azure.storage.queue;
 
 import com.microsoft.azure.storage.queue.models.DequeuedMessageItem;
 import com.microsoft.azure.storage.queue.models.EnqueuedMessage;
@@ -39,7 +39,6 @@ import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.reactivex.annotations.NonNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

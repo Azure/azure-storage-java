@@ -248,7 +248,7 @@ class ServiceAPITest extends APISpec {
     def "Get stats"() {
         setup:
         QueueURLParts parts = URLParser.parse(primaryServiceURL.toURL())
-        parts.withHost("azcopynextgendev1-secondary.queue.core.windows.net");
+        parts.withHost(primaryCreds.accountName +  "-secondary.queue.core.windows.net")
 
         when:
         ServiceURL secondary = new ServiceURL(parts.toURL(),
@@ -265,7 +265,7 @@ class ServiceAPITest extends APISpec {
     def "Get stats min"() {
         setup:
         QueueURLParts parts = URLParser.parse(primaryServiceURL.toURL())
-        parts.withHost("azcopynextgendev1-secondary.queue.core.windows.net");
+        parts.withHost(primaryCreds.accountName +  "-secondary.queue.core.windows.net")
         ServiceURL secondary = new ServiceURL(parts.toURL(),
                 StorageURL.createPipeline(primaryCreds, new PipelineOptions()))
         expect:
