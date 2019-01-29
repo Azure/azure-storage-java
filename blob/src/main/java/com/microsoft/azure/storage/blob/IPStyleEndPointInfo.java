@@ -12,12 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microsoft.azure.storage.queue;
+package com.microsoft.azure.storage.blob;
 
 /**
  * IPEndpointStyleInfo is used for IP endpoint style URL. It's commonly used when
  * working with Azure storage emulator or testing environments. For Example:
- * "https://10.132.141.33/accountname/queuename"
+ * "https://10.132.141.33/accountname/container/blob"
  */
 public final class IPStyleEndPointInfo {
 
@@ -34,6 +34,12 @@ public final class IPStyleEndPointInfo {
 
     /**
      * The account name. For Example: "https://10.132.41.33/accountname"
+     * Note: if the standard <account>.blob.core.windows.net is presented to {@link BlobURLParts},
+     * {@link IPStyleEndPointInfo} will be null because the url may be a custom domain. In these cases, if the
+     * account happens to be present in the host, it will simply remain as a part of the host field in the
+     * {@link BlobURLParts} object.
+     * {@link IPStyleEndPointInfo} is present and populated with accountname only if an IP address is used to present
+     * the blob url
      */
     public IPStyleEndPointInfo withAccountName(String accountName) {
         this.accountName = accountName;

@@ -1,0 +1,2 @@
+﻿2018.01.11 Version 10.0.1-Preview
+* Moved the Generated*** types into the queue package to avoid type conflicts with other modules.

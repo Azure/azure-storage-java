@@ -8,7 +8,7 @@
  * regenerated.
  */
 
-package com.microsoft.azure.storage;
+package com.microsoft.azure.storage.queue;
 
 import com.microsoft.azure.storage.queue.implementation.SignedIdentifiersWrapper;
 import com.microsoft.azure.storage.queue.models.QueueCreateResponse;
@@ -38,8 +38,6 @@ import io.reactivex.Completable;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 

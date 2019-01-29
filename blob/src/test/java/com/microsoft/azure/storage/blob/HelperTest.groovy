@@ -628,4 +628,31 @@ class HelperTest extends APISpec {
         parts.sasQueryParameters().signature() ==
                 Utility.safeURLDecode("Ee%2BSodSXamKSzivSdRTqYGh7AeMVEk3wEoRZ1yzkpSc%3D")
     }
+
+    @Unroll
+    def "IP Style Host Url parse test"() {
+        when:
+        def u = new URL(url)
+        def blobUrlParts = URLParser.parse(u)
+
+        then:
+        blobUrlParts.scheme() == scheme
+        blobUrlParts.host() == host
+        if (blobUrlParts.ipEndPointStyleInfo() != null) {
+            assert blobUrlParts.ipEndPointStyleInfo().port() == port
+            assert blobUrlParts.ipEndPointStyleInfo().accountName() == accountname
+        }
+        blobUrlParts.blobName() == blob
+        blobUrlParts.snapshot() == snapshot
+        blobUrlParts.containerName() == container
+
+        where:
+        url                                                                   || scheme | host           | port | accountname   | container   | blob    | snapshot
+        "http://105.232.1.23/accountname"                                     || "http" | "105.232.1.23" | null | "accountname" | ""          | null    | null
+        "http://105.232.1.23/accountname/container"                           || "http" | "105.232.1.23" | null | "accountname" | "container" | null    | null
+        "http://105.232.1.23:80/accountname/container"                        || "http" | "105.232.1.23" | 80   | "accountname" | "container" | null    | null
+        "http://105.232.1.23:8080/accountname/container/blob"                 || "http" | "105.232.1.23" | 8080 | "accountname" | "container" | "blob"  | null
+        "http://105.232.1.23/accountname/container/blob"                      || "http" | "105.232.1.23" | null | "accountname" | "container" | "blob"  | null
+        "http://105.232.1.23:80/accountname/container/blob?snapshot=snapshot" || "http" | "105.232.1.23" | 80   | "accountname" | "container" | "blob"  | "snapshot"
+    }
 }

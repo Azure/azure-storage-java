@@ -21,6 +21,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
+import sun.net.util.IPAddressUtil;
+
 /**
  * A class used to conveniently parse URLs into {@link BlobURLParts} to modify the components of the URL.
  */
@@ -42,6 +44,7 @@ public final class URLParser {
 
         final String scheme = url.getProtocol();
         final String host = url.getHost();
+        IPStyleEndPointInfo ipStyleEndPointInfo = null;
 
         String containerName = null;
         String blobName = null;
@@ -52,6 +55,34 @@ public final class URLParser {
             // if the path starts with a slash remove it
             if (path.charAt(0) == '/') {
                 path = path.substring(1);
+            }
+
+            // If the host name is in the ip-address format
+            if (isHostIPEndPointStyle(host)) {
+                // Create the IPStyleEndPointInfo and set the port number.
+                ipStyleEndPointInfo = new IPStyleEndPointInfo();
+                if (url.getPort() != -1) {
+                    ipStyleEndPointInfo.withPort(url.getPort());
+                }
+                String accountName;
+                /*If the host is in the IP Format, then account name is provided after the ip-address.
+                  For Example: "https://10.132.141.33/accountname/container/blob". Get the index of "/" in the path.
+                 */
+                int pathSepEndIndex = path.indexOf('/');
+                if (pathSepEndIndex == -1) {
+                    /* If there does not exists "/" in the path, it means the entire path is the account name
+                     For Example: path = accountname */
+                    accountName = path;
+                    // since path contains only the account name, after account name is set, set path to empty string.
+                    path = Constants.EMPTY_STRING;
+                } else {
+                    /* If there exists the "/", it means all the content in the path till "/" is the account name
+                     For Example: accountname/container/blob */
+                    accountName = path.substring(0, pathSepEndIndex);
+                    // After path name has been extracted from the path, strip account name from path
+                    path = path.substring(pathSepEndIndex + 1);
+                }
+                ipStyleEndPointInfo.withAccountName(accountName);
             }
 
             int containerEndIndex = path.indexOf('/');
@@ -84,7 +115,8 @@ public final class URLParser {
                 .withBlobName(blobName)
                 .withSnapshot(snapshot)
                 .withSasQueryParameters(sasQueryParameters)
-                .withUnparsedParameters(queryParamsMap);
+                .withUnparsedParameters(queryParamsMap)
+                .withIPEndPointStyleInfo(ipStyleEndPointInfo);
     }
 
     /**
@@ -140,4 +172,22 @@ public final class URLParser {
 
         return retVals;
     }
+
+    /**
+     * Checks if URL's host is IP. If true storage account endpoint will be composed as: http(s)://IP(:port)/storageaccount/...
+     * As url's Host property, host could be both host or host:port
+     *
+     * @param host
+     *         The host. Ex: "account.blob.core.windows.net" or 10.31.141.33:80
+     *
+     * @return true, if the host is an ip address (ipv4/ipv6) with or without port.
+     */
+    public static boolean isHostIPEndPointStyle(String host) {
+        if ((host == null) || host.equals("")) {
+            return false;
+        }
+
+        return IPAddressUtil.isIPv4LiteralAddress(host);
+    }
 }
+
