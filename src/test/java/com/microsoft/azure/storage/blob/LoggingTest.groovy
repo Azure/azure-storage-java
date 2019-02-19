@@ -405,7 +405,7 @@ class LoggingTest extends APISpec {
         then:
         1 * logger.log(HttpPipelineLogLevel.INFO, _, _) >>
                 { HttpPipelineLogLevel level, String message, Object[] params ->
-                    if (!message.contains("OUTGOING REQUEST")) {
+                    if (!message.contains("OUTGOING REQUEST") || message.contains("urlSignature")) {
                         throw new IllegalArgumentException(message)
                     }
                 }
