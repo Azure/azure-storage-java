@@ -2464,7 +2464,7 @@ public abstract class CloudBlob implements ListBlobItem {
      */
     @DoesServiceRequest
     public final BlobInputStream openInputStream() throws StorageException {
-        return this.openInputStream(null /* accessCondition */, null /* options */, null /* opContext */);
+        return this.openInputStream(0 /* offset */, null /* range */, null /* accessCondition */, null /* options */, null /* opContext */);
     }
 
     /**
@@ -2491,6 +2491,42 @@ public abstract class CloudBlob implements ListBlobItem {
     @DoesServiceRequest
     public final BlobInputStream openInputStream(final AccessCondition accessCondition, BlobRequestOptions options,
             OperationContext opContext) throws StorageException {
+        return this.openInputStream(0, null, accessCondition, options, opContext);
+    }
+
+    /**
+     * Opens a blob input stream to download the blob using the specified request options and operation context.
+     * <p>
+     * Use {@link #setStreamMinimumReadSizeInBytes(int)} to configure the read size.
+     *
+     * @param offset
+     *            A <code>long</code> which represents the offset to use as the starting point for the source.
+     * @param length
+     *            A {@link Long} which represents the number of bytes to read or <code>null</code>.
+     * @param accessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the blob.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     *
+     * @return An <code>InputStream</code> object that represents the stream to use for reading from the blob.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     */
+    @DoesServiceRequest
+    public final BlobInputStream openInputStream(final long offset, final Long length, final AccessCondition accessCondition, BlobRequestOptions options,
+            OperationContext opContext) throws StorageException {
+
+        if (offset < 0 || (length != null && length <= 0)) {
+            throw new IndexOutOfBoundsException();
+        }
+
         if (opContext == null) {
             opContext = new OperationContext();
         }
@@ -2498,7 +2534,7 @@ public abstract class CloudBlob implements ListBlobItem {
         options = BlobRequestOptions.populateAndApplyDefaults(options, this.properties.getBlobType(), this.blobServiceClient, 
                 false /* setStartTime */);
 
-        return new BlobInputStream(this, accessCondition, options, opContext);
+        return new BlobInputStream(offset, length, this, accessCondition, options, opContext);
     }
     
     /**

@@ -69,7 +69,7 @@ public final class BlobInputStream extends InputStream {
     /**
      * Holds the stream length.
      */
-    private long streamLength = -1;
+    private long streamLength;
 
     /**
      * Holds the stream read size for both block and page blobs.
@@ -122,8 +122,41 @@ public final class BlobInputStream extends InputStream {
     private AccessCondition accessCondition = null;
 
     /**
+     * Offset of the source blob this class is configured to stream from.
+     */
+    private final long blobRangeOffset;
+
+    /**
      * Initializes a new instance of the BlobInputStream class.
-     * 
+     *
+     * @param parentBlob
+     *            A {@link CloudBlob} object which represents the blob that this stream is associated with.
+     * @param accessCondition
+     *            An {@link AccessCondition} object which represents the access conditions for the blob.
+     * @param options
+     *            A {@link BlobRequestOptions} object which represents that specifies any additional options for the
+     *            request.
+     * @param opContext
+     *            An {@link OperationContext} object which is used to track the execution of the operation.
+     *
+     * @throws StorageException
+     *             An exception representing any error which occurred during the operation.
+     */
+    @DoesServiceRequest
+    protected BlobInputStream(final CloudBlob parentBlob, final AccessCondition accessCondition,
+                              final BlobRequestOptions options, final OperationContext opContext) throws StorageException {
+        this(0, null, parentBlob, accessCondition, options, opContext);
+    }
+
+    /**
+     * Initializes a new instance of the BlobInputStream class.
+     * Note that if {@code blobRangeOffset} is not {@code 0} or {@code blobRangeLength} is not {@code null}, there will
+     * be no content MD5 verification.
+     *
+     * @param blobRangeOffset
+     *            The offset of blob data to begin stream.
+     * @param blobRangeLength
+     *            How much data the stream should return after blobRangeOffset.
      * @param parentBlob
      *            A {@link CloudBlob} object which represents the blob that this stream is associated with.
      * @param accessCondition
@@ -138,14 +171,17 @@ public final class BlobInputStream extends InputStream {
      *             An exception representing any error which occurred during the operation.
      */
     @DoesServiceRequest
-    protected BlobInputStream(final CloudBlob parentBlob, final AccessCondition accessCondition,
-            final BlobRequestOptions options, final OperationContext opContext) throws StorageException {
+    protected BlobInputStream(long blobRangeOffset, Long blobRangeLength, final CloudBlob parentBlob,
+            final AccessCondition accessCondition, final BlobRequestOptions options, final OperationContext opContext)
+            throws StorageException {
+
+        this.blobRangeOffset = blobRangeOffset;
         this.parentBlobRef = parentBlob;
         this.parentBlobRef.assertCorrectBlobType();
         this.options = new BlobRequestOptions(options);
         this.opContext = opContext;
         this.streamFaulted = false;
-        this.currentAbsoluteReadPosition = 0;
+        this.currentAbsoluteReadPosition = blobRangeOffset;
         this.readSize = parentBlob.getStreamMinimumReadSizeInBytes();
 
         if (options.getUseTransactionalContentMD5() && this.readSize > 4 * Constants.MB) {
@@ -154,11 +190,21 @@ public final class BlobInputStream extends InputStream {
 
         parentBlob.downloadAttributes(accessCondition, this.options, this.opContext);
 
+        Utility.assertInBounds("blobRangeOffset", blobRangeOffset, 0, parentBlob.getProperties().getLength() - 1);
+        if (blobRangeLength != null) {
+            Utility.assertGreaterThanOrEqual("blobRangeLength", blobRangeLength, 0);
+        }
+
         this.retrievedContentMD5Value = parentBlob.getProperties().getContentMD5();
 
         // Will validate it if it was returned
         this.validateBlobMd5 = !options.getDisableContentMD5Validation()
                 && !Utility.isNullOrEmpty(this.retrievedContentMD5Value);
+
+        // Need the whole blob to validate MD5. If we download a range, don't bother trying.
+        if (blobRangeOffset != 0 || blobRangeLength != null) {
+            this.validateBlobMd5 = false;
+        }
 
         // Validates the first option, and sets future requests to use if match
         // request option.
@@ -179,7 +225,9 @@ public final class BlobInputStream extends InputStream {
         this.accessCondition = AccessCondition.generateIfMatchCondition(this.parentBlobRef.getProperties().getEtag());
         this.accessCondition.setLeaseID(previousLeaseId);
 
-        this.streamLength = parentBlob.getProperties().getLength();
+        this.streamLength = blobRangeLength == null
+                ? this.parentBlobRef.getProperties().getLength() - this.blobRangeOffset
+                : Math.min(this.parentBlobRef.getProperties().getLength() - this.blobRangeOffset, blobRangeLength);
 
         if (this.validateBlobMd5) {
             try {
@@ -191,7 +239,7 @@ public final class BlobInputStream extends InputStream {
             }
         }
 
-        this.reposition(0);
+        this.reposition(blobRangeOffset);
     }
 
     /**
@@ -238,7 +286,7 @@ public final class BlobInputStream extends InputStream {
     }
 
     /**
-     * Dispatches a read operation of N bytes. When using sparspe page blobs the page ranges are evaluated and zero
+     * Dispatches a read operation of N bytes. When using sparse page blobs, the page ranges are evaluated and zero
      * bytes may be generated on the client side for some ranges that do not exist.
      * 
      * @param readLength
@@ -444,8 +492,8 @@ public final class BlobInputStream extends InputStream {
 
         // if buffer is empty do next get operation
         if ((this.currentBuffer == null || this.currentBuffer.available() == 0)
-                && this.currentAbsoluteReadPosition < this.streamLength) {
-            this.dispatchRead((int) Math.min(this.readSize, this.streamLength - this.currentAbsoluteReadPosition));
+                && this.currentAbsoluteReadPosition < this.streamLength + this.blobRangeOffset) {
+            this.dispatchRead((int) Math.min(this.readSize, this.streamLength + this.blobRangeOffset - this.currentAbsoluteReadPosition));
         }
 
         len = Math.min(len, this.readSize);
@@ -459,7 +507,7 @@ public final class BlobInputStream extends InputStream {
             if (this.validateBlobMd5) {
                 this.md5Digest.update(b, off, numberOfBytesRead);
 
-                if (this.currentAbsoluteReadPosition == this.streamLength) {
+                if (this.currentAbsoluteReadPosition == this.streamLength + this.blobRangeOffset) {
                     // Reached end of stream, validate md5.
                     final String calculatedMd5 = Base64.encode(this.md5Digest.digest());
                     if (!calculatedMd5.equals(this.retrievedContentMD5Value)) {
@@ -479,7 +527,7 @@ public final class BlobInputStream extends InputStream {
 
         // update markers
         if (this.markExpiry > 0 && this.markedPosition + this.markExpiry < this.currentAbsoluteReadPosition) {
-            this.markedPosition = 0;
+            this.markedPosition = this.blobRangeOffset;
             this.markExpiry = 0;
         }
 
@@ -532,7 +580,7 @@ public final class BlobInputStream extends InputStream {
             return 0;
         }
 
-        if (n < 0 || this.currentAbsoluteReadPosition + n > this.streamLength) {
+        if (n < 0 || this.currentAbsoluteReadPosition + n > this.streamLength + this.blobRangeOffset) {
             throw new IndexOutOfBoundsException();
         }
 

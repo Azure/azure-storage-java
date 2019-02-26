@@ -49,6 +49,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import com.microsoft.aad.adal4j.AuthenticationContext;
 import com.microsoft.aad.adal4j.AuthenticationResult;
 import com.microsoft.aad.adal4j.ClientCredential;
+import org.junit.Assert;
 import org.junit.AssumptionViolatedException;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -320,6 +321,27 @@ public class TestHelper {
         }
 
         assertTrue(actualQueries.isEmpty());
+    }
+
+    public static void expectedException(Runnable method, Class<? extends Exception> exceptionType) {
+        Throwable caughtException = null;
+        try {
+            method.run();
+        } catch (Exception e) {
+            Throwable th = e;
+            while (th != null) {
+                if (th.getClass().equals(exceptionType)) {
+                    caughtException = th;
+                    break;
+                }
+                th = th.getCause();
+            }
+        } finally {
+            if (caughtException == null)
+                Assert.fail(String.format(
+                        "Expected exception of type %s not encountered",
+                        exceptionType.getCanonicalName()));
+        }
     }
 
     public static URI defiddler(URI uri) throws URISyntaxException {
