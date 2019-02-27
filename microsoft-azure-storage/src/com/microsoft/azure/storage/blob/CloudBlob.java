@@ -1243,7 +1243,7 @@ public abstract class CloudBlob implements ListBlobItem {
         options = BlobRequestOptions.populateAndApplyDefaults(options, this.properties.getBlobType(), this.blobServiceClient);
 
         ExecutionEngine.executeWithRetry(this.blobServiceClient, this, this.downloadToStreamImpl(
-                null /* blobOffset */, null /* length */, outStream, accessCondition, options, opContext), options
+                null /* blobOffset */, null /* length */, outStream, accessCondition, options), options
                 .getRetryPolicyFactory(), opContext);
     }
 
@@ -1307,7 +1307,7 @@ public abstract class CloudBlob implements ListBlobItem {
         }
 
         ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.downloadToStreamImpl(offset, length, outStream, accessCondition, options, opContext),
+                this.downloadToStreamImpl(offset, length, outStream, accessCondition, options),
                 options.getRetryPolicyFactory(), opContext);
     }
 
@@ -1415,7 +1415,7 @@ public abstract class CloudBlob implements ListBlobItem {
     @DoesServiceRequest
     private final StorageRequest<CloudBlobClient, CloudBlob, Integer> downloadToStreamImpl(Long offset,
             Long length, final OutputStream userStream, final AccessCondition accessCondition,
-            final BlobRequestOptions options, OperationContext opContext) {
+            final BlobRequestOptions options) {
         options.assertPolicyIfRequired();
 
         final Long userSpecifiedLength = length;
@@ -1588,7 +1588,7 @@ public abstract class CloudBlob implements ListBlobItem {
 
             @Override
             public void recoveryAction(OperationContext context) throws IOException {
-                if (this.getETagLockCondition() == null && (!Utility.isNullOrEmpty(this.getLockedETag()))) {
+                if (!options.getSkipEtagLocking() && this.getETagLockCondition() == null && (!Utility.isNullOrEmpty(this.getLockedETag()))) {
                     AccessCondition etagLockCondition = new AccessCondition();
                     etagLockCondition.setIfMatch(this.getLockedETag());
                     if (accessCondition != null) {
@@ -1653,7 +1653,7 @@ public abstract class CloudBlob implements ListBlobItem {
 
         WrappedByteArrayOutputStream outputStream = new WrappedByteArrayOutputStream(buffer, bufferOffset);
         ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.downloadToStreamImpl(blobOffset, length, outputStream, accessCondition, options, opContext),
+                this.downloadToStreamImpl(blobOffset, length, outputStream, accessCondition, options),
                 options.getRetryPolicyFactory(), opContext);
         return outputStream.getPosition();
     }
@@ -1791,7 +1791,7 @@ public abstract class CloudBlob implements ListBlobItem {
 
         WrappedByteArrayOutputStream outputStream = new WrappedByteArrayOutputStream(buffer, bufferOffset);
         ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.downloadToStreamImpl(null, null, outputStream, accessCondition, options, opContext),
+                this.downloadToStreamImpl(null, null, outputStream, accessCondition, options),
                 options.getRetryPolicyFactory(), opContext);
         return outputStream.getPosition();
     }

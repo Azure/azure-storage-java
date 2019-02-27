@@ -222,8 +222,11 @@ public final class BlobInputStream extends InputStream {
             }
         }
 
-        this.accessCondition = AccessCondition.generateIfMatchCondition(this.parentBlobRef.getProperties().getEtag());
+        this.accessCondition = new AccessCondition();
         this.accessCondition.setLeaseID(previousLeaseId);
+        if (!options.getSkipEtagLocking()) {
+            this.accessCondition.setIfMatch(this.parentBlobRef.getProperties().getEtag());
+        }
 
         this.streamLength = blobRangeLength == null
                 ? this.parentBlobRef.getProperties().getLength() - this.blobRangeOffset

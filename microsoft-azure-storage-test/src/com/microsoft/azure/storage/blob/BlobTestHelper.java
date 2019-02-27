@@ -466,4 +466,17 @@ public class BlobTestHelper extends TestHelper {
         bClient.uploadServiceProperties(serviceProperties);
         Thread.sleep(30000);
     }
+
+    public static HashMap<String, String> generateSampleMetadata(final int entries) {
+        if (entries < 0) {
+            throw new IllegalArgumentException();
+        }
+
+        HashMap<String, String> result = new HashMap<>(entries);
+        for (int i = 0; i < entries; i++) {
+            result.put("metadataKey_" + i, "metadataValue_" + i);
+        }
+
+        return result;
+    }
 }

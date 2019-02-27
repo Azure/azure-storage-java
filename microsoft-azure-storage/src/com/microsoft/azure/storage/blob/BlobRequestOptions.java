@@ -71,6 +71,13 @@ public final class BlobRequestOptions extends RequestOptions {
      * Default is true.
      */
     private boolean validateEncryptionPolicy = true;
+
+    /**
+     * WARNING: etag locking is automatically used in blob downloads to ensure the blob does not change mid-download.
+     * Skip this validation at your own risk.
+     * Default is false.
+     */
+    private boolean skipEtagLocking = false;
     
     /**
      * Creates an instance of the <code>BlobRequestOptions</code> class.
@@ -97,6 +104,7 @@ public final class BlobRequestOptions extends RequestOptions {
             this.setSingleBlobPutThresholdInBytes(other.getSingleBlobPutThresholdInBytes());
             this.setEncryptionPolicy(other.getEncryptionPolicy());
             this.setValidateEncryptionPolicy(other.getValidateEncryptionPolicy());
+            this.setSkipEtagLocking(other.getSkipEtagLocking());
         }
     }
 
@@ -301,6 +309,18 @@ public final class BlobRequestOptions extends RequestOptions {
     }
 
     /**
+     * WARNING: etag locking is automatically used in blob downloads to ensure the blob does not change mid-download.
+     * Skip this validation at your own risk.
+     *
+     * Gets whether etag locking and validation on blob downloads should be skipped.
+     *
+     * @return <code>true</code> if skipping is enabled; otherwise, <code>false</code>.
+     */
+    public boolean getSkipEtagLocking() {
+        return this.skipEtagLocking;
+    }
+
+    /**
      * Sets whether a conditional failure should be absorbed on a retry attempt for the request. This option 
      * is only used by {@link CloudAppendBlob} in upload and openWrite methods. By default, it is set to 
      * <code>false</code>. Set this to <code>true</code> only for single writer scenario.
@@ -427,7 +447,20 @@ public final class BlobRequestOptions extends RequestOptions {
     protected void setValidateEncryptionPolicy(boolean validateEncryptionPolicy) {
         this.validateEncryptionPolicy = validateEncryptionPolicy;
     }
-    
+
+    /**
+     * WARNING: etag locking is automatically used in blob downloads to ensure the blob does not change mid-download.
+     * Skip this validation at your own risk.
+     *
+     * Sets whether etag locking and validation on blob downloads should be skipped.
+     *
+     * @param skipEtagLocking
+     *            Use <code>true</code> to skip etag locking and validation; otherwise, <code>false</code>.
+     */
+    public void setSkipEtagLocking(boolean skipEtagLocking) {
+        this.skipEtagLocking = skipEtagLocking;
+    }
+
     /**
      * Assert that if validation is on, an encryption policy is not specified.
      */

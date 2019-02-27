@@ -2699,4 +2699,36 @@ public class CloudBlockBlobTests {
         assertNotNull(accountInformation.getAccountKind());
         assertNotNull(accountInformation.getSkuName());
     }
+
+    @Test
+    public void testSkipEtagCheck() throws StorageException, IOException, URISyntaxException {
+        final int blobSize = 2 * Constants.DEFAULT_MINIMUM_READ_SIZE_IN_BYTES; // so BlobInputStream doesn't read entire blob at once.
+
+        // setup
+        CloudBlockBlob blob = (CloudBlockBlob)BlobTestHelper.uploadNewBlob(
+                this.container, BlobType.BLOCK_BLOB, "testSkipEtagCheck", blobSize, null);
+
+        BlobRequestOptions options = new BlobRequestOptions();
+        options.setSkipEtagLocking(true); // Only request option to skip for these downloads. The rest is automatic.
+        BlobInputStream stream = blob.openInputStream(null, options, null);
+
+        // test
+        byte[] buffer = new byte[Constants.DEFAULT_MINIMUM_READ_SIZE_IN_BYTES];
+
+        assertEquals(Constants.DEFAULT_MINIMUM_READ_SIZE_IN_BYTES, stream.read(buffer)); // read 1st half of blob
+        blob.downloadAttributes();
+        String etag1 = blob.getProperties().getEtag();
+
+        blob.setMetadata(BlobTestHelper.generateSampleMetadata(1));
+        blob.uploadMetadata(); // change etag
+
+        assertEquals(Constants.DEFAULT_MINIMUM_READ_SIZE_IN_BYTES, stream.read(buffer)); // read 2nd half of blob
+        blob.downloadAttributes();
+        String etag2 = blob.getProperties().getEtag();
+
+        assertNotEquals(etag1, etag2); // assert etags were actually different if we get here without throwing
+
+        // cleanup
+        stream.close();
+    }
 }
