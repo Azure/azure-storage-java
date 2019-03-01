@@ -25,6 +25,7 @@ import com.microsoft.azure.storage.file.SharedAccessFilePermissions;
 import com.microsoft.azure.storage.file.SharedAccessFilePolicy;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -1991,6 +1992,118 @@ public class CloudBlockBlobTests {
 
     @Test
     @Category({ DevFabricTests.class, DevStoreTests.class })
+    public void testBlobInputStreamWithRange() throws StorageException, IOException, URISyntaxException {
+
+        final int blobLength = 4 * Constants.KB;
+        final String blobName = "testBlobInputStreamWithOffset" + UUID.randomUUID();
+
+        // setup
+        final CloudBlockBlob blob = this.container.getBlockBlobReference(blobName);
+        final byte[] blobData = BlobTestHelper.getRandomBuffer(blobLength);
+        blob.upload(new ByteArrayInputStream(blobData), blobData.length);
+
+        blob.downloadAttributes();
+
+        // test
+        doOpenInputStreamWithRangeTest(blob, blobData, 0, null);
+
+        doOpenInputStreamWithRangeTest(blob, blobData, Constants.KB, null);
+        doOpenInputStreamWithRangeTest(blob, blobData, Constants.KB, 2 * Constants.KB);
+        doOpenInputStreamWithRangeTest(blob, blobData, Constants.KB, 3 * Constants.KB);
+
+        doOpenInputStreamWithRangeTest(blob, blobData, Constants.KB, 4 * Constants.KB);
+
+        TestHelper.expectedException(
+                customRunnableWrapper(blob, blobData, -1 * Constants.KB, null),
+                IndexOutOfBoundsException.class);
+        TestHelper.expectedException(
+                customRunnableWrapper(blob, blobData, -1 * Constants.KB, 4 * Constants.KB),
+                IndexOutOfBoundsException.class);
+    }
+
+    /**
+     * Creates a Runnable wrapper for the above test with the below method. (Java 7 doesn't support lambdas).
+     * @param blob
+     * @param originalData
+     * @param offset
+     * @param length
+     * @return
+     */
+    private Runnable customRunnableWrapper(final CloudBlob blob, final byte[] originalData, final int offset, final Integer length) {
+        return new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    doOpenInputStreamWithRangeTest(blob, originalData, offset, length);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+    }
+
+    /**
+     * Creates and reads from a BlobInputStream using offset and length parameters.
+     * Marks at the start and uses a reset halfway through to ensure mark and reset still work.
+     * @param blob
+     * @param originalData
+     * @param offset
+     * @param length
+     * @throws StorageException
+     * @throws IOException
+     */
+    private void doOpenInputStreamWithRangeTest(CloudBlob blob, byte[] originalData, int offset, Integer length)
+            throws StorageException, IOException {
+
+        // setup
+        final int readLength = length == null
+                ? (int) (blob.getProperties().getLength() - offset)
+                : Math.min(length, (int) (blob.getProperties().getLength() - offset));
+
+        BlobInputStream stream = blob.openInputStream(
+                offset,
+                length == null ? null : length.longValue(),
+                null, null, null);
+
+        // test
+        boolean hasResetToMark = false;
+        boolean hasMarked = false;
+        for (int i = 0; i < readLength; i++) {
+
+            if (!hasMarked && i == readLength / 4) { // if haven't marked, mark at 1/4 through 3/4
+                stream.mark(readLength / 2);
+                hasMarked = true;
+            }
+            if (!hasResetToMark && i == readLength / 2) { // call reset at halfway point ONCE
+                stream.reset();
+                i = readLength / 4;
+                hasResetToMark = true;
+            }
+            if (i == readLength * 4 / 5) { // call reset after mark expiry
+                boolean threw = false;
+                try {
+                    stream.reset();
+                } catch (IOException e) {
+                    threw = true;
+                } finally {
+                    if (!threw) {
+                        Assert.fail("Allowed reset after mark expired.");
+                    }
+                }
+            }
+
+            int data = stream.read();
+            assertTrue(String.format("%d is not greater than zero. i = %d", data, i), data >= 0);
+            assertEquals(originalData[i + offset], (byte) data);
+        }
+        assertEquals(-1, stream.read());
+
+        // cleanup
+        stream.close();
+    }
+
+    @Test
+    @Category({ DevFabricTests.class, DevStoreTests.class })
     public void testUploadFromByteArray() throws Exception {
         String blobName = BlobTestHelper.generateRandomBlobNameWithPrefix("testblob");
         final CloudBlockBlob blob = this.container.getBlockBlobReference(blobName);
@@ -2585,5 +2698,37 @@ public class CloudBlockBlobTests {
         accountInformation = sasBlob.downloadAccountInfo();
         assertNotNull(accountInformation.getAccountKind());
         assertNotNull(accountInformation.getSkuName());
+    }
+
+    @Test
+    public void testSkipEtagCheck() throws StorageException, IOException, URISyntaxException {
+        final int blobSize = 2 * Constants.DEFAULT_MINIMUM_READ_SIZE_IN_BYTES; // so BlobInputStream doesn't read entire blob at once.
+
+        // setup
+        CloudBlockBlob blob = (CloudBlockBlob)BlobTestHelper.uploadNewBlob(
+                this.container, BlobType.BLOCK_BLOB, "testSkipEtagCheck", blobSize, null);
+
+        BlobRequestOptions options = new BlobRequestOptions();
+        options.setSkipEtagLocking(true); // Only request option to skip for these downloads. The rest is automatic.
+        BlobInputStream stream = blob.openInputStream(null, options, null);
+
+        // test
+        byte[] buffer = new byte[Constants.DEFAULT_MINIMUM_READ_SIZE_IN_BYTES];
+
+        assertEquals(Constants.DEFAULT_MINIMUM_READ_SIZE_IN_BYTES, stream.read(buffer)); // read 1st half of blob
+        blob.downloadAttributes();
+        String etag1 = blob.getProperties().getEtag();
+
+        blob.setMetadata(BlobTestHelper.generateSampleMetadata(1));
+        blob.uploadMetadata(); // change etag
+
+        assertEquals(Constants.DEFAULT_MINIMUM_READ_SIZE_IN_BYTES, stream.read(buffer)); // read 2nd half of blob
+        blob.downloadAttributes();
+        String etag2 = blob.getProperties().getEtag();
+
+        assertNotEquals(etag1, etag2); // assert etags were actually different if we get here without throwing
+
+        // cleanup
+        stream.close();
     }
 }
