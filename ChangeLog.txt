@@ -1,5 +1,7 @@
-XXXX.XX.XX Version X.X.X
+2019.03.01 Version 8.1.0
  * Added support for the deep sync copy blob api.
+ * Added the option to disable etag validation on BlobInputStream reads.
+ * Added the ability to specify an offset and range on a BlobInputStream.
 
 2018.06.26 Version 8.0.0
  * Support for 2018-03-28 REST version. Please see our REST API documentation and blogs for information about the related added features.
