@@ -256,6 +256,92 @@ public final class PageBlobURL extends BlobURL {
     }
 
     /**
+     * Writes 1 or more pages from the source page blob to this page blob. The start and end offsets must be a multiple
+     * of 512.
+     * For more information, see the
+     * <a href="https://docs.microsoft.com/rest/api/storageservices/put-page">Azure Docs</a>.
+     * <p>
+     *
+     * @param range
+     *          A {@link PageRange} object. Given that pages must be aligned with 512-byte boundaries, the start offset
+     *          must be a modulus of 512 and the end offset must be a modulus of 512 - 1. Examples of valid byte ranges
+     *          are 0-511, 512-1023, etc.
+     * @param sourceURL
+     *          The url to the blob that will be the source of the copy.  A source blob in the same storage account can be
+     *          authenticated via Shared Key. However, if the source is a blob in another account, the source blob must
+     *          either be public or must be authenticated via a shared access signature. If the source blob is public, no
+     *          authentication is required to perform the operation.
+     * @param sourceOffset
+     *          The source offset to copy from.  Pass null or 0 to copy from the beginning of source page blob.
+     *
+     * @return Emits the successful response.
+     */
+    public Single<PageBlobUploadPagesFromURLResponse> uploadPagesFromURL(PageRange range, URL sourceURL, Long sourceOffset) {
+        return this.uploadPagesFromURL(range, sourceURL, sourceOffset, null, null,
+                null, null);
+    }
+
+    /**
+     * Writes 1 or more pages from the source page blob to this page blob. The start and end offsets must be a multiple
+     * of 512.
+     * For more information, see the
+     * <a href="https://docs.microsoft.com/rest/api/storageservices/put-page">Azure Docs</a>.
+     * <p>
+     *
+     * @param range
+     *          The destination {@link PageRange} range. Given that pages must be aligned with 512-byte boundaries, the start offset
+     *          must be a modulus of 512 and the end offset must be a modulus of 512 - 1. Examples of valid byte ranges
+     *          are 0-511, 512-1023, etc.
+     * @param sourceURL
+     *          The url to the blob that will be the source of the copy.  A source blob in the same storage account can be
+     *          authenticated via Shared Key. However, if the source is a blob in another account, the source blob must
+     *          either be public or must be authenticated via a shared access signature. If the source blob is public, no
+     *          authentication is required to perform the operation.
+     * @param sourceOffset
+     *          The source offset to copy from.  Pass null or 0 to copy from the beginning of source blob.
+     * @param sourceContentMD5
+     *          An MD5 hash of the block content from the source blob. If specified, the service will calculate the MD5
+     *          of the received data and fail the request if it does not match the provided MD5.
+     * @param destAccessConditions
+     *          {@link PageBlobAccessConditions}
+     * @param sourceAccessConditions
+     *          {@link SourceModifiedAccessConditions}
+     * @param context
+     *          {@code Context} offers a means of passing arbitrary data (key/value pairs) to an
+     *          {@link com.microsoft.rest.v2.http.HttpPipeline}'s policy objects. Most applications do not need to pass
+     *          arbitrary data to the pipeline and can pass {@code Context.NONE} or {@code null}. Each context object is
+     *          immutable. The {@code withContext} with data method creates a new {@code Context} object that refers to
+     *          its parent, forming a linked list.
+     *
+     * @return Emits the successful response.
+     */
+    public Single<PageBlobUploadPagesFromURLResponse> uploadPagesFromURL(PageRange range, URL sourceURL, Long sourceOffset,
+            byte[] sourceContentMD5, PageBlobAccessConditions destAccessConditions,
+            SourceModifiedAccessConditions sourceAccessConditions, Context context) {
+
+        if(range == null) {
+            // Throwing is preferred to Single.error because this will error out immediately instead of waiting until
+            // subscription.
+            throw new IllegalArgumentException("range cannot be null.");
+        }
+
+        String rangeString = pageRangeToString(range);
+
+        sourceOffset = sourceOffset ==  null ? 0 : sourceOffset;
+
+        String sourceRangeString = pageRangeToString(new PageRange().withStart(sourceOffset).withEnd(sourceOffset + (range.end() - range.start())));
+
+        destAccessConditions = destAccessConditions == null ? new PageBlobAccessConditions() : destAccessConditions;
+
+        context = context == null ? Context.NONE : context;
+
+        return addErrorWrappingToSingle(this.storageClient.generatedPageBlobs().uploadPagesFromURLWithRestResponseAsync(
+                context, sourceURL, sourceRangeString, 0, rangeString, sourceContentMD5, null,
+                null, destAccessConditions.leaseAccessConditions(), destAccessConditions.sequenceNumberAccessConditions(),
+                destAccessConditions.modifiedAccessConditions(), sourceAccessConditions));
+    }
+
+    /**
      * Frees the specified pages from the page blob.
      * For more information, see the
      * <a href="https://docs.microsoft.com/rest/api/storageservices/put-page">Azure Docs</a>.

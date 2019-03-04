@@ -268,7 +268,8 @@ public final class BlockBlobURL extends BlobURL {
      */
     public Single<BlockBlobStageBlockFromURLResponse> stageBlockFromURL(String base64BlockID, URL sourceURL,
             BlobRange sourceRange) {
-        return this.stageBlockFromURL(base64BlockID, sourceURL, sourceRange, null, null, null);
+        return this.stageBlockFromURL(base64BlockID, sourceURL, sourceRange, null,
+                null, null, null);
     }
 
     /**
@@ -291,6 +292,8 @@ public final class BlockBlobURL extends BlobURL {
      * @param leaseAccessConditions
      *         By setting lease access conditions, requests will fail if the provided lease does not match the active
      *         lease on the blob.
+     * @param sourceModifiedAccessConditions
+     *         {@link SourceModifiedAccessConditions}
      * @param context
      *         {@code Context} offers a means of passing arbitrary data (key/value pairs) to an
      *         {@link com.microsoft.rest.v2.http.HttpPipeline}'s policy objects. Most applications do not need to pass
@@ -306,14 +309,14 @@ public final class BlockBlobURL extends BlobURL {
      */
     public Single<BlockBlobStageBlockFromURLResponse> stageBlockFromURL(String base64BlockID, URL sourceURL,
             BlobRange sourceRange, byte[] sourceContentMD5, LeaseAccessConditions leaseAccessConditions,
-            Context context) {
+            SourceModifiedAccessConditions sourceModifiedAccessConditions, Context context) {
         sourceRange = sourceRange == null ? BlobRange.DEFAULT : sourceRange;
         context = context == null ? Context.NONE : context;
 
         return addErrorWrappingToSingle(
                 this.storageClient.generatedBlockBlobs().stageBlockFromURLWithRestResponseAsync(context,
                         base64BlockID, 0, sourceURL, sourceRange.toHeaderValue(), sourceContentMD5,
-                        null, null, leaseAccessConditions));
+                        null, null, leaseAccessConditions, sourceModifiedAccessConditions));
     }
 
     /**

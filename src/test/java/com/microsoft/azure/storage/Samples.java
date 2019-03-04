@@ -1899,8 +1899,8 @@ public class Samples {
 
         // <block_from_url>
         String blockID = Base64.getEncoder().encodeToString(UUID.randomUUID().toString().getBytes());
-        blockBlobURL.stageBlockFromURL(blockID, blobURL.toURL(), null, null,
-                null, null)
+        blockBlobURL.stageBlockFromURL(blockID, blobURL.toURL(), null,
+                null, null, null, null)
                 .flatMap(response ->
                         blockBlobURL.commitBlockList(Arrays.asList(blockID), null, null,
                                 null, null))

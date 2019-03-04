@@ -1,5 +1,9 @@
 XXXX.XX.XX Version X.X.X
-* Fixed a bug that would set an invalid range header when downloading an empty blob
+* Support for 2018-11-09 REST version. Please see our REST API documentation and blogs for information about the related added features.
+* Added appendBlockFromURL method. A block may be created with another blob as its source.
+* Added uploadPagesFromURL method. Pages may be written to with another blob as their source.
+* Fixed a bug that would set an invalid range header when downloading an empty blob.
+* Modified the LoggingFactory to redact SAS signatures on outgoing requests.
 
 2019.02.15 Version 10.5.0
 * Added uploadFromNonReplayableFlowable to support uploading arbitrary data sources (like network streams) to a block blob.
