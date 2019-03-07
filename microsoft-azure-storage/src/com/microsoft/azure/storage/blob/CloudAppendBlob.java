@@ -34,12 +34,7 @@ import com.microsoft.azure.storage.OperationContext;
 import com.microsoft.azure.storage.StorageCredentials;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.StorageUri;
-import com.microsoft.azure.storage.core.BaseResponse;
-import com.microsoft.azure.storage.core.ExecutionEngine;
-import com.microsoft.azure.storage.core.SR;
-import com.microsoft.azure.storage.core.StorageRequest;
-import com.microsoft.azure.storage.core.StreamMd5AndLength;
-import com.microsoft.azure.storage.core.Utility;
+import com.microsoft.azure.storage.core.*;
 
 /**
  * Represents a Microsoft Azure Append Blob.
@@ -381,7 +376,7 @@ public final class CloudAppendBlob extends CloudBlob {
 
         // Assert no encryption policy as this is not supported for partial uploads
         options.assertNoEncryptionPolicyOrStrictMode();
-        
+
         if (sourceStream.markSupported()) {
             // Mark sourceStream for current position.
             sourceStream.mark(Constants.MAX_MARK_LENGTH);
@@ -488,7 +483,152 @@ public final class CloudAppendBlob extends CloudBlob {
             this.getProperties().setAppendBlobCommittedBlockCount(Integer.parseInt(comittedBlockCount));
         }
     }
-    
+
+    /**
+     * Appends a block, using the specified source URL.
+     *
+     * @param copySource
+     *            The <code>URI</code> of the source data. It can point to any Azure Blob or File that is public or the
+     *            URL can include a shared access signature.
+     * @param offset
+     *           A <code>long</code> which represents the offset to use as the starting point for the source.
+     * @param length
+     *           A <code>Long</code> which represents the number of bytes to copy or <code>null</code> to copy until the
+     *           end of the blob.
+     * @return The offset at which the block was appended.
+     */
+    @DoesServiceRequest
+    public Long appendBlockFromURI(final URI copySource, final Long offset, final Long length) throws StorageException {
+        return this.appendBlockFromURI(copySource, offset, length, null, null, null, null);
+    }
+
+    /**
+     * Appends a block, using the specified source URL.
+     *
+     * @param copySource
+     *            The <code>URI</code> of the source data. It can point to any Azure Blob or File that is public or the
+     *            URL can include a shared access signature.
+     * @param offset
+     *           A <code>long</code> which represents the offset to use as the starting point for the source.
+     * @param length
+     *           A <code>Long</code> which represents the number of bytes to copy or <code>null</code> to copy until the
+     *           end of the blob.
+     * @param md5
+     *           A <code>String</code> which represents the MD5 caluclated for the range of bytes of the source.
+     * @param accessCondition
+     *            An {@link AccessCondition} object which represents the access conditions for the blob.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object which represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @return The offset at which the block was appended.
+     */
+    @DoesServiceRequest
+    public Long appendBlockFromURI(final URI copySource, final Long offset, final Long length, String md5,
+            final AccessCondition accessCondition, BlobRequestOptions options, OperationContext opContext) throws StorageException {
+        Utility.assertNotNull("copySource", copySource);
+
+        assertNoWriteOperationForSnapshot();
+
+        if (opContext == null) {
+            opContext = new OperationContext();
+        }
+
+        options = BlobRequestOptions.populateAndApplyDefaults(options, BlobType.APPEND_BLOB, this.blobServiceClient);
+
+        // Assert no encryption policy as this is not supported for partial uploads
+        options.assertNoEncryptionPolicyOrStrictMode();
+
+        // Assert block length
+        if (length != null && length > Constants.MAX_BLOCK_SIZE)
+        {
+            throw new IllegalArgumentException(SR.COPY_SIZE_GREATER_THAN_100MB);
+        }
+
+        return this.appendBlockFromURIInternal(copySource, offset, length, md5, accessCondition, options, opContext);
+    }
+
+    /**
+     * Appends a block, using the specified source URL.
+     *
+     * @param copySource
+     *            The <code>URI</code> of the source data. It can point to any Azure Blob or File that is public or the
+     *            URL can include a shared access signature.
+     * @param offset
+     *           A <code>long</code> which represents the offset to use as the starting point for the source.
+     * @param length
+     *           A <code>Long</code> which represents the number of bytes to copy or <code>null</code> to copy until the
+     *           end of the blob.
+     * @param md5
+     *           A <code>String</code> which represents the MD5 caluclated for the range of bytes of the source.
+     * @param accessCondition
+     *            An {@link AccessCondition} object which represents the access conditions for the blob.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object which represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @return The offset at which the block was appended.
+     */
+    @DoesServiceRequest
+    private Long appendBlockFromURIInternal(final URI copySource, final Long offset, final Long length, String md5,
+            final AccessCondition accessCondition, BlobRequestOptions options, OperationContext opContext)
+            throws StorageException {
+        return ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
+                appendFromURIImpl(copySource, offset, length, md5, accessCondition, options, opContext),
+                options.getRetryPolicyFactory(), opContext);
+    }
+
+    private StorageRequest<CloudBlobClient, CloudAppendBlob, Long> appendFromURIImpl(final URI copySource, final Long offset,
+            final Long length, final String md5, final AccessCondition accessCondition,
+            final BlobRequestOptions options, final OperationContext opContext)
+    {
+        return new StorageRequest<CloudBlobClient, CloudAppendBlob, Long> (
+                options, this.getStorageUri()) {
+
+            @Override
+            public HttpURLConnection buildRequest(CloudBlobClient client, CloudAppendBlob blob, OperationContext context)
+                throws Exception {
+                return BlobRequest.appendBlock(blob.getTransformedAddress(opContext).getUri(this.getCurrentLocation()),
+                        copySource.toASCIIString(), offset, length, options, md5, opContext, accessCondition);
+            }
+
+            @Override
+            public void signRequest(HttpURLConnection connection, CloudBlobClient client, OperationContext context)
+                    throws Exception {
+                StorageRequest.signBlobQueueAndFileRequest(connection, client, 0, context);
+            }
+
+            @Override
+            public Long preProcessResponse(CloudAppendBlob blob, CloudBlobClient client, OperationContext context)
+                    throws Exception {
+                if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_CREATED) {
+                    this.setNonExceptionedRetryableFailure(true);
+                    return null;
+                }
+
+                Long appendOffset = null;
+                if (this.getConnection().getHeaderField(Constants.HeaderConstants.BLOB_APPEND_OFFSET) != null)
+                {
+                    appendOffset = Long.parseLong(this.getConnection().getHeaderField(Constants.HeaderConstants.BLOB_APPEND_OFFSET));
+                }
+
+                blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
+                blob.updateCommittedBlockCountFromResponse(this.getConnection());
+
+                this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                return appendOffset;
+            }
+        };
+    }
+
     /**
      * Appends a stream to an append blob. This API should be used strictly in a single writer scenario because the API 
      * internally uses the append-offset conditional header to avoid duplicate blocks which does not work in a multiple 
