@@ -1,3 +1,8 @@
+XXXX.XX.XX Version X.X.X
+ * Support for 2018-11-09 REST version. Please see our REST API documentation and blogs for information about the related added features.
+ * Added appendBlockFromURL method. A block may be created with another blob as its source.
+ * Added uploadPagesFromURL method. Pages may be written to with another blob as their source.
+
 2019.03.01 Version 8.1.0
  * Added support for the deep sync copy blob api.
  * Added the option to disable etag validation on BlobInputStream reads.

@@ -1074,6 +1074,163 @@ public final class CloudPageBlob extends CloudBlob {
     }
 
     /**
+     * Writes a PageRange, using the specified source URL.
+     *
+     * @param offset
+     *            The offset, in bytes, at which to begin writing pages. This value must be a multiple of 512.
+     * @param length
+     *            The length, in bytes, of the data range to be written. This value must be a multiple of 512.
+     * @param copySource
+     *            The <code>URI</code> of the source data. It can point to any Azure Blob or File that is public or the
+     *            URL can include a shared access signature.
+     * @param sourceOffset
+     *           A <code>long</code> which represents the offset to use as the starting point for the source.
+     * @throws StorageException
+     *             If a storage service error occurred.
+     */
+    @DoesServiceRequest
+    public void putPagesFromURI(long offset, long length, final URI copySource, final Long sourceOffset)
+            throws StorageException {
+        this.putPagesFromURI(offset, length, copySource, sourceOffset, null, null, null, null);
+    }
+
+    /**
+     * Writes a PageRange, using the specified source URL.
+     *
+     * @param offset
+     *            The offset, in bytes, at which to begin clearing pages. This value must be a multiple of 512.
+     * @param length
+     *            The length, in bytes, of the data range to be cleared. This value must be a multiple of 512.
+     * @param copySource
+     *            The <code>URI</code> of the source data. It can point to any Azure Blob or File that is public or the
+     *            URL can include a shared access signature.
+     * @param sourceOffset
+     *           A <code>long</code> which represents the offset to use as the starting point for the source.
+     * @param md5
+     *            A <code>String</code> which represents the MD5 hash for the data.
+     * @param accessCondition
+     *            An {@link AccessCondition} object which represents the access conditions for the blob.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object which represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     */
+    @DoesServiceRequest
+    public void putPagesFromURI(long offset, long length, final URI copySource, final Long sourceOffset, String md5,
+            AccessCondition accessCondition, BlobRequestOptions options, OperationContext opContext)
+            throws StorageException {
+        Utility.assertNotNull("copySource", copySource);
+        if (offset % Constants.PAGE_SIZE != 0) {
+            throw new IllegalArgumentException(SR.INVALID_PAGE_START_OFFSET);
+        }
+
+        if (length % Constants.PAGE_SIZE != 0) {
+            throw new IllegalArgumentException(SR.INVALID_PAGE_BLOB_LENGTH);
+        }
+
+        assertNoWriteOperationForSnapshot();
+
+        if (opContext == null) {
+            opContext = new OperationContext();
+        }
+
+        options = BlobRequestOptions.populateAndApplyDefaults(options, BlobType.PAGE_BLOB, this.blobServiceClient);
+
+        // Assert no encryption policy as this is not supported for partial uploads
+        options.assertNoEncryptionPolicyOrStrictMode();
+
+        PageRange range = new PageRange(offset, offset + length - 1);
+
+        this.putPagesFromURIInternal(range, copySource, sourceOffset, length, md5, accessCondition, options,
+                opContext);
+    }
+
+    /**
+     * Writes a PageRange, using the specified source URL.
+     *
+     * @param pageRange
+     *            A {@link PageRange} object that specifies the page range.
+     * @param copySource
+     *            The <code>URI</code> of the source data. It can point to any Azure Blob or File that is public or the
+     *            URL can include a shared access signature.
+     * @param sourceOffset
+     *           A <code>long</code> which represents the offset to use as the starting point for the source.
+     * @param sourceLength
+     *           A <code>Long</code> which represents the number of bytes to copy or <code>null</code> to copy until the
+     *           end of the blob.
+     * @param md5
+     *            A <code>String</code> which represents the MD5 hash for the data.
+     * @param accessCondition
+     *            An {@link AccessCondition} object which represents the access conditions for the blob.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object which represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     */
+    @DoesServiceRequest
+    public void putPagesFromURIInternal(PageRange pageRange, final URI copySource, final Long sourceOffset,
+            final Long sourceLength, String md5, AccessCondition accessCondition, BlobRequestOptions options,
+            OperationContext opContext)
+            throws StorageException {
+        ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
+                putPagesFromURIImpl(pageRange, copySource, sourceOffset, sourceLength, md5, accessCondition, options, opContext),
+                options.getRetryPolicyFactory(), opContext);
+    }
+
+    private StorageRequest<CloudBlobClient, CloudPageBlob, Void> putPagesFromURIImpl(final PageRange pageRange,
+            final URI copySource, final Long sourceOffset, final Long sourceLength, final String md5,
+            final AccessCondition accessCondition, final BlobRequestOptions options, final OperationContext opContext) {
+        final StorageRequest<CloudBlobClient, CloudPageBlob, Void> putRequest = new StorageRequest<CloudBlobClient, CloudPageBlob, Void>(
+                options, this.getStorageUri()) {
+
+            @Override
+            public HttpURLConnection buildRequest(CloudBlobClient client, CloudPageBlob blob, OperationContext context)
+                    throws Exception {
+
+                return BlobRequest.putPage(blob.getTransformedAddress(opContext).getUri(this.getCurrentLocation()),
+                        copySource.toASCIIString(), options, opContext, accessCondition, pageRange, sourceOffset,
+                        sourceLength, md5);
+            }
+
+            @Override
+            public void signRequest(HttpURLConnection connection, CloudBlobClient client, OperationContext context)
+                    throws Exception {
+                StorageRequest.signBlobQueueAndFileRequest(connection, client, 0L, context);
+            }
+
+            @Override
+            public Void preProcessResponse(CloudPageBlob blob, CloudBlobClient client, OperationContext context)
+                    throws Exception {
+                if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_CREATED) {
+                    this.setNonExceptionedRetryableFailure(true);
+                    return null;
+                }
+
+                blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
+                blob.updateSequenceNumberFromResponse(this.getConnection());
+                this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                return null;
+            }
+        };
+
+        return putRequest;
+    }
+
+    /**
      * Used for both uploadPages and clearPages.
      * 
      * @param pageRange
@@ -1096,7 +1253,7 @@ public final class CloudPageBlob extends CloudBlob {
      *            An {@link OperationContext} object which represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      */

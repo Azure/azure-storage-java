@@ -227,7 +227,8 @@ public class CloudAppendBlobTests {
 
             blob2.createOrReplace();
             // Copy the first half of the blob.
-            blob2.appendBlockFromURI(blob.getUri(), 0L, text.length() / 2L);
+            long pos = blob2.appendBlockFromURI(blob.getUri(), 0L, text.length() / 2L);
+            assertEquals(0, pos);
 
             // Copy the second half of the blob, specifying the MD5 and setting null for the length to indicate the remainder of the blob.
 
@@ -239,7 +240,8 @@ public class CloudAppendBlobTests {
             } catch (StorageException e) {
                 exceptionThrown = true;
                 assertEquals("Md5Mismatch", e.getErrorCode());
-                blob2.appendBlockFromURI(blob.getUri(), 5L, null, md5, null, null, null);
+                pos = blob2.appendBlockFromURI(blob.getUri(), 5L, null, md5, null, null, null);
+                assertEquals(text.length()/2L, pos);
             }
             assertTrue(exceptionThrown);
 

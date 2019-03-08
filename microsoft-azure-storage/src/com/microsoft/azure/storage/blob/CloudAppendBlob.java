@@ -496,6 +496,8 @@ public final class CloudAppendBlob extends CloudBlob {
      *           A <code>Long</code> which represents the number of bytes to copy or <code>null</code> to copy until the
      *           end of the blob.
      * @return The offset at which the block was appended.
+     * @throws StorageException
+     *             If a storage service error occurred.
      */
     @DoesServiceRequest
     public Long appendBlockFromURI(final URI copySource, final Long offset, final Long length) throws StorageException {
@@ -526,6 +528,8 @@ public final class CloudAppendBlob extends CloudBlob {
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
      * @return The offset at which the block was appended.
+     * @throws StorageException
+     *             If a storage service error occurred.
      */
     @DoesServiceRequest
     public Long appendBlockFromURI(final URI copySource, final Long offset, final Long length, String md5,
