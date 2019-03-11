@@ -3,6 +3,7 @@ XXXX.XX.XX Version X.X.X
  * Added appendBlockFromURL method. A block may be created with another blob as its source.
  * Added uploadPagesFromURL method. Pages may be written to with another blob as their source.
  * Fixed a bug in which putBlockFromURI accessConditions were indicated as being on the destination when in actuality they only apply to the source.
+ * Added a method to get share stats in bytes.
 
 2019.03.01 Version 8.1.0
  * Added support for the deep sync copy blob api.
