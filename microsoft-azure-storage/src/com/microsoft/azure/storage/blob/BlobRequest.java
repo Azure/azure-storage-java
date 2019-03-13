@@ -225,6 +225,8 @@ final class BlobRequest {
      *            the operation.
      * @param accessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the blob.
+     * @param sourceAccessCondition
+     *            An {@link AccessCondition} object which represents the access conditions for the source blob.
      * @return a HttpURLConnection to use to perform the operation.
      * @throws IOException
      *             if there is an error opening the connection
@@ -234,8 +236,8 @@ final class BlobRequest {
      *             an exception representing any error which occurred during the operation.
      */
     public static HttpURLConnection appendBlock(final URI uri, final String source, long offset, Long length,
-            final BlobRequestOptions blobOptions, String md5,
-            final OperationContext opContext, final AccessCondition accessCondition)
+            final BlobRequestOptions blobOptions, String md5, final OperationContext opContext,
+            final AccessCondition accessCondition, final AccessCondition sourceAccessCondition)
             throws IOException, URISyntaxException, StorageException {
         final UriQueryBuilder builder = new UriQueryBuilder();
         builder.add(Constants.QueryConstants.COMPONENT, APPEND_BLOCK_QUERY_ELEMENT_NAME);
@@ -251,6 +253,10 @@ final class BlobRequest {
         if (accessCondition != null) {
             accessCondition.applyConditionToRequest(request);
             accessCondition.applyAppendConditionToRequest(request);
+        }
+
+        if (sourceAccessCondition != null) {
+            sourceAccessCondition.applySourceConditionToRequest(request);
         }
 
         addSourceRange(request, offset, length);
@@ -1483,7 +1489,7 @@ final class BlobRequest {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * @param accessCondition
+     * @param sourceAccessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the blob.
      * @param blockId
      *            the Base64 ID for the block
@@ -1497,9 +1503,8 @@ final class BlobRequest {
      * @throws IllegalArgumentException
      */
     public static HttpURLConnection putBlock(final URI uri, final String source, long offset, Long length,
-                                             final BlobRequestOptions blobOptions, String md5,
-                                             final OperationContext opContext, final AccessCondition accessCondition,
-                                             final String blockId)
+            final BlobRequestOptions blobOptions, String md5, final OperationContext opContext,
+            final AccessCondition sourceAccessCondition, final String blockId)
             throws IOException, URISyntaxException, StorageException {
         final UriQueryBuilder builder = new UriQueryBuilder();
         builder.add(Constants.QueryConstants.COMPONENT, BLOCK_QUERY_ELEMENT_NAME);
@@ -1514,8 +1519,8 @@ final class BlobRequest {
         request.setRequestProperty(Constants.HeaderConstants.CONTENT_LENGTH, "0");
         request.setRequestProperty(Constants.HeaderConstants.COPY_SOURCE_HEADER, source);
 
-        if (accessCondition != null) {
-            accessCondition.applyConditionToRequest(request);
+        if (sourceAccessCondition != null) {
+            sourceAccessCondition.applySourceConditionToRequest(request);
         }
 
         addSourceRange(request, offset, length);
@@ -1701,9 +1706,9 @@ final class BlobRequest {
      *             an exception representing any error which occurred during the operation.
      */
     public static HttpURLConnection putPage(final URI uri, String source, final BlobRequestOptions blobOptions,
-            final OperationContext opContext, final AccessCondition accessCondition, final PageRange pageRange,
-            final Long sourceOffset, final Long sourceLength, String md5) throws IOException, URISyntaxException,
-            StorageException {
+            final OperationContext opContext, final AccessCondition accessCondition,
+            final AccessCondition sourceAccessCondition, final PageRange pageRange, final Long sourceOffset,
+            final Long sourceLength, String md5) throws IOException, URISyntaxException, StorageException {
         final UriQueryBuilder builder = new UriQueryBuilder();
         builder.add(Constants.QueryConstants.COMPONENT, PAGE_QUERY_ELEMENT_NAME);
 
@@ -1723,6 +1728,10 @@ final class BlobRequest {
         if (accessCondition != null) {
             accessCondition.applyConditionToRequest(request);
             accessCondition.applySequenceConditionToRequest(request);
+        }
+
+        if (sourceAccessCondition != null) {
+            sourceAccessCondition.applySourceConditionToRequest(request);
         }
 
         addSourceRange(request, sourceOffset, sourceLength);

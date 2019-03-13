@@ -236,11 +236,11 @@ public class CloudAppendBlobTests {
             boolean exceptionThrown = false;
             try {
                 blob2.appendBlockFromURI(blob.getUri(), (text.length() / 2L) + 1, null,
-                        Base64.encode(MessageDigest.getInstance("MD5").digest("garbage".getBytes())), null, null, null);
+                        Base64.encode(MessageDigest.getInstance("MD5").digest("garbage".getBytes())), null, null, null, null);
             } catch (StorageException e) {
                 exceptionThrown = true;
                 assertEquals("Md5Mismatch", e.getErrorCode());
-                pos = blob2.appendBlockFromURI(blob.getUri(), 5L, null, md5, null, null, null);
+                pos = blob2.appendBlockFromURI(blob.getUri(), 5L, null, md5, null, null, null, null);
                 assertEquals(text.length()/2L, pos);
             }
             assertTrue(exceptionThrown);

@@ -822,13 +822,14 @@ public class CloudPageBlobTests {
             try {
                 blob2.putPagesFromURI(Constants.PAGE_SIZE * 2, Constants.PAGE_SIZE, blob.getUri(),
                         (long)Constants.PAGE_SIZE,
-                        Base64.encode(MessageDigest.getInstance("MD5").digest("garbage".getBytes())), null, null, null);
+                        Base64.encode(MessageDigest.getInstance("MD5").digest("garbage".getBytes())), null, null, null,
+                        null);
             } catch (StorageException e) {
                 exceptionThrown = true;
                 assertEquals("Md5Mismatch", e.getErrorCode());
                 // Write to the third page.
                 blob2.putPagesFromURI(Constants.PAGE_SIZE * 2, Constants.PAGE_SIZE, blob.getUri(),
-                        (long)Constants.PAGE_SIZE, md5, null, null, null);
+                        (long)Constants.PAGE_SIZE, md5, null, null, null, null);
             }
             assertTrue(exceptionThrown);
 

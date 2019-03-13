@@ -501,7 +501,7 @@ public final class CloudAppendBlob extends CloudBlob {
      */
     @DoesServiceRequest
     public Long appendBlockFromURI(final URI copySource, final Long offset, final Long length) throws StorageException {
-        return this.appendBlockFromURI(copySource, offset, length, null, null, null, null);
+        return this.appendBlockFromURI(copySource, offset, length, null, null, null, null, null);
     }
 
     /**
@@ -519,6 +519,8 @@ public final class CloudAppendBlob extends CloudBlob {
      *           A <code>String</code> which represents the MD5 caluclated for the range of bytes of the source.
      * @param accessCondition
      *            An {@link AccessCondition} object which represents the access conditions for the blob.
+     * @param sourceAccessCondition
+     *            An {@link AccessCondition} object which represents the access conditions for the source blob.
      * @param options
      *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
      *            <code>null</code> will use the default request options from the associated service client (
@@ -533,7 +535,8 @@ public final class CloudAppendBlob extends CloudBlob {
      */
     @DoesServiceRequest
     public Long appendBlockFromURI(final URI copySource, final Long offset, final Long length, String md5,
-            final AccessCondition accessCondition, BlobRequestOptions options, OperationContext opContext) throws StorageException {
+            final AccessCondition accessCondition, final AccessCondition sourceAccessCondition,
+            BlobRequestOptions options, OperationContext opContext) throws StorageException {
         Utility.assertNotNull("copySource", copySource);
 
         assertNoWriteOperationForSnapshot();
@@ -553,7 +556,8 @@ public final class CloudAppendBlob extends CloudBlob {
             throw new IllegalArgumentException(SR.COPY_SIZE_GREATER_THAN_100MB);
         }
 
-        return this.appendBlockFromURIInternal(copySource, offset, length, md5, accessCondition, options, opContext);
+        return this.appendBlockFromURIInternal(copySource, offset, length, md5, accessCondition, sourceAccessCondition,
+                options, opContext);
     }
 
     /**
@@ -571,6 +575,8 @@ public final class CloudAppendBlob extends CloudBlob {
      *           A <code>String</code> which represents the MD5 caluclated for the range of bytes of the source.
      * @param accessCondition
      *            An {@link AccessCondition} object which represents the access conditions for the blob.
+     * @param sourceAccessCondition
+     *            An {@link AccessCondition} object which represents the access conditions for the source blob.
      * @param options
      *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
      *            <code>null</code> will use the default request options from the associated service client (
@@ -583,16 +589,19 @@ public final class CloudAppendBlob extends CloudBlob {
      */
     @DoesServiceRequest
     private Long appendBlockFromURIInternal(final URI copySource, final Long offset, final Long length, String md5,
-            final AccessCondition accessCondition, BlobRequestOptions options, OperationContext opContext)
+            final AccessCondition accessCondition, final AccessCondition sourceAccessCondition,
+            BlobRequestOptions options, OperationContext opContext)
             throws StorageException {
         return ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                appendFromURIImpl(copySource, offset, length, md5, accessCondition, options, opContext),
+                appendFromURIImpl(copySource, offset, length, md5, accessCondition, sourceAccessCondition, options,
+                        opContext),
                 options.getRetryPolicyFactory(), opContext);
     }
 
-    private StorageRequest<CloudBlobClient, CloudAppendBlob, Long> appendFromURIImpl(final URI copySource, final Long offset,
-            final Long length, final String md5, final AccessCondition accessCondition,
-            final BlobRequestOptions options, final OperationContext opContext)
+    private StorageRequest<CloudBlobClient, CloudAppendBlob, Long> appendFromURIImpl(final URI copySource,
+            final Long offset, final Long length, final String md5, final AccessCondition accessCondition,
+            final AccessCondition sourceAccessCondition, final BlobRequestOptions options,
+            final OperationContext opContext)
     {
         return new StorageRequest<CloudBlobClient, CloudAppendBlob, Long> (
                 options, this.getStorageUri()) {
@@ -601,7 +610,8 @@ public final class CloudAppendBlob extends CloudBlob {
             public HttpURLConnection buildRequest(CloudBlobClient client, CloudAppendBlob blob, OperationContext context)
                 throws Exception {
                 return BlobRequest.appendBlock(blob.getTransformedAddress(opContext).getUri(this.getCurrentLocation()),
-                        copySource.toASCIIString(), offset, length, options, md5, opContext, accessCondition);
+                        copySource.toASCIIString(), offset, length, options, md5, opContext, accessCondition,
+                        sourceAccessCondition);
             }
 
             @Override

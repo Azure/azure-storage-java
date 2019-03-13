@@ -1079,37 +1079,43 @@ public final class CloudPageBlob extends CloudBlob {
      * @param offset
      *            The offset, in bytes, at which to begin writing pages. This value must be a multiple of 512.
      * @param length
-     *            The length, in bytes, of the data range to be written. This value must be a multiple of 512.
+     *            The length, in bytes, of the data range to be written. This value must be a multiple of 512. This
+     *            value will also be used as the length of data to copy from the source.
      * @param copySource
      *            The <code>URI</code> of the source data. It can point to any Azure Blob or File that is public or the
      *            URL can include a shared access signature.
      * @param sourceOffset
-     *           A <code>long</code> which represents the offset to use as the starting point for the source.
+     *           A <code>long</code> which represents the offset to use as the starting point for the source. The length
+     *           of data to copy from the source will be taken from the source length parameter.
      * @throws StorageException
      *             If a storage service error occurred.
      */
     @DoesServiceRequest
     public void putPagesFromURI(long offset, long length, final URI copySource, final Long sourceOffset)
             throws StorageException {
-        this.putPagesFromURI(offset, length, copySource, sourceOffset, null, null, null, null);
+        this.putPagesFromURI(offset, length, copySource, sourceOffset, null, null, null, null, null);
     }
 
     /**
      * Writes a PageRange, using the specified source URL.
      *
      * @param offset
-     *            The offset, in bytes, at which to begin clearing pages. This value must be a multiple of 512.
+     *            The offset, in bytes, at which to begin writing pages. This value must be a multiple of 512.
      * @param length
-     *            The length, in bytes, of the data range to be cleared. This value must be a multiple of 512.
+     *            The length, in bytes, of the data range to be written. This value must be a multiple of 512. This
+     *            value will also be used as the length of data to copy from the source.
      * @param copySource
      *            The <code>URI</code> of the source data. It can point to any Azure Blob or File that is public or the
      *            URL can include a shared access signature.
      * @param sourceOffset
-     *           A <code>long</code> which represents the offset to use as the starting point for the source.
+     *           A <code>long</code> which represents the offset to use as the starting point for the source. The length
+     *           of data to copy from the source will be taken from the source length parameter.
      * @param md5
      *            A <code>String</code> which represents the MD5 hash for the data.
      * @param accessCondition
      *            An {@link AccessCondition} object which represents the access conditions for the blob.
+     * @param sourceAccessCondition
+     *            An {@link AccessCondition} object which represents the access conditions for the source blob.
      * @param options
      *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
      *            <code>null</code> will use the default request options from the associated service client (
@@ -1124,8 +1130,8 @@ public final class CloudPageBlob extends CloudBlob {
      */
     @DoesServiceRequest
     public void putPagesFromURI(long offset, long length, final URI copySource, final Long sourceOffset, String md5,
-            AccessCondition accessCondition, BlobRequestOptions options, OperationContext opContext)
-            throws StorageException {
+            AccessCondition accessCondition, AccessCondition sourceAccessCondition, BlobRequestOptions options,
+            OperationContext opContext) throws StorageException {
         Utility.assertNotNull("copySource", copySource);
         if (offset % Constants.PAGE_SIZE != 0) {
             throw new IllegalArgumentException(SR.INVALID_PAGE_START_OFFSET);
@@ -1148,8 +1154,8 @@ public final class CloudPageBlob extends CloudBlob {
 
         PageRange range = new PageRange(offset, offset + length - 1);
 
-        this.putPagesFromURIInternal(range, copySource, sourceOffset, length, md5, accessCondition, options,
-                opContext);
+        this.putPagesFromURIInternal(range, copySource, sourceOffset, length, md5, accessCondition,
+                sourceAccessCondition, options, opContext);
     }
 
     /**
@@ -1169,6 +1175,8 @@ public final class CloudPageBlob extends CloudBlob {
      *            A <code>String</code> which represents the MD5 hash for the data.
      * @param accessCondition
      *            An {@link AccessCondition} object which represents the access conditions for the blob.
+     * @param sourceAccessCondition
+     *            An {@link AccessCondition} object which represents the access conditions for the source blob.
      * @param options
      *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
      *            <code>null</code> will use the default request options from the associated service client (
@@ -1182,18 +1190,19 @@ public final class CloudPageBlob extends CloudBlob {
      *             If a storage service error occurred.
      */
     @DoesServiceRequest
-    public void putPagesFromURIInternal(PageRange pageRange, final URI copySource, final Long sourceOffset,
-            final Long sourceLength, String md5, AccessCondition accessCondition, BlobRequestOptions options,
-            OperationContext opContext)
-            throws StorageException {
+    private void putPagesFromURIInternal(PageRange pageRange, final URI copySource, final Long sourceOffset,
+            final Long sourceLength, String md5, AccessCondition accessCondition, AccessCondition sourceAccessCondition,
+            BlobRequestOptions options, OperationContext opContext) throws StorageException {
         ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                putPagesFromURIImpl(pageRange, copySource, sourceOffset, sourceLength, md5, accessCondition, options, opContext),
+                putPagesFromURIImpl(pageRange, copySource, sourceOffset, sourceLength, md5, accessCondition,
+                        sourceAccessCondition, options, opContext),
                 options.getRetryPolicyFactory(), opContext);
     }
 
     private StorageRequest<CloudBlobClient, CloudPageBlob, Void> putPagesFromURIImpl(final PageRange pageRange,
             final URI copySource, final Long sourceOffset, final Long sourceLength, final String md5,
-            final AccessCondition accessCondition, final BlobRequestOptions options, final OperationContext opContext) {
+            final AccessCondition accessCondition, final AccessCondition sourceAccessCondition,
+            final BlobRequestOptions options, final OperationContext opContext) {
         final StorageRequest<CloudBlobClient, CloudPageBlob, Void> putRequest = new StorageRequest<CloudBlobClient, CloudPageBlob, Void>(
                 options, this.getStorageUri()) {
 
@@ -1202,8 +1211,8 @@ public final class CloudPageBlob extends CloudBlob {
                     throws Exception {
 
                 return BlobRequest.putPage(blob.getTransformedAddress(opContext).getUri(this.getCurrentLocation()),
-                        copySource.toASCIIString(), options, opContext, accessCondition, pageRange, sourceOffset,
-                        sourceLength, md5);
+                        copySource.toASCIIString(), options, opContext, accessCondition, sourceAccessCondition,
+                        pageRange, sourceOffset, sourceLength, md5);
             }
 
             @Override
