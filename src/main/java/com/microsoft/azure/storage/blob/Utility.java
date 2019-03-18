@@ -15,9 +15,11 @@
 package com.microsoft.azure.storage.blob;
 
 import com.microsoft.azure.storage.blob.models.StorageErrorException;
+import com.microsoft.rest.v2.RestResponse;
 import io.reactivex.Single;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
@@ -242,12 +244,43 @@ final class Utility {
         }
     }
 
-    static <T> Single<T> addErrorWrappingToSingle(Single<T> s) {
+    static <T> Single<T> postProcessResponse(Single<T> s) {
+        s = addErrorWrappingToSingle(s);
+        s = scrubEtagHeaderInResponse(s);
+        return s;
+    }
+
+    /*
+    We need to convert the generated StorageErrorException to StorageException, which has a cleaner interface and
+    methods to conveniently access important values.
+     */
+    private static <T> Single<T> addErrorWrappingToSingle(Single<T> s) {
         return s.onErrorResumeNext(e -> {
             if (e instanceof StorageErrorException) {
                 return Single.error(new StorageException((StorageErrorException) e));
             }
             return Single.error(e);
+        });
+    }
+
+    /*
+    The service is inconsistent in whether or not the etag header value has quotes. This method will check if the
+    response returns an etag value, and if it does, remove any quotes that may be present to give the user a more
+    predictable format to work with.
+     */
+    private static <T> Single<T> scrubEtagHeaderInResponse(Single<T> s) {
+        return s.map(response -> {
+            try {
+                Object headers = response.getClass().getMethod("headers").invoke(response);
+                Method etagGetterMethod = headers.getClass().getMethod("eTag");
+                String etag = (String)etagGetterMethod.invoke(headers);
+                etag = etag.replace("\"", ""); // Etag headers without the quotes will be unaffected.
+                headers.getClass().getMethod("withETag", String.class).invoke(headers, etag);
+            }
+            catch (NoSuchMethodException e) {
+                // Response did not return an eTag value. No change necessary.
+            }
+            return response;
         });
     }
 }

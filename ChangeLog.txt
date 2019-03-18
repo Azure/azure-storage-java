@@ -10,6 +10,7 @@ XXXX.XX.XX Version X.X.X
 * Added an option to configure that maximum size data that will be uploaded in a single shot via the TransferManager.
 * Added request Http Method, URL, and headers to logging messages.
 * Changed *ListingDetails to *ListDetails. These name changes are to mitigate conflicts with v8, allowing for side-by-side loading of different versions, which may help with upgrading.
+* Removed the extra quotes around etags in some responses so they are consistently now consistently formatted.
 
 2019.02.15 Version 10.5.0
 * Added uploadFromNonReplayableFlowable to support uploading arbitrary data sources (like network streams) to a block blob.

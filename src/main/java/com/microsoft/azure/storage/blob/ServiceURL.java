@@ -22,7 +22,7 @@ import io.reactivex.Single;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static com.microsoft.azure.storage.blob.Utility.addErrorWrappingToSingle;
+import static com.microsoft.azure.storage.blob.Utility.postProcessResponse;
 
 /**
  * Represents a URL to a blob service. This class does not hold any state about a particular storage account but is
@@ -143,7 +143,7 @@ public final class ServiceURL extends StorageURL {
         options = options == null ? new ListContainersOptions() : options;
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(
+        return postProcessResponse(
                 this.storageClient.generatedServices().listContainersSegmentWithRestResponseAsync(context,
                         options.prefix(), marker, options.maxResults(), options.details().toIncludeType(), null, null));
     }
@@ -182,7 +182,7 @@ public final class ServiceURL extends StorageURL {
     public Single<ServiceGetPropertiesResponse> getProperties(Context context) {
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(
+        return postProcessResponse(
                 this.storageClient.generatedServices().getPropertiesWithRestResponseAsync(context, null, null));
     }
 
@@ -229,7 +229,7 @@ public final class ServiceURL extends StorageURL {
     public Single<ServiceSetPropertiesResponse> setProperties(StorageServiceProperties properties, Context context) {
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(
+        return postProcessResponse(
                 this.storageClient.generatedServices().setPropertiesWithRestResponseAsync(context, properties, null,
                         null));
     }
@@ -272,7 +272,7 @@ public final class ServiceURL extends StorageURL {
     public Single<ServiceGetStatisticsResponse> getStatistics(Context context) {
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(
+        return postProcessResponse(
                 this.storageClient.generatedServices().getStatisticsWithRestResponseAsync(context, null, null));
     }
 
@@ -310,7 +310,7 @@ public final class ServiceURL extends StorageURL {
     public Single<ServiceGetAccountInfoResponse> getAccountInfo(Context context) {
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(
+        return postProcessResponse(
                 this.storageClient.generatedServices().getAccountInfoWithRestResponseAsync(context));
     }
 }

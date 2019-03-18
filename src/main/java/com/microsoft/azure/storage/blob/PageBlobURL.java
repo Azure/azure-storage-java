@@ -26,7 +26,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
-import static com.microsoft.azure.storage.blob.Utility.addErrorWrappingToSingle;
+import static com.microsoft.azure.storage.blob.Utility.postProcessResponse;
 
 /**
  * Represents a URL to a page blob. It may be obtained by direct construction or via the create method on a
@@ -174,7 +174,7 @@ public final class PageBlobURL extends BlobURL {
         metadata = metadata == null ? new Metadata() : metadata;
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(this.storageClient.generatedPageBlobs().createWithRestResponseAsync(
+        return postProcessResponse(this.storageClient.generatedPageBlobs().createWithRestResponseAsync(
                 context, 0, size, null, metadata, sequenceNumber, null, headers,
                 accessConditions.leaseAccessConditions(), accessConditions.modifiedAccessConditions()));
     }
@@ -248,7 +248,7 @@ public final class PageBlobURL extends BlobURL {
         String pageRangeStr = pageRangeToString(pageRange);
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(this.storageClient.generatedPageBlobs().uploadPagesWithRestResponseAsync(
+        return postProcessResponse(this.storageClient.generatedPageBlobs().uploadPagesWithRestResponseAsync(
                 context, body, pageRange.end() - pageRange.start() + 1, null, null, pageRangeStr, null,
                 pageBlobAccessConditions.leaseAccessConditions(),
                 pageBlobAccessConditions.sequenceNumberAccessConditions(),
@@ -343,7 +343,7 @@ public final class PageBlobURL extends BlobURL {
 
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(this.storageClient.generatedPageBlobs().uploadPagesFromURLWithRestResponseAsync(
+        return postProcessResponse(this.storageClient.generatedPageBlobs().uploadPagesFromURLWithRestResponseAsync(
                 context, sourceURL, sourceRangeString, 0, rangeString, sourceContentMD5, null,
                 null, destAccessConditions.leaseAccessConditions(), destAccessConditions.sequenceNumberAccessConditions(),
                 destAccessConditions.modifiedAccessConditions(), sourceAccessConditions));
@@ -405,7 +405,7 @@ public final class PageBlobURL extends BlobURL {
         String pageRangeStr = pageRangeToString(pageRange);
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(this.storageClient.generatedPageBlobs().clearPagesWithRestResponseAsync(
+        return postProcessResponse(this.storageClient.generatedPageBlobs().clearPagesWithRestResponseAsync(
                 context, 0, null, pageRangeStr, null, pageBlobAccessConditions.leaseAccessConditions(),
                 pageBlobAccessConditions.sequenceNumberAccessConditions(),
                 pageBlobAccessConditions.modifiedAccessConditions()));
@@ -455,7 +455,7 @@ public final class PageBlobURL extends BlobURL {
         accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(this.storageClient.generatedPageBlobs().getPageRangesWithRestResponseAsync(
+        return postProcessResponse(this.storageClient.generatedPageBlobs().getPageRangesWithRestResponseAsync(
                 context, null, null, blobRange.toHeaderValue(), null, accessConditions.leaseAccessConditions(),
                 accessConditions.modifiedAccessConditions()));
     }
@@ -516,9 +516,9 @@ public final class PageBlobURL extends BlobURL {
             throw new IllegalArgumentException("prevSnapshot cannot be null");
         }
 
-        return addErrorWrappingToSingle(this.storageClient.generatedPageBlobs().getPageRangesDiffWithRestResponseAsync(
-                context, null, null, prevSnapshot, blobRange.toHeaderValue(), null, accessConditions.leaseAccessConditions(),
-                accessConditions.modifiedAccessConditions()));
+        return postProcessResponse(this.storageClient.generatedPageBlobs().getPageRangesDiffWithRestResponseAsync(
+                context, null, null, prevSnapshot, blobRange.toHeaderValue(), null,
+                accessConditions.leaseAccessConditions(), accessConditions.modifiedAccessConditions()));
     }
 
     /**
@@ -570,7 +570,7 @@ public final class PageBlobURL extends BlobURL {
         accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(this.storageClient.generatedPageBlobs().resizeWithRestResponseAsync(
+        return postProcessResponse(this.storageClient.generatedPageBlobs().resizeWithRestResponseAsync(
                 context, size, null, null, accessConditions.leaseAccessConditions(),
                 accessConditions.modifiedAccessConditions()));
     }
@@ -631,7 +631,7 @@ public final class PageBlobURL extends BlobURL {
         sequenceNumber = action == SequenceNumberActionType.INCREMENT ? null : sequenceNumber;
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(
+        return postProcessResponse(
                 this.storageClient.generatedPageBlobs().updateSequenceNumberWithRestResponseAsync(context,
                         action, null, sequenceNumber, null, accessConditions.leaseAccessConditions(),
                         accessConditions.modifiedAccessConditions()));
@@ -693,7 +693,7 @@ public final class PageBlobURL extends BlobURL {
             // We are parsing a valid url and adding a query parameter. If this fails, we can't recover.
             throw new Error(e);
         }
-        return addErrorWrappingToSingle(this.storageClient.generatedPageBlobs().copyIncrementalWithRestResponseAsync(
+        return postProcessResponse(this.storageClient.generatedPageBlobs().copyIncrementalWithRestResponseAsync(
                 context, source, null, null, modifiedAccessConditions));
     }
 }

@@ -26,7 +26,7 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import static com.microsoft.azure.storage.blob.Utility.addErrorWrappingToSingle;
+import static com.microsoft.azure.storage.blob.Utility.postProcessResponse;
 
 /**
  * Represents a URL to a block blob. It may be obtained by direct construction or via the create method on a
@@ -170,7 +170,7 @@ public final class BlockBlobURL extends BlobURL {
         accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(this.storageClient.generatedBlockBlobs().uploadWithRestResponseAsync(context,
+        return postProcessResponse(this.storageClient.generatedBlockBlobs().uploadWithRestResponseAsync(context,
                 data, length, null, metadata, null, headers, accessConditions.leaseAccessConditions(),
                 accessConditions.modifiedAccessConditions()));
     }
@@ -241,7 +241,7 @@ public final class BlockBlobURL extends BlobURL {
             LeaseAccessConditions leaseAccessConditions, Context context) {
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(this.storageClient.generatedBlockBlobs().stageBlockWithRestResponseAsync(
+        return postProcessResponse(this.storageClient.generatedBlockBlobs().stageBlockWithRestResponseAsync(
                 context, base64BlockID, length, data, null, null, null, leaseAccessConditions));
     }
 
@@ -313,7 +313,7 @@ public final class BlockBlobURL extends BlobURL {
         sourceRange = sourceRange == null ? new BlobRange() : sourceRange;
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(
+        return postProcessResponse(
                 this.storageClient.generatedBlockBlobs().stageBlockFromURLWithRestResponseAsync(context,
                         base64BlockID, 0, sourceURL, sourceRange.toHeaderValue(), sourceContentMD5,
                         null, null, leaseAccessConditions, sourceModifiedAccessConditions));
@@ -364,7 +364,7 @@ public final class BlockBlobURL extends BlobURL {
             LeaseAccessConditions leaseAccessConditions, Context context) {
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(this.storageClient.generatedBlockBlobs().getBlockListWithRestResponseAsync(
+        return postProcessResponse(this.storageClient.generatedBlockBlobs().getBlockListWithRestResponseAsync(
                 context, listType, null, null, null, leaseAccessConditions));
     }
 
@@ -430,7 +430,7 @@ public final class BlockBlobURL extends BlobURL {
         accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(this.storageClient.generatedBlockBlobs().commitBlockListWithRestResponseAsync(
+        return postProcessResponse(this.storageClient.generatedBlockBlobs().commitBlockListWithRestResponseAsync(
                 context, new BlockLookupList().withLatest(base64BlockIDs), null,
                 metadata, null, headers, accessConditions.leaseAccessConditions(),
                 accessConditions.modifiedAccessConditions()));

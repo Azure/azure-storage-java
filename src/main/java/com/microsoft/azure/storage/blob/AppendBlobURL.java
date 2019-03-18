@@ -25,7 +25,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
-import static com.microsoft.azure.storage.blob.Utility.addErrorWrappingToSingle;
+import static com.microsoft.azure.storage.blob.Utility.postProcessResponse;
 
 
 /**
@@ -134,7 +134,7 @@ public final class AppendBlobURL extends BlobURL {
         accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(this.storageClient.generatedAppendBlobs().createWithRestResponseAsync(context,
+        return postProcessResponse(this.storageClient.generatedAppendBlobs().createWithRestResponseAsync(context,
                 0, null, metadata, null, headers, accessConditions.leaseAccessConditions(),
                 accessConditions.modifiedAccessConditions()));
     }
@@ -199,7 +199,7 @@ public final class AppendBlobURL extends BlobURL {
                 ? new AppendBlobAccessConditions() : appendBlobAccessConditions;
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(this.storageClient.generatedAppendBlobs().appendBlockWithRestResponseAsync(
+        return postProcessResponse(this.storageClient.generatedAppendBlobs().appendBlockWithRestResponseAsync(
                 context, data, length, null, null, null, appendBlobAccessConditions.leaseAccessConditions(),
                 appendBlobAccessConditions.appendPositionAccessConditions(),
                 appendBlobAccessConditions.modifiedAccessConditions()));
