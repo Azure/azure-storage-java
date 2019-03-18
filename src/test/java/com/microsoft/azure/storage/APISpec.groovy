@@ -197,7 +197,7 @@ class APISpec extends Specification {
         po.withLogger(new HttpPipelineLogger() {
             @Override
             HttpPipelineLogLevel minimumLogLevel() {
-                HttpPipelineLogLevel.ERROR
+                return HttpPipelineLogLevel.ERROR
             }
 
             @Override

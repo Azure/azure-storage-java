@@ -53,12 +53,13 @@ class HelperTest extends APISpec {
     @Unroll
     def "Blob range"() {
         expect:
-        new BlobRange().withOffset(offset).withCount(count).toString() == result
+        new BlobRange().withOffset(offset).withCount(count).toHeaderValue() == result
 
         where:
         offset | count || result
-        0      | null  || "bytes=0-"
+        0      | null  || null
         0      | 5     || "bytes=0-4"
+        5      | 10    || "bytes=5-14"
     }
 
     @Unroll

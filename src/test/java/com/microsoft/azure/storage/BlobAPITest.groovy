@@ -73,6 +73,19 @@ class BlobAPITest extends APISpec {
         headers.blobContentMD5() != null
     }
 
+    def "Download empty file"() {
+        setup:
+        bu = cu.createAppendBlobURL("emptyAppendBlob")
+        bu.create().blockingGet()
+
+        when:
+        def result = FlowableUtil.collectBytesInBuffer(bu.download(new BlobRange().withOffset(0), null, false, null).blockingGet().body(null)).blockingGet()
+
+        then:
+        notThrown(StorageException)
+        result.remaining() == 0
+    }
+
     /*
     This is to test the appropriate integration of DownloadResponse, including setting the correct range values on
     HTTPGetterInfo.

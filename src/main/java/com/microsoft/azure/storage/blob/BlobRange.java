@@ -86,4 +86,17 @@ public final class BlobRange {
         return String.format(
                 Locale.ROOT, Constants.HeaderConstants.BEGIN_RANGE_HEADER_FORMAT, this.offset);
     }
+
+    /*
+    In the case where the customer passes a null BlobRange, constructing the default of "0-" will fail on an empty blob.
+    By returning null as the header value, we elect not to set the header, which has the same effect, namely downloading
+    the whole blob, but it will not fail in the empty case.
+     */
+    String toHeaderValue() {
+        // The default values of a BlobRange
+        if (this.offset == 0 && this.count == null) {
+            return null;
+        }
+        return this.toString();
+    }
 }

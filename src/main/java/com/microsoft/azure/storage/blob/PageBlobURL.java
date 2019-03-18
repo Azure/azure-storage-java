@@ -362,7 +362,7 @@ public final class PageBlobURL extends BlobURL {
         context = context == null ? Context.NONE : context;
 
         return addErrorWrappingToSingle(this.storageClient.generatedPageBlobs().getPageRangesWithRestResponseAsync(
-                context, null, null, blobRange.toString(), null, accessConditions.leaseAccessConditions(),
+                context, null, null, blobRange.toHeaderValue(), null, accessConditions.leaseAccessConditions(),
                 accessConditions.modifiedAccessConditions()));
     }
 
@@ -423,7 +423,7 @@ public final class PageBlobURL extends BlobURL {
         }
 
         return addErrorWrappingToSingle(this.storageClient.generatedPageBlobs().getPageRangesDiffWithRestResponseAsync(
-                context, null, null, prevSnapshot, blobRange.toString(), null, accessConditions.leaseAccessConditions(),
+                context, null, null, prevSnapshot, blobRange.toHeaderValue(), null, accessConditions.leaseAccessConditions(),
                 accessConditions.modifiedAccessConditions()));
     }
 

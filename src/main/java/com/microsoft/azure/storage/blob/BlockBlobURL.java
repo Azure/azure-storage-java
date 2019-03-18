@@ -312,7 +312,7 @@ public final class BlockBlobURL extends BlobURL {
 
         return addErrorWrappingToSingle(
                 this.storageClient.generatedBlockBlobs().stageBlockFromURLWithRestResponseAsync(context,
-                        base64BlockID, 0, sourceURL, sourceRange.toString(), sourceContentMD5,
+                        base64BlockID, 0, sourceURL, sourceRange.toHeaderValue(), sourceContentMD5,
                         null, null, leaseAccessConditions));
     }
 

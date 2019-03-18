@@ -359,7 +359,7 @@ public class BlobURL extends StorageURL {
                 .withETag(accessConditions.modifiedAccessConditions().ifMatch());
 
         return addErrorWrappingToSingle(this.storageClient.generatedBlobs().downloadWithRestResponseAsync(
-                context, null, null, range.toString(), getMD5, null,
+                context, null, null, range.toHeaderValue(), getMD5, null,
                 accessConditions.leaseAccessConditions(),
                 accessConditions.modifiedAccessConditions()))
                 // Convert the autorest response to a DownloadResponse, which enable reliable download.

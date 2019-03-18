@@ -1,3 +1,6 @@
+XXXX.XX.XX Version X.X.X
+* Fixed a bug that would set an invalid range header when downloading an empty blob
+
 2019.02.15 Version 10.5.0
 * Added uploadFromNonReplayableFlowable to support uploading arbitrary data sources (like network streams) to a block blob.
 

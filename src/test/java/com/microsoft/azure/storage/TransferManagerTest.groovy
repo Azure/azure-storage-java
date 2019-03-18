@@ -55,6 +55,7 @@ class TransferManagerTest extends APISpec {
 
         where:
         file                                                  || responseType
+        getRandomFile(0)                                      || BlockBlobUploadResponse
         getRandomFile(10)                                     || BlockBlobUploadResponse // Single shot
         getRandomFile(BlockBlobURL.MAX_UPLOAD_BLOB_BYTES + 1) || BlockBlobCommitBlockListResponse // Multi part
     }
@@ -424,10 +425,10 @@ class TransferManagerTest extends APISpec {
 
         where:
         file                                | _
+        getRandomFile(0)                    | _ // empty file
         getRandomFile(20)                   | _ // small file
         getRandomFile(16 * 1024 * 1024)     | _ // medium file in several chunks
         getRandomFile(8 * 1026 * 1024 + 10) | _ // medium file not aligned to block
-        getRandomFile(0)                    | _ // empty file
         // Files larger than 2GB to test no integer overflow are left to stress/perf tests to keep test passes short.
     }
 
@@ -476,6 +477,10 @@ class TransferManagerTest extends APISpec {
         channel.close()
         outChannel.close()
 
+        /*
+        The last case is to test a range much much larger than the size of the file to ensure we don't accidentally
+        send off parallel requests with invalid ranges.
+         */
         where:
         file                           | range                                                        | dataSize
         getRandomFile(defaultDataSize) | new BlobRange().withCount(defaultDataSize)                   | defaultDataSize
