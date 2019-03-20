@@ -23,11 +23,6 @@ import java.util.Locale;
  */
 public final class BlobRange {
 
-    /**
-     * An object which reflects the service's default range, which is the whole blob.
-     */
-    public static final BlobRange DEFAULT = new BlobRange();
-
     private long offset;
 
     private Long count;

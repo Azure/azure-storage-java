@@ -305,7 +305,7 @@ public class Samples {
             The presence of the marker indicates that there are more blobs to list, so we make another call to
             listContainersSegment and pass the result through this helper function.
              */
-            return serviceURL.listContainersSegment(nextMarker, ListContainersOptions.DEFAULT, null)
+            return serviceURL.listContainersSegment(nextMarker, new ListContainersOptions(), null)
                     .flatMap(containersListBlobHierarchySegmentResponse ->
                             listContainersHelper(serviceURL, response));
         }
@@ -1506,7 +1506,7 @@ public class Samples {
                         // Upload some data to a blob
                         Single.using(() -> AsynchronousFileChannel.open(file.toPath()),
                                 fileChannel -> TransferManager.uploadFileToBlockBlob(fileChannel, blobURL,
-                                        BlockBlobURL.MAX_STAGE_BLOCK_BYTES, TransferManagerUploadToBlockBlobOptions.DEFAULT),
+                                        BlockBlobURL.MAX_STAGE_BLOCK_BYTES, new TransferManagerUploadToBlockBlobOptions()),
                                 AsynchronousFileChannel::close))
                 .flatMap(response ->
                         blobURL.download(null, null, false, null))
@@ -1540,7 +1540,8 @@ public class Samples {
         URL u = new URL(String.format(Locale.ROOT, "https://%s.blob.core.windows.net/", accountName));
         ServiceURL s = new ServiceURL(u,
                 StorageURL.createPipeline(new SharedKeyCredentials(accountName, accountKey), new PipelineOptions()));
-        ContainerURL containerURL = s.createContainerURL("myjavacontainercreateifnotexist");
+        ContainerURL containerURL = s.createContainerURL("myjavacontainercreateifnotexist" +
+                System.currentTimeMillis());
 
         createContainerIfNotExists(containerURL)
                 .flatMap(r -> {
@@ -2257,7 +2258,7 @@ public class Samples {
         // </service_stats>
 
         // <service_list>
-        serviceURL.listContainersSegment(null, ListContainersOptions.DEFAULT, null)
+        serviceURL.listContainersSegment(null, new ListContainersOptions(), null)
                 .flatMap(listContainersSegmentResponse ->
                         // The asynchronous requests require we use recursion to continue our listing.
                         listContainersHelper(serviceURL, listContainersSegmentResponse))

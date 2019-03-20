@@ -159,7 +159,7 @@ public final class PageBlobURL extends BlobURL {
      */
     public Single<PageBlobCreateResponse> create(long size, Long sequenceNumber, BlobHTTPHeaders headers,
             Metadata metadata, BlobAccessConditions accessConditions, Context context) {
-        accessConditions = accessConditions == null ? BlobAccessConditions.NONE : accessConditions;
+        accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
 
         if (size % PageBlobURL.PAGE_BYTES != 0) {
             // Throwing is preferred to Single.error because this will error out immediately instead of waiting until
@@ -171,7 +171,7 @@ public final class PageBlobURL extends BlobURL {
             // subscription.
             throw new IllegalArgumentException("SequenceNumber must be greater than or equal to 0.");
         }
-        metadata = metadata == null ? Metadata.NONE : metadata;
+        metadata = metadata == null ? new Metadata() : metadata;
         context = context == null ? Context.NONE : context;
 
         return addErrorWrappingToSingle(this.storageClient.generatedPageBlobs().createWithRestResponseAsync(
@@ -237,7 +237,7 @@ public final class PageBlobURL extends BlobURL {
      */
     public Single<PageBlobUploadPagesResponse> uploadPages(PageRange pageRange, Flowable<ByteBuffer> body,
             PageBlobAccessConditions pageBlobAccessConditions, Context context) {
-        pageBlobAccessConditions = pageBlobAccessConditions == null ? PageBlobAccessConditions.NONE :
+        pageBlobAccessConditions = pageBlobAccessConditions == null ? new PageBlobAccessConditions() :
                 pageBlobAccessConditions;
 
         if (pageRange == null) {
@@ -395,7 +395,7 @@ public final class PageBlobURL extends BlobURL {
      */
     public Single<PageBlobClearPagesResponse> clearPages(PageRange pageRange,
             PageBlobAccessConditions pageBlobAccessConditions, Context context) {
-        pageBlobAccessConditions = pageBlobAccessConditions == null ? PageBlobAccessConditions.NONE :
+        pageBlobAccessConditions = pageBlobAccessConditions == null ? new PageBlobAccessConditions() :
                 pageBlobAccessConditions;
         if (pageRange == null) {
             // Throwing is preferred to Single.error because this will error out immediately instead of waiting until
@@ -451,8 +451,8 @@ public final class PageBlobURL extends BlobURL {
      */
     public Single<PageBlobGetPageRangesResponse> getPageRanges(BlobRange blobRange,
             BlobAccessConditions accessConditions, Context context) {
-        blobRange = blobRange == null ? BlobRange.DEFAULT : blobRange;
-        accessConditions = accessConditions == null ? BlobAccessConditions.NONE : accessConditions;
+        blobRange = blobRange == null ? new BlobRange() : blobRange;
+        accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
 
         return addErrorWrappingToSingle(this.storageClient.generatedPageBlobs().getPageRangesWithRestResponseAsync(
@@ -508,8 +508,8 @@ public final class PageBlobURL extends BlobURL {
      */
     public Single<PageBlobGetPageRangesDiffResponse> getPageRangesDiff(BlobRange blobRange, String prevSnapshot,
             BlobAccessConditions accessConditions, Context context) {
-        blobRange = blobRange == null ? BlobRange.DEFAULT : blobRange;
-        accessConditions = accessConditions == null ? BlobAccessConditions.NONE : accessConditions;
+        blobRange = blobRange == null ? new BlobRange() : blobRange;
+        accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
 
         if (prevSnapshot == null) {
@@ -567,7 +567,7 @@ public final class PageBlobURL extends BlobURL {
             // subscription.
             throw new IllegalArgumentException("size must be a multiple of PageBlobURL.PAGE_BYTES.");
         }
-        accessConditions = accessConditions == null ? BlobAccessConditions.NONE : accessConditions;
+        accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
 
         return addErrorWrappingToSingle(this.storageClient.generatedPageBlobs().resizeWithRestResponseAsync(
@@ -627,7 +627,7 @@ public final class PageBlobURL extends BlobURL {
             // subscription.
             throw new IllegalArgumentException("SequenceNumber must be greater than or equal to 0.");
         }
-        accessConditions = accessConditions == null ? BlobAccessConditions.NONE : accessConditions;
+        accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         sequenceNumber = action == SequenceNumberActionType.INCREMENT ? null : sequenceNumber;
         context = context == null ? Context.NONE : context;
 

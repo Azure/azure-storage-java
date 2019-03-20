@@ -202,7 +202,7 @@ public final class ContainerURL extends StorageURL {
      * For more samples, please see the [Samples file](%https://github.com/Azure/azure-storage-java/blob/master/src/test/java/com/microsoft/azure/storage/Samples.java)
      */
     public Single<ContainerCreateResponse> create(Metadata metadata, PublicAccessType accessType, Context context) {
-        metadata = metadata == null ? Metadata.NONE : metadata;
+        metadata = metadata == null ? new Metadata() : metadata;
         context = context == null ? Context.NONE : context;
 
         return addErrorWrappingToSingle(this.storageClient.generatedContainers().createWithRestResponseAsync(
@@ -246,7 +246,7 @@ public final class ContainerURL extends StorageURL {
      * For more samples, please see the [Samples file](%https://github.com/Azure/azure-storage-java/blob/master/src/test/java/com/microsoft/azure/storage/Samples.java)
      */
     public Single<ContainerDeleteResponse> delete(ContainerAccessConditions accessConditions, Context context) {
-        accessConditions = accessConditions == null ? ContainerAccessConditions.NONE : accessConditions;
+        accessConditions = accessConditions == null ? new ContainerAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
 
         if (!validateNoEtag(accessConditions.modifiedAccessConditions())) {
@@ -342,8 +342,8 @@ public final class ContainerURL extends StorageURL {
      */
     public Single<ContainerSetMetadataResponse> setMetadata(Metadata metadata,
             ContainerAccessConditions accessConditions, Context context) {
-        metadata = metadata == null ? Metadata.NONE : metadata;
-        accessConditions = accessConditions == null ? ContainerAccessConditions.NONE : accessConditions;
+        metadata = metadata == null ? new Metadata() : metadata;
+        accessConditions = accessConditions == null ? new ContainerAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
         if (!validateNoEtag(accessConditions.modifiedAccessConditions()) ||
                 accessConditions.modifiedAccessConditions().ifUnmodifiedSince() != null) {
@@ -457,7 +457,7 @@ public final class ContainerURL extends StorageURL {
      */
     public Single<ContainerSetAccessPolicyResponse> setAccessPolicy(PublicAccessType accessType,
             List<SignedIdentifier> identifiers, ContainerAccessConditions accessConditions, Context context) {
-        accessConditions = accessConditions == null ? ContainerAccessConditions.NONE : accessConditions;
+        accessConditions = accessConditions == null ? new ContainerAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
 
         if (!validateNoEtag(accessConditions.modifiedAccessConditions())) {
@@ -839,7 +839,7 @@ public final class ContainerURL extends StorageURL {
      */
     public Single<ContainerListBlobFlatSegmentResponse> listBlobsFlatSegment(String marker, ListBlobsOptions options,
             Context context) {
-        options = options == null ? ListBlobsOptions.DEFAULT : options;
+        options = options == null ? new ListBlobsOptions() : options;
         context = context == null ? Context.NONE : context;
 
         return addErrorWrappingToSingle(this.storageClient.generatedContainers()
@@ -911,7 +911,7 @@ public final class ContainerURL extends StorageURL {
      */
     public Single<ContainerListBlobHierarchySegmentResponse> listBlobsHierarchySegment(String marker, String delimiter,
             ListBlobsOptions options, Context context) {
-        options = options == null ? ListBlobsOptions.DEFAULT : options;
+        options = options == null ? new ListBlobsOptions() : options;
         if (options.details().snapshots()) {
             throw new UnsupportedOperationException("Including snapshots in a hierarchical listing is not supported.");
         }

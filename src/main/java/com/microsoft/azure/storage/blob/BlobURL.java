@@ -173,10 +173,10 @@ public class BlobURL extends StorageURL {
     public Single<BlobStartCopyFromURLResponse> startCopyFromURL(URL sourceURL, Metadata metadata,
             ModifiedAccessConditions sourceModifiedAccessConditions, BlobAccessConditions destAccessConditions,
             Context context) {
-        metadata = metadata == null ? Metadata.NONE : metadata;
+        metadata = metadata == null ? new Metadata() : metadata;
         sourceModifiedAccessConditions = sourceModifiedAccessConditions == null ?
                 new ModifiedAccessConditions() : sourceModifiedAccessConditions;
-        destAccessConditions = destAccessConditions == null ? BlobAccessConditions.NONE : destAccessConditions;
+        destAccessConditions = destAccessConditions == null ? new BlobAccessConditions() : destAccessConditions;
         context = context == null ? Context.NONE : context;
 
         // We want to hide the SourceAccessConditions type from the user for consistency's sake, so we convert here.
@@ -288,10 +288,10 @@ public class BlobURL extends StorageURL {
     public Single<BlobCopyFromURLResponse> syncCopyFromURL(URL copySource, Metadata metadata,
             ModifiedAccessConditions sourceModifiedAccessConditions, BlobAccessConditions destAccessConditions,
             Context context) {
-        metadata = metadata == null ? Metadata.NONE : metadata;
+        metadata = metadata == null ? new Metadata() : metadata;
         sourceModifiedAccessConditions = sourceModifiedAccessConditions == null ?
                 new ModifiedAccessConditions() : sourceModifiedAccessConditions;
-        destAccessConditions = destAccessConditions == null ? BlobAccessConditions.NONE : destAccessConditions;
+        destAccessConditions = destAccessConditions == null ? new BlobAccessConditions() : destAccessConditions;
         context = context == null ? Context.NONE : context;
 
         // We want to hide the SourceAccessConditions type from the user for consistency's sake, so we convert here.
@@ -351,8 +351,8 @@ public class BlobURL extends StorageURL {
     public Single<DownloadResponse> download(BlobRange range, BlobAccessConditions accessConditions,
             boolean rangeGetContentMD5, Context context) {
         Boolean getMD5 = rangeGetContentMD5 ? rangeGetContentMD5 : null;
-        range = range == null ? BlobRange.DEFAULT : range;
-        accessConditions = accessConditions == null ? BlobAccessConditions.NONE : accessConditions;
+        range = range == null ? new BlobRange() : range;
+        accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         HTTPGetterInfo info = new HTTPGetterInfo()
                 .withOffset(range.offset())
                 .withCount(range.count())
@@ -415,7 +415,7 @@ public class BlobURL extends StorageURL {
      */
     public Single<BlobDeleteResponse> delete(DeleteSnapshotsOptionType deleteBlobSnapshotOptions,
             BlobAccessConditions accessConditions, Context context) {
-        accessConditions = accessConditions == null ? BlobAccessConditions.NONE : accessConditions;
+        accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
 
         return addErrorWrappingToSingle(this.storageClient.generatedBlobs().deleteWithRestResponseAsync(
@@ -456,7 +456,7 @@ public class BlobURL extends StorageURL {
      * For more samples, please see the [Samples file](%https://github.com/Azure/azure-storage-java/blob/master/src/test/java/com/microsoft/azure/storage/Samples.java)
      */
     public Single<BlobGetPropertiesResponse> getProperties(BlobAccessConditions accessConditions, Context context) {
-        accessConditions = accessConditions == null ? BlobAccessConditions.NONE : accessConditions;
+        accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
 
         return addErrorWrappingToSingle(this.storageClient.generatedBlobs().getPropertiesWithRestResponseAsync(
@@ -503,7 +503,7 @@ public class BlobURL extends StorageURL {
      */
     public Single<BlobSetHTTPHeadersResponse> setHTTPHeaders(BlobHTTPHeaders headers,
             BlobAccessConditions accessConditions, Context context) {
-        accessConditions = accessConditions == null ? BlobAccessConditions.NONE : accessConditions;
+        accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
 
         return addErrorWrappingToSingle(this.storageClient.generatedBlobs().setHTTPHeadersWithRestResponseAsync(
@@ -549,8 +549,8 @@ public class BlobURL extends StorageURL {
      */
     public Single<BlobSetMetadataResponse> setMetadata(Metadata metadata, BlobAccessConditions accessConditions,
             Context context) {
-        metadata = metadata == null ? Metadata.NONE : metadata;
-        accessConditions = accessConditions == null ? BlobAccessConditions.NONE : accessConditions;
+        metadata = metadata == null ? new Metadata() : metadata;
+        accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
 
         return addErrorWrappingToSingle(this.storageClient.generatedBlobs().setMetadataWithRestResponseAsync(
@@ -593,8 +593,8 @@ public class BlobURL extends StorageURL {
      */
     public Single<BlobCreateSnapshotResponse> createSnapshot(Metadata metadata, BlobAccessConditions accessConditions,
             Context context) {
-        metadata = metadata == null ? Metadata.NONE : metadata;
-        accessConditions = accessConditions == null ? BlobAccessConditions.NONE : accessConditions;
+        metadata = metadata == null ? new Metadata() : metadata;
+        accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
         context = context == null ? Context.NONE : context;
 
         return addErrorWrappingToSingle(this.storageClient.generatedBlobs().createSnapshotWithRestResponseAsync(
