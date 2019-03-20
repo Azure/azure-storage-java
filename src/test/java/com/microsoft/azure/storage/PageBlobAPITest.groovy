@@ -322,6 +322,7 @@ class PageBlobAPITest extends APISpec {
 
         then:
         response.statusCode() == 201
+        validateBasicHeaders(response.headers())
     }
 
     def "Upload page from URL range"() {

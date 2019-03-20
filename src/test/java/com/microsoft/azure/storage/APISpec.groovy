@@ -82,20 +82,26 @@ class APISpec extends Specification {
     /*
     Credentials for various kinds of accounts.
      */
-    static SharedKeyCredentials primaryCreds = getGenericCreds("")
+    @Shared
+    static SharedKeyCredentials primaryCreds
 
-    static ServiceURL primaryServiceURL = getGenericServiceURL(primaryCreds)
-
-    static SharedKeyCredentials alternateCreds = getGenericCreds("SECONDARY_")
+    @Shared
+    static SharedKeyCredentials alternateCreds
 
     /*
     URLs to various kinds of accounts.
      */
-    static ServiceURL alternateServiceURL = getGenericServiceURL(alternateCreds)
+    @Shared
+    static ServiceURL primaryServiceURL
 
-    static ServiceURL blobStorageServiceURL = getGenericServiceURL(getGenericCreds("BLOB_STORAGE_"))
+    @Shared
+    static ServiceURL alternateServiceURL
 
-    static ServiceURL premiumServiceURL = getGenericServiceURL(getGenericCreds("PREMIUM_"))
+    @Shared
+    static ServiceURL blobStorageServiceURL
+
+    @Shared
+    static ServiceURL premiumServiceURL
 
     /*
     Constants for testing that the context parameter is properly passed to the pipeline.
@@ -216,7 +222,7 @@ class APISpec extends Specification {
         HttpPipeline pipeline = StorageURL.createPipeline(primaryCreds, new PipelineOptions())
 
         ServiceURL serviceURL = new ServiceURL(
-                new URL("http://" + System.getenv().get("ACCOUNT_NAME") + ".blob.core.windows.net"), pipeline)
+                new URL("http://" + primaryCreds.accountName + ".blob.core.windows.net"), pipeline)
         // There should not be more than 5000 containers from these tests
         for (ContainerItem c : serviceURL.listContainersSegment(null,
                 new ListContainersOptions().withPrefix(containerPrefix), null).blockingGet()
@@ -256,13 +262,6 @@ class APISpec extends Specification {
     }
 
     def setupSpec() {
-    }
-
-    def cleanupSpec() {
-        cleanupContainers()
-    }
-
-    def setup() {
         /*
         We'll let primary creds throw and crash if there are no credentials specified because everything else will fail.
          */
@@ -291,7 +290,13 @@ class APISpec extends Specification {
         }
         catch (Exception e) {
         }
+    }
 
+    def cleanupSpec() {
+        cleanupContainers()
+    }
+
+    def setup() {
         cu = primaryServiceURL.createContainerURL(generateContainerName())
         cu.create(null, null, null).blockingGet()
     }

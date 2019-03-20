@@ -323,6 +323,7 @@ class AppendBlobAPITest extends APISpec {
 
         then:
         response.statusCode() == 201
+        validateBasicHeaders(response.headers())
     }
 
     def "Append block from URL range"() {

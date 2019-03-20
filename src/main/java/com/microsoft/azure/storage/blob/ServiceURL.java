@@ -51,6 +51,15 @@ public final class ServiceURL extends StorageURL {
         super(url, pipeline);
     }
 
+    /**
+     * Creates a {@link ContainerURL} object pointing to the specified container. This method does not create a
+     * container. It simply constructs the URL to the container and offers access to methods relevant to containers.
+     *
+     * @param containerName
+     *     The name of the container to point to.
+     * @return
+     *     A {@link ContainerURL} object pointing to the specified container
+     */
     public ContainerURL createContainerURL(String containerName) {
         try {
             return new ContainerURL(StorageURL.appendToURLPath(new URL(super.storageClient.url()), containerName),

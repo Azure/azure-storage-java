@@ -1899,11 +1899,9 @@ public class Samples {
 
         // <block_from_url>
         String blockID = Base64.getEncoder().encodeToString(UUID.randomUUID().toString().getBytes());
-        blockBlobURL.stageBlockFromURL(blockID, blobURL.toURL(), null,
-                null, null, null, null)
+        blockBlobURL.stageBlockFromURL(blockID, blobURL.toURL(), null, null, null, null, null)
                 .flatMap(response ->
-                        blockBlobURL.commitBlockList(Arrays.asList(blockID), null, null,
-                                null, null))
+                        blockBlobURL.commitBlockList(Arrays.asList(blockID), null, null, null, null))
                 .subscribe();
         // </block_from_url>
 
@@ -1924,6 +1922,10 @@ public class Samples {
                 }).subscribe();
         // </append_blob>
 
+        // <append_from_url>
+        appendBlobURL.appendBlockFromUrl(blobURL.toURL(), new BlobRange().withOffset(50), null, null, null, null)
+                .subscribe();
+        // </append_from_url>
 
         // <snapshot>
         // Create the container.
@@ -2166,6 +2168,12 @@ public class Samples {
         IDs. These snapshots may be read from like normal snapshots.
          */
         // </incremental_copy>
+
+        // <page_from_url>
+        pageBlobURL.uploadPagesFromURL(new PageRange().withStart(0).withEnd(511), blobURL.toURL(), 2048L, null, null,
+                null, null)
+                .subscribe();
+        // </page_from_url>
 
         // <blob_lease>
         blobURL.acquireLease(null, 20, null, null)
