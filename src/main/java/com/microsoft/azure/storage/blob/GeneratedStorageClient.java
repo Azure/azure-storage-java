@@ -8,7 +8,7 @@
  * regenerated.
  */
 
-package com.microsoft.azure.storage;
+package com.microsoft.azure.storage.blob;
 
 import com.microsoft.rest.v2.RestProxy;
 import com.microsoft.rest.v2.ServiceClient;

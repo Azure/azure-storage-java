@@ -8,7 +8,7 @@
  * regenerated.
  */
 
-package com.microsoft.azure.storage;
+package com.microsoft.azure.storage.blob;
 
 import com.microsoft.azure.storage.blob.models.ListContainersIncludeType;
 import com.microsoft.azure.storage.blob.models.ListContainersSegmentResponse;

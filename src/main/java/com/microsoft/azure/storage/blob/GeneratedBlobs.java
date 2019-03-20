@@ -8,7 +8,7 @@
  * regenerated.
  */
 
-package com.microsoft.azure.storage;
+package com.microsoft.azure.storage.blob;
 
 import com.microsoft.azure.storage.blob.models.AccessTier;
 import com.microsoft.azure.storage.blob.models.BlobAbortCopyFromURLResponse;
@@ -59,7 +59,6 @@ import io.reactivex.annotations.NonNull;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.time.OffsetDateTime;
-import java.util.HashMap;
 import java.util.Map;
 
 /**

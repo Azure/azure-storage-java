@@ -4,6 +4,7 @@
 * Removed DEFAULT and NONE static variables. Empty constructors should be used instead. DEFAULT static values were error prone and unsafe to use because although the field was final, the objects were mutable, so it was possible the value could be changed accidentally and alter the behavior of the program.
 * Changed *ListingDetails to *ListDetails. These name changes are to mitigate conflicts with v8, allowing for side-by-side loading of different versions, which may help with upgrading.
 * Removed the extra quotes around etags in some responses so they are consistently now consistently formatted.
+* Moved the Generated*** types into the blob package to avoid conflicts with generated types from other services (i.e. queues and files)
 
 2018.08.11 Version 10.1.0
 * Interfaces for helper types updated to be more consistent throughout the library. All types, with the exception of the options for pipeline factories, use a fluent pattern.

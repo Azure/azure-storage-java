@@ -8,7 +8,7 @@
  * regenerated.
  */
 
-package com.microsoft.azure.storage;
+package com.microsoft.azure.storage.blob;
 
 import com.microsoft.azure.storage.blob.implementation.SignedIdentifiersWrapper;
 import com.microsoft.azure.storage.blob.models.ContainerAcquireLeaseResponse;
@@ -56,8 +56,6 @@ import io.reactivex.Single;
 import io.reactivex.annotations.NonNull;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
