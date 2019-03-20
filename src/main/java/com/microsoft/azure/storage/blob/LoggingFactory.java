@@ -44,8 +44,8 @@ import java.util.logging.Logger;
  */
 public final class LoggingFactory implements RequestPolicyFactory {
 
-    private static final Logger forceLogger = Logger.getLogger("Azure Storage Java SDK");
-    private static final org.slf4j.Logger slf4jLogger = LoggerFactory.getLogger("Azure Storage Java SDK");
+    private static final Logger forceLogger = Logger.getLogger(LoggingFactory.class.getName());
+    private static final org.slf4j.Logger slf4jLogger = LoggerFactory.getLogger(LoggingFactory.class.getName());
     private static final Map<HttpPipelineLogLevel, Level> javaLogLevelMap = new HashMap<>();
     private static boolean defaultLoggerLoaded;
 
