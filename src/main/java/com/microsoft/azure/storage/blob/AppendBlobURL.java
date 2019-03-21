@@ -265,12 +265,12 @@ public final class AppendBlobURL extends BlobURL {
             byte[] sourceContentMD5, AppendBlobAccessConditions destAccessConditions,
             SourceModifiedAccessConditions sourceAccessConditions, Context context) {
 
-        sourceRange = sourceRange == null ? BlobRange.DEFAULT : sourceRange;
+        sourceRange = sourceRange == null ? new BlobRange() : sourceRange;
         destAccessConditions = destAccessConditions == null
                 ? new AppendBlobAccessConditions() : destAccessConditions;
         context = context == null ? Context.NONE : context;
 
-        return addErrorWrappingToSingle(
+        return postProcessResponse(
                 this.storageClient.generatedAppendBlobs().appendBlockFromUrlWithRestResponseAsync(context,
                         sourceURL, 0, sourceRange.toString(), sourceContentMD5, null, null,
                         destAccessConditions.leaseAccessConditions(),

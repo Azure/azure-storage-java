@@ -547,7 +547,7 @@ public class Samples {
         // Calling encode will generate the query string.
         String encodedParams = params.encode();
 
-        String urlToSendToSomeone = String.format(Locale.ROOT, "https://%s.blob.core.windows.net?%s",
+        String urlToSendToSomeone = String.format(Locale.ROOT, "https://%s.blob.core.windows.net%s",
                 accountName, encodedParams);
         // At this point, you can send the urlToSendSomeone to someone via email or any other mechanism you choose.
 
@@ -1413,7 +1413,7 @@ public class Samples {
                 .flatMap(response -> Single.using(
                         () -> AsynchronousFileChannel.open(tempFile.toPath(), StandardOpenOption.READ),
                         channel -> TransferManager.uploadFileToBlockBlob(channel, blobURL,
-                                BlockBlobURL.MAX_STAGE_BLOCK_BYTES, null),
+                                BlockBlobURL.MAX_STAGE_BLOCK_BYTES, null, null),
                         AsynchronousFileChannel::close)
                 )
                 .flatMap(response -> Single.using(
@@ -1506,7 +1506,8 @@ public class Samples {
                         // Upload some data to a blob
                         Single.using(() -> AsynchronousFileChannel.open(file.toPath()),
                                 fileChannel -> TransferManager.uploadFileToBlockBlob(fileChannel, blobURL,
-                                        BlockBlobURL.MAX_STAGE_BLOCK_BYTES, new TransferManagerUploadToBlockBlobOptions()),
+                                        BlockBlobURL.MAX_STAGE_BLOCK_BYTES, null,
+                                        new TransferManagerUploadToBlockBlobOptions()),
                                 AsynchronousFileChannel::close))
                 .flatMap(response ->
                         blobURL.download(null, null, false, null))
@@ -2217,7 +2218,7 @@ public class Samples {
                 .flatMap(response -> Single.using(
                         () -> AsynchronousFileChannel.open(tempFile.toPath(), StandardOpenOption.READ),
                         channel -> TransferManager.uploadFileToBlockBlob(channel, blobURL,
-                                BlockBlobURL.MAX_STAGE_BLOCK_BYTES, null),
+                                BlockBlobURL.MAX_STAGE_BLOCK_BYTES, null, null),
                         AsynchronousFileChannel::close)
                 )
                 .flatMap(response -> Single.using(
