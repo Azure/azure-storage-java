@@ -15,17 +15,23 @@
 package com.microsoft.azure.storage.blob;
 
 import com.microsoft.azure.storage.blob.models.StorageErrorException;
-import com.microsoft.rest.v2.RestResponse;
+import com.microsoft.azure.storage.blob.models.UserDelegationKey;
 import io.reactivex.Single;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.Locale;
 
 final class Utility {
@@ -273,14 +279,38 @@ final class Utility {
             try {
                 Object headers = response.getClass().getMethod("headers").invoke(response);
                 Method etagGetterMethod = headers.getClass().getMethod("eTag");
-                String etag = (String)etagGetterMethod.invoke(headers);
+                String etag = (String) etagGetterMethod.invoke(headers);
                 etag = etag.replace("\"", ""); // Etag headers without the quotes will be unaffected.
                 headers.getClass().getMethod("withETag", String.class).invoke(headers, etag);
-            }
-            catch (NoSuchMethodException e) {
+            } catch (NoSuchMethodException e) {
                 // Response did not return an eTag value. No change necessary.
             }
             return response;
         });
+    }
+
+    /**
+     * Computes a signature for the specified string using the HMAC-SHA256 algorithm.
+     *
+     * @param delegate
+     *         Key used to sign
+     * @param stringToSign
+     *         The UTF-8-encoded string to sign.
+     *
+     * @return A {@code String} that contains the HMAC-SHA256-encoded signature.
+     *
+     * @throws InvalidKeyException
+     *         If the accountKey is not a valid Base64-encoded string.
+     */
+    static String delegateComputeHmac256(final UserDelegationKey delegate, String stringToSign) throws InvalidKeyException {
+        try {
+            byte[] key = Base64.getDecoder().decode(delegate.value());
+            Mac hmacSha256 = Mac.getInstance("HmacSHA256");
+            hmacSha256.init(new SecretKeySpec(key, "HmacSHA256"));
+            byte[] utf8Bytes = stringToSign.getBytes(StandardCharsets.UTF_8);
+            return Base64.getEncoder().encodeToString(hmacSha256.doFinal(utf8Bytes));
+        } catch (final NoSuchAlgorithmException e) {
+            throw new Error(e);
+        }
     }
 }

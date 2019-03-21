@@ -578,6 +578,7 @@ public class Samples {
         // This is the name of the container and blob that we're creating a SAS to.
         String containerName = "mycontainer"; // Container names require lowercase.
         String blobName = "HelloWorld.txt"; // Blob names can be mixed case.
+        String snapshotId = "2018-01-01T00:00:00.0000000Z"; // SAS can be restricted to a specific snapshot
 
         /*
         Set the desired SAS signature values and sign them with the shared key credentials to get the SAS query
@@ -587,11 +588,12 @@ public class Samples {
                 .withProtocol(SASProtocol.HTTPS_ONLY) // Users MUST use HTTPS (not HTTP).
                 .withExpiryTime(OffsetDateTime.now().plusDays(2)) // 2 days before expiration.
                 .withContainerName(containerName)
-                .withBlobName(blobName);
+                .withBlobName(blobName)
+                .withSnapshotId(snapshotId);
 
         /*
         To produce a container SAS (as opposed to a blob SAS), assign to Permissions using ContainerSASPermissions, and
-        make sure the blobName field is null (the default).
+        make sure the blobName and snapshotId fields are null (the default).
          */
         BlobSASPermission permission = new BlobSASPermission()
                 .withRead(true)
@@ -603,9 +605,11 @@ public class Samples {
 
         // Calling encode will generate the query string.
         String encodedParams = params.encode();
+        // Colons are not safe characters in a URL; they must be properly encoded.
+        snapshotId = snapshotId.replace(":", "%3A");
 
-        String urlToSendToSomeone = String.format(Locale.ROOT, "https://%s.blob.core.windows.net/%s/%s?%s",
-                accountName, containerName, blobName, encodedParams);
+        String urlToSendToSomeone = String.format(Locale.ROOT, "https://%s.blob.core.windows.net/%s/%s?%s&%s",
+                accountName, containerName, blobName, snapshotId, encodedParams);
         // At this point, you can send the urlToSendSomeone to someone via email or any other mechanism you choose.
 
         // ***************************************************************************************************
@@ -1799,6 +1803,7 @@ public class Samples {
         // This is the name of the container and blob that we're creating a SAS to.
         String containerName = "mycontainer"; // Container names require lowercase.
         String blobName = "HelloWorld.txt"; // Blob names can be mixed case.
+        String snapshotId = "2018-01-01T00:00:00.0000000Z"; // SAS can be restricted to a specific snapshot
 
         /*
         Set the desired SAS signature values and sign them with the shared key credentials to get the SAS query
@@ -1808,11 +1813,12 @@ public class Samples {
                 .withProtocol(SASProtocol.HTTPS_ONLY) // Users MUST use HTTPS (not HTTP).
                 .withExpiryTime(OffsetDateTime.now().plusDays(2)) // 2 days before expiration.
                 .withContainerName(containerName)
-                .withBlobName(blobName);
+                .withBlobName(blobName)
+                .withSnapshotId(snapshotId);
 
         /*
         To produce a container SAS (as opposed to a blob SAS), assign to Permissions using ContainerSASPermissions, and
-        make sure the blobName field is null (the default).
+        make sure the blobName and snapshotId fields are null (the default).
          */
         BlobSASPermission blobPermission = new BlobSASPermission()
                 .withRead(true)
@@ -1824,9 +1830,11 @@ public class Samples {
 
         // Calling encode will generate the query string.
         encodedParams = serviceParams.encode();
+        // Colons are not safe characters in a URL; they must be properly encoded.
+        snapshotId = snapshotId.replace(":", "%3A");
 
-        urlToSendToSomeone = String.format(Locale.ROOT, "https://%s.blob.core.windows.net/%s/%s?%s",
-                getAccountName(), containerName, blobName, encodedParams);
+        urlToSendToSomeone = String.format(Locale.ROOT, "https://%s.blob.core.windows.net/%s/%s?%s&%s",
+                getAccountName(), containerName, blobName, snapshotId, encodedParams);
         // At this point, you can send the urlToSendSomeone to someone via email or any other mechanism you choose.
 
         // ***************************************************************************************************

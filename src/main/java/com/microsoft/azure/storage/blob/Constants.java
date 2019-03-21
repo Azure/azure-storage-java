@@ -273,6 +273,36 @@ final class Constants {
          */
         static final String SAS_CONTENT_TYPE = "rsct";
 
+        /**
+         * The SAS signed object id parameter for user delegation SAS.
+         */
+        public static final String SAS_SIGNED_OBJECT_ID = "skoid";
+
+        /**
+         * The SAS signed tenant id parameter for user delegation SAS.
+         */
+        public static final String SAS_SIGNED_TENANT_ID = "sktid";
+
+        /**
+         * The SAS signed key-start parameter for user delegation SAS.
+         */
+        public static final String SAS_SIGNED_KEY_START = "skt";
+
+        /**
+         * The SAS signed key-expiry parameter for user delegation SAS.
+         */
+        public static final String SAS_SIGNED_KEY_EXPIRY = "ske";
+
+        /**
+         * The SAS signed service parameter for user delegation SAS.
+         */
+        public static final String SAS_SIGNED_KEY_SERVICE = "sks";
+
+        /**
+         * The SAS signed version parameter for user delegation SAS.
+         */
+        public static final String SAS_SIGNED_KEY_VERSION = "skv";
+
         private UrlConstants() {
             // Private to prevent construction.
         }

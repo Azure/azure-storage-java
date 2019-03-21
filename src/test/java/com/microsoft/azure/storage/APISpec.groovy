@@ -15,6 +15,8 @@
 
 package com.microsoft.azure.storage
 
+import com.microsoft.aad.adal4j.AuthenticationContext
+import com.microsoft.aad.adal4j.ClientCredential
 import com.microsoft.azure.storage.blob.*
 import com.microsoft.azure.storage.blob.models.*
 import com.microsoft.rest.v2.Context
@@ -29,6 +31,7 @@ import spock.lang.Specification
 
 import java.nio.ByteBuffer
 import java.time.OffsetDateTime
+import java.util.concurrent.Executors
 
 class APISpec extends Specification {
     @Shared
@@ -149,7 +152,7 @@ class APISpec extends Specification {
         String suffix = ""
         suffix += System.currentTimeMillis() // For uniqueness between runs.
         suffix += entityNo // For easy identification of which call created this resource.
-        return prefix + getTestName(specificationContext) + suffix
+        return prefix + getTestName(specificationContext).take(63 - suffix.length() - prefix.length()) + suffix
     }
 
     static int updateIterationNo(ISpecificationContext specificationContext, int iterationNo) {
@@ -567,5 +570,15 @@ class APISpec extends Specification {
         return Mock(RequestPolicyFactory) {
             create(*_) >> policy
         }
+    }
+
+    def getOAuthServiceURL() {
+        def authority = "[LOGIN AUTHORITY HERE]"
+        def credential = new ClientCredential("[AD APP ID]", "[APP SECRET]")
+        def token = new AuthenticationContext(authority, false, Executors.newFixedThreadPool(1)).acquireToken("https://storage.azure.com", credential, null).get().accessToken
+
+        return new ServiceURL(
+                new URL("https://[BLOB ENDPOINT]"),
+                StorageURL.createPipeline(new TokenCredentials(token)))
     }
 }

@@ -10,16 +10,19 @@
 
 package com.microsoft.azure.storage.blob;
 
+import com.microsoft.azure.storage.blob.models.KeyInfo;
 import com.microsoft.azure.storage.blob.models.ListContainersIncludeType;
 import com.microsoft.azure.storage.blob.models.ListContainersSegmentResponse;
 import com.microsoft.azure.storage.blob.models.ServiceGetAccountInfoResponse;
 import com.microsoft.azure.storage.blob.models.ServiceGetPropertiesResponse;
 import com.microsoft.azure.storage.blob.models.ServiceGetStatisticsResponse;
+import com.microsoft.azure.storage.blob.models.ServiceGetUserDelegationKeyResponse;
 import com.microsoft.azure.storage.blob.models.ServiceListContainersSegmentResponse;
 import com.microsoft.azure.storage.blob.models.ServiceSetPropertiesResponse;
 import com.microsoft.azure.storage.blob.models.StorageErrorException;
 import com.microsoft.azure.storage.blob.models.StorageServiceProperties;
 import com.microsoft.azure.storage.blob.models.StorageServiceStats;
+import com.microsoft.azure.storage.blob.models.UserDelegationKey;
 import com.microsoft.rest.v2.Context;
 import com.microsoft.rest.v2.RestProxy;
 import com.microsoft.rest.v2.ServiceCallback;
@@ -31,6 +34,7 @@ import com.microsoft.rest.v2.annotations.GET;
 import com.microsoft.rest.v2.annotations.HeaderParam;
 import com.microsoft.rest.v2.annotations.Host;
 import com.microsoft.rest.v2.annotations.HostParam;
+import com.microsoft.rest.v2.annotations.POST;
 import com.microsoft.rest.v2.annotations.PUT;
 import com.microsoft.rest.v2.annotations.QueryParam;
 import com.microsoft.rest.v2.annotations.UnexpectedResponseExceptionType;
@@ -80,6 +84,11 @@ public final class GeneratedServices {
         @UnexpectedResponseExceptionType(StorageErrorException.class)
         Single<ServiceGetPropertiesResponse> getProperties(Context context, @HostParam("url") String url, @QueryParam("timeout") Integer timeout, @HeaderParam("x-ms-version") String version, @HeaderParam("x-ms-client-request-id") String requestId, @QueryParam("restype") String restype, @QueryParam("comp") String comp);
 
+        @POST("")
+        @ExpectedResponses({200})
+        @UnexpectedResponseExceptionType(StorageErrorException.class)
+        Single<ServiceGetUserDelegationKeyResponse> getUserDelegationKey(Context context, @HostParam("url") String url, @BodyParam("application/xml; charset=utf-8") KeyInfo keyInfo, @QueryParam("timeout") Integer timeout, @HeaderParam("x-ms-version") String version, @HeaderParam("x-ms-client-request-id") String requestId, @QueryParam("restype") String restype, @QueryParam("comp") String comp);
+
         @GET("")
         @ExpectedResponses({200})
         @UnexpectedResponseExceptionType(StorageErrorException.class)
@@ -88,7 +97,7 @@ public final class GeneratedServices {
         @GET("")
         @ExpectedResponses({200})
         @UnexpectedResponseExceptionType(StorageErrorException.class)
-        Single<ServiceListContainersSegmentResponse> listContainersSegment(Context context, @HostParam("url") String url, @QueryParam("prefix") String prefix, @QueryParam("marker") String marker, @QueryParam("maxresults") Integer maxresults, @QueryParam("include") ListContainersIncludeType include, @QueryParam("timeout") Integer timeout, @HeaderParam("x-ms-version") String version, @HeaderParam("x-ms-client-request-id") String requestId, @QueryParam("comp") String comp);
+        Single<ServiceListContainersSegmentResponse> listContainersSegment(Context context, @HostParam("url") String url, @QueryParam("prefix") String prefix, @QueryParam("marker") String marker1, @QueryParam("maxresults") Integer maxresults, @QueryParam("include") ListContainersIncludeType include, @QueryParam("timeout") Integer timeout, @HeaderParam("x-ms-version") String version, @HeaderParam("x-ms-client-request-id") String requestId, @QueryParam("comp") String comp);
 
         @GET("")
         @ExpectedResponses({200})
@@ -229,6 +238,78 @@ public final class GeneratedServices {
     public Maybe<StorageServiceProperties> getPropertiesAsync(Context context, Integer timeout, String requestId) {
         return getPropertiesWithRestResponseAsync(context, timeout, requestId)
             .flatMapMaybe((ServiceGetPropertiesResponse res) -> res.body() == null ? Maybe.empty() : Maybe.just(res.body()));
+    }
+
+    /**
+     * Retrieves a user delgation key for the Blob service. This is only a valid operation when using bearer token authentication.
+     *
+     * @param context The context to associate with this operation.
+     * @param keyInfo the KeyInfo value.
+     * @param timeout The timeout parameter is expressed in seconds. For more information, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/setting-timeouts-for-blob-service-operations"&gt;Setting Timeouts for Blob Service Operations.&lt;/a&gt;.
+     * @param requestId Provides a client-generated, opaque value with a 1 KB character limit that is recorded in the analytics logs when storage analytics logging is enabled.
+     * @throws IllegalArgumentException thrown if parameters fail the validation.
+     * @throws StorageErrorException thrown if the request is rejected by server.
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent.
+     * @return the UserDelegationKey object if successful.
+     */
+    public UserDelegationKey getUserDelegationKey(Context context, @NonNull KeyInfo keyInfo, Integer timeout, String requestId) {
+        return getUserDelegationKeyAsync(context, keyInfo, timeout, requestId).blockingGet();
+    }
+
+    /**
+     * Retrieves a user delgation key for the Blob service. This is only a valid operation when using bearer token authentication.
+     *
+     * @param context The context to associate with this operation.
+     * @param keyInfo the KeyInfo value.
+     * @param timeout The timeout parameter is expressed in seconds. For more information, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/setting-timeouts-for-blob-service-operations"&gt;Setting Timeouts for Blob Service Operations.&lt;/a&gt;.
+     * @param requestId Provides a client-generated, opaque value with a 1 KB character limit that is recorded in the analytics logs when storage analytics logging is enabled.
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation.
+     * @return a ServiceFuture which will be completed with the result of the network request.
+     */
+    public ServiceFuture<UserDelegationKey> getUserDelegationKeyAsync(Context context, @NonNull KeyInfo keyInfo, Integer timeout, String requestId, ServiceCallback<UserDelegationKey> serviceCallback) {
+        return ServiceFuture.fromBody(getUserDelegationKeyAsync(context, keyInfo, timeout, requestId), serviceCallback);
+    }
+
+    /**
+     * Retrieves a user delgation key for the Blob service. This is only a valid operation when using bearer token authentication.
+     *
+     * @param context The context to associate with this operation.
+     * @param keyInfo the KeyInfo value.
+     * @param timeout The timeout parameter is expressed in seconds. For more information, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/setting-timeouts-for-blob-service-operations"&gt;Setting Timeouts for Blob Service Operations.&lt;/a&gt;.
+     * @param requestId Provides a client-generated, opaque value with a 1 KB character limit that is recorded in the analytics logs when storage analytics logging is enabled.
+     * @throws IllegalArgumentException thrown if parameters fail the validation.
+     * @return a Single which performs the network request upon subscription.
+     */
+    public Single<ServiceGetUserDelegationKeyResponse> getUserDelegationKeyWithRestResponseAsync(Context context, @NonNull KeyInfo keyInfo, Integer timeout, String requestId) {
+        if (this.client.url() == null) {
+            throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
+        }
+        if (keyInfo == null) {
+            throw new IllegalArgumentException("Parameter keyInfo is required and cannot be null.");
+        }
+        if (this.client.version() == null) {
+            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
+        }
+        Validator.validate(keyInfo);
+        final String restype = "service";
+        final String comp = "userdelegationkey";
+        return service.getUserDelegationKey(context, this.client.url(), keyInfo, timeout, this.client.version(), requestId, restype, comp);
+    }
+
+    /**
+     * Retrieves a user delgation key for the Blob service. This is only a valid operation when using bearer token authentication.
+     *
+     * @param context The context to associate with this operation.
+     * @param keyInfo the KeyInfo value.
+     * @param timeout The timeout parameter is expressed in seconds. For more information, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/setting-timeouts-for-blob-service-operations"&gt;Setting Timeouts for Blob Service Operations.&lt;/a&gt;.
+     * @param requestId Provides a client-generated, opaque value with a 1 KB character limit that is recorded in the analytics logs when storage analytics logging is enabled.
+     * @throws IllegalArgumentException thrown if parameters fail the validation.
+     * @return a Single which performs the network request upon subscription.
+     */
+    public Maybe<UserDelegationKey> getUserDelegationKeyAsync(Context context, @NonNull KeyInfo keyInfo, Integer timeout, String requestId) {
+        return getUserDelegationKeyWithRestResponseAsync(context, keyInfo, timeout, requestId)
+            .flatMapMaybe((ServiceGetUserDelegationKeyResponse res) -> res.body() == null ? Maybe.empty() : Maybe.just(res.body()));
     }
 
     /**
