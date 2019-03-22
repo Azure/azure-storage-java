@@ -236,15 +236,6 @@ public final class BlobDownloadHeaders {
     private Integer blobCommittedBlockCount;
 
     /**
-     * The value of this header is set to true if the blob data and application
-     * metadata are completely encrypted using the specified algorithm.
-     * Otherwise, the value is set to false (when the blob is unencrypted, or
-     * if only parts of the blob/application metadata are encrypted).
-     */
-    @JsonProperty(value = "x-ms-server-encrypted")
-    private Boolean isServerEncrypted;
-
-    /**
      * If the blob has a MD5 hash, and if request contains range header (Range
      * or x-ms-range), this response header is returned with the value of the
      * whole blob's MD5 value. This value may or may not be equal to the value
@@ -253,6 +244,15 @@ public final class BlobDownloadHeaders {
      */
     @JsonProperty(value = "x-ms-blob-content-md5")
     private byte[] blobContentMD5;
+
+    /**
+     * The value of this header is set to true if the blob data and application
+     * metadata are completely encrypted using the specified algorithm.
+     * Otherwise, the value is set to false (when the blob is unencrypted, or
+     * if only parts of the blob/application metadata are encrypted).
+     */
+    @JsonProperty(value = "x-ms-server-encrypted")
+    private Boolean isServerEncrypted;
 
     /**
      * Get the lastModified value.
@@ -816,26 +816,6 @@ public final class BlobDownloadHeaders {
     }
 
     /**
-     * Get the isServerEncrypted value.
-     *
-     * @return the isServerEncrypted value.
-     */
-    public Boolean isServerEncrypted() {
-        return this.isServerEncrypted;
-    }
-
-    /**
-     * Set the isServerEncrypted value.
-     *
-     * @param isServerEncrypted the isServerEncrypted value to set.
-     * @return the BlobDownloadHeaders object itself.
-     */
-    public BlobDownloadHeaders withIsServerEncrypted(Boolean isServerEncrypted) {
-        this.isServerEncrypted = isServerEncrypted;
-        return this;
-    }
-
-    /**
      * Get the blobContentMD5 value.
      *
      * @return the blobContentMD5 value.
@@ -852,6 +832,26 @@ public final class BlobDownloadHeaders {
      */
     public BlobDownloadHeaders withBlobContentMD5(byte[] blobContentMD5) {
         this.blobContentMD5 = blobContentMD5;
+        return this;
+    }
+
+    /**
+     * Get the isServerEncrypted value.
+     *
+     * @return the isServerEncrypted value.
+     */
+    public Boolean isServerEncrypted() {
+        return this.isServerEncrypted;
+    }
+
+    /**
+     * Set the isServerEncrypted value.
+     *
+     * @param isServerEncrypted the isServerEncrypted value to set.
+     * @return the BlobDownloadHeaders object itself.
+     */
+    public BlobDownloadHeaders withIsServerEncrypted(Boolean isServerEncrypted) {
+        this.isServerEncrypted = isServerEncrypted;
         return this;
     }
 }

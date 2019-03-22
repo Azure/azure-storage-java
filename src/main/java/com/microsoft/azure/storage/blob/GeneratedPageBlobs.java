@@ -51,6 +51,7 @@ import io.reactivex.annotations.NonNull;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.time.OffsetDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -191,9 +192,6 @@ public final class GeneratedPageBlobs {
     public Single<PageBlobCreateResponse> createWithRestResponseAsync(Context context, @NonNull long contentLength, @NonNull long blobContentLength, Integer timeout, Map<String, String> metadata, Long blobSequenceNumber, String requestId, BlobHTTPHeaders blobHTTPHeaders, LeaseAccessConditions leaseAccessConditions, ModifiedAccessConditions modifiedAccessConditions) {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(metadata);
         Validator.validate(blobHTTPHeaders);
@@ -342,9 +340,6 @@ public final class GeneratedPageBlobs {
         if (body == null) {
             throw new IllegalArgumentException("Parameter body is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(leaseAccessConditions);
         Validator.validate(sequenceNumberAccessConditions);
         Validator.validate(modifiedAccessConditions);
@@ -470,9 +465,6 @@ public final class GeneratedPageBlobs {
     public Single<PageBlobClearPagesResponse> clearPagesWithRestResponseAsync(Context context, @NonNull long contentLength, Integer timeout, String range, String requestId, LeaseAccessConditions leaseAccessConditions, SequenceNumberAccessConditions sequenceNumberAccessConditions, ModifiedAccessConditions modifiedAccessConditions) {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(leaseAccessConditions);
         Validator.validate(sequenceNumberAccessConditions);
@@ -618,9 +610,6 @@ public final class GeneratedPageBlobs {
         if (range == null) {
             throw new IllegalArgumentException("Parameter range is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(sourceUrl);
         Validator.validate(leaseAccessConditions);
         Validator.validate(sequenceNumberAccessConditions);
@@ -720,7 +709,7 @@ public final class GeneratedPageBlobs {
     }
 
     /**
-     * The Get Page Ranges operation returns the list of valid page ranges for a page blob or snapshot of a page blob.
+     * The Get Page Ranges operation returns the list of valid page ranges for a page blob, version or snapshot of a page blob.
      *
      * @param context The context to associate with this operation.
      * @param snapshot The snapshot parameter is an opaque DateTime value that, when present, specifies the blob snapshot to retrieve. For more information on working with blob snapshots, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/creating-a-snapshot-of-a-blob"&gt;Creating a Snapshot of a Blob.&lt;/a&gt;.
@@ -739,7 +728,7 @@ public final class GeneratedPageBlobs {
     }
 
     /**
-     * The Get Page Ranges operation returns the list of valid page ranges for a page blob or snapshot of a page blob.
+     * The Get Page Ranges operation returns the list of valid page ranges for a page blob, version or snapshot of a page blob.
      *
      * @param context The context to associate with this operation.
      * @param snapshot The snapshot parameter is an opaque DateTime value that, when present, specifies the blob snapshot to retrieve. For more information on working with blob snapshots, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/creating-a-snapshot-of-a-blob"&gt;Creating a Snapshot of a Blob.&lt;/a&gt;.
@@ -757,7 +746,7 @@ public final class GeneratedPageBlobs {
     }
 
     /**
-     * The Get Page Ranges operation returns the list of valid page ranges for a page blob or snapshot of a page blob.
+     * The Get Page Ranges operation returns the list of valid page ranges for a page blob, version or snapshot of a page blob.
      *
      * @param context The context to associate with this operation.
      * @param snapshot The snapshot parameter is an opaque DateTime value that, when present, specifies the blob snapshot to retrieve. For more information on working with blob snapshots, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/creating-a-snapshot-of-a-blob"&gt;Creating a Snapshot of a Blob.&lt;/a&gt;.
@@ -772,9 +761,6 @@ public final class GeneratedPageBlobs {
     public Single<PageBlobGetPageRangesResponse> getPageRangesWithRestResponseAsync(Context context, String snapshot, Integer timeout, String range, String requestId, LeaseAccessConditions leaseAccessConditions, ModifiedAccessConditions modifiedAccessConditions) {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(leaseAccessConditions);
         Validator.validate(modifiedAccessConditions);
@@ -811,7 +797,7 @@ public final class GeneratedPageBlobs {
     }
 
     /**
-     * The Get Page Ranges operation returns the list of valid page ranges for a page blob or snapshot of a page blob.
+     * The Get Page Ranges operation returns the list of valid page ranges for a page blob, version or snapshot of a page blob.
      *
      * @param context The context to associate with this operation.
      * @param snapshot The snapshot parameter is an opaque DateTime value that, when present, specifies the blob snapshot to retrieve. For more information on working with blob snapshots, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/creating-a-snapshot-of-a-blob"&gt;Creating a Snapshot of a Blob.&lt;/a&gt;.
@@ -829,7 +815,7 @@ public final class GeneratedPageBlobs {
     }
 
     /**
-     * [Update] The Get Page Ranges Diff operation returns the list of valid page ranges for a page blob that were changed between target blob and previous snapshot.
+     * [Update] The Get Page Ranges Diff operation returns the list of valid page ranges for a page blob that were changed between target blob and previous snapshot or version.
      *
      * @param context The context to associate with this operation.
      * @param snapshot The snapshot parameter is an opaque DateTime value that, when present, specifies the blob snapshot to retrieve. For more information on working with blob snapshots, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/creating-a-snapshot-of-a-blob"&gt;Creating a Snapshot of a Blob.&lt;/a&gt;.
@@ -849,7 +835,7 @@ public final class GeneratedPageBlobs {
     }
 
     /**
-     * [Update] The Get Page Ranges Diff operation returns the list of valid page ranges for a page blob that were changed between target blob and previous snapshot.
+     * [Update] The Get Page Ranges Diff operation returns the list of valid page ranges for a page blob that were changed between target blob and previous snapshot or version.
      *
      * @param context The context to associate with this operation.
      * @param snapshot The snapshot parameter is an opaque DateTime value that, when present, specifies the blob snapshot to retrieve. For more information on working with blob snapshots, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/creating-a-snapshot-of-a-blob"&gt;Creating a Snapshot of a Blob.&lt;/a&gt;.
@@ -868,7 +854,7 @@ public final class GeneratedPageBlobs {
     }
 
     /**
-     * [Update] The Get Page Ranges Diff operation returns the list of valid page ranges for a page blob that were changed between target blob and previous snapshot.
+     * [Update] The Get Page Ranges Diff operation returns the list of valid page ranges for a page blob that were changed between target blob and previous snapshot or version.
      *
      * @param context The context to associate with this operation.
      * @param snapshot The snapshot parameter is an opaque DateTime value that, when present, specifies the blob snapshot to retrieve. For more information on working with blob snapshots, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/creating-a-snapshot-of-a-blob"&gt;Creating a Snapshot of a Blob.&lt;/a&gt;.
@@ -884,9 +870,6 @@ public final class GeneratedPageBlobs {
     public Single<PageBlobGetPageRangesDiffResponse> getPageRangesDiffWithRestResponseAsync(Context context, String snapshot, Integer timeout, String prevsnapshot, String range, String requestId, LeaseAccessConditions leaseAccessConditions, ModifiedAccessConditions modifiedAccessConditions) {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(leaseAccessConditions);
         Validator.validate(modifiedAccessConditions);
@@ -923,7 +906,7 @@ public final class GeneratedPageBlobs {
     }
 
     /**
-     * [Update] The Get Page Ranges Diff operation returns the list of valid page ranges for a page blob that were changed between target blob and previous snapshot.
+     * [Update] The Get Page Ranges Diff operation returns the list of valid page ranges for a page blob that were changed between target blob and previous snapshot or version.
      *
      * @param context The context to associate with this operation.
      * @param snapshot The snapshot parameter is an opaque DateTime value that, when present, specifies the blob snapshot to retrieve. For more information on working with blob snapshots, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/creating-a-snapshot-of-a-blob"&gt;Creating a Snapshot of a Blob.&lt;/a&gt;.
@@ -990,9 +973,6 @@ public final class GeneratedPageBlobs {
     public Single<PageBlobResizeResponse> resizeWithRestResponseAsync(Context context, @NonNull long blobContentLength, Integer timeout, String requestId, LeaseAccessConditions leaseAccessConditions, ModifiedAccessConditions modifiedAccessConditions) {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(leaseAccessConditions);
         Validator.validate(modifiedAccessConditions);
@@ -1101,9 +1081,6 @@ public final class GeneratedPageBlobs {
         if (sequenceNumberAction == null) {
             throw new IllegalArgumentException("Parameter sequenceNumberAction is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(leaseAccessConditions);
         Validator.validate(modifiedAccessConditions);
         final String comp = "properties";
@@ -1205,9 +1182,6 @@ public final class GeneratedPageBlobs {
         }
         if (copySource == null) {
             throw new IllegalArgumentException("Parameter copySource is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(copySource);
         Validator.validate(modifiedAccessConditions);

@@ -249,15 +249,6 @@ public final class BlobGetPropertiesHeaders {
     private Integer blobCommittedBlockCount;
 
     /**
-     * The value of this header is set to true if the blob data and application
-     * metadata are completely encrypted using the specified algorithm.
-     * Otherwise, the value is set to false (when the blob is unencrypted, or
-     * if only parts of the blob/application metadata are encrypted).
-     */
-    @JsonProperty(value = "x-ms-server-encrypted")
-    private Boolean isServerEncrypted;
-
-    /**
      * The tier of page blob on a premium storage account or tier of block blob
      * on blob storage LRS accounts. For a list of allowed premium page blob
      * tiers, see
@@ -896,26 +887,6 @@ public final class BlobGetPropertiesHeaders {
      */
     public BlobGetPropertiesHeaders withBlobCommittedBlockCount(Integer blobCommittedBlockCount) {
         this.blobCommittedBlockCount = blobCommittedBlockCount;
-        return this;
-    }
-
-    /**
-     * Get the isServerEncrypted value.
-     *
-     * @return the isServerEncrypted value.
-     */
-    public Boolean isServerEncrypted() {
-        return this.isServerEncrypted;
-    }
-
-    /**
-     * Set the isServerEncrypted value.
-     *
-     * @param isServerEncrypted the isServerEncrypted value to set.
-     * @return the BlobGetPropertiesHeaders object itself.
-     */
-    public BlobGetPropertiesHeaders withIsServerEncrypted(Boolean isServerEncrypted) {
-        this.isServerEncrypted = isServerEncrypted;
         return this;
     }
 

@@ -6,6 +6,7 @@
 * Removed the extra quotes around etags in some responses so they are consistently now consistently formatted.
 * Moved the Generated*** types into the blob package to avoid conflicts with generated types from other services (i.e. queues and files)
 * Changed the logger name to be the name of class that uses it, which is a more conventional practice
+* Made the max results field on listing responses Integer instead of int as it is an optional field only returned when specified in the request.
 
 2018.08.11 Version 10.1.0
 * Interfaces for helper types updated to be more consistent throughout the library. All types, with the exception of the options for pipeline factories, use a fluent pattern.

@@ -296,7 +296,8 @@ public final class LoggingFactory implements RequestPolicyFactory {
                         urlParts.sasQueryParameters().contentDisposition(),
                         urlParts.sasQueryParameters().contentEncoding(),
                         urlParts.sasQueryParameters().contentLanguage(),
-                        urlParts.sasQueryParameters().contentType()
+                        urlParts.sasQueryParameters().contentType(),
+                        urlParts.sasQueryParameters().userDelegationKey()
                 ));
                 resultURL = urlParts.toURL();
 

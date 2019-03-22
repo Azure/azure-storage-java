@@ -41,6 +41,7 @@ import io.reactivex.annotations.NonNull;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.time.OffsetDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -82,7 +83,7 @@ public final class GeneratedAppendBlobs {
         @PUT("{containerName}/{blob}")
         @ExpectedResponses({201})
         @UnexpectedResponseExceptionType(StorageErrorException.class)
-        Single<AppendBlobAppendBlockResponse> appendBlock(Context context, @HostParam("url") String url, @BodyParam("application/xml; charset=utf-8") Flowable<ByteBuffer> body, @QueryParam("timeout") Integer timeout, @HeaderParam("Content-Length") long contentLength, @HeaderParam("Content-MD5") String transactionalContentMD5, @HeaderParam("x-ms-version") String version, @HeaderParam("x-ms-client-request-id") String requestId, @QueryParam("comp") String comp, @HeaderParam("x-ms-lease-id") String leaseId, @HeaderParam("x-ms-blob-condition-maxsize") Long maxSize, @HeaderParam("x-ms-blob-condition-appendpos") Long appendPosition, @HeaderParam("If-Modified-Since") DateTimeRfc1123 ifModifiedSince, @HeaderParam("If-Unmodified-Since") DateTimeRfc1123 ifUnmodifiedSince, @HeaderParam("If-Match") String ifMatch, @HeaderParam("If-None-Match") String ifNoneMatch);
+        Single<AppendBlobAppendBlockResponse> appendBlock(Context context, @HostParam("url") String url, @BodyParam("application/octet-stream") Flowable<ByteBuffer> body, @QueryParam("timeout") Integer timeout, @HeaderParam("Content-Length") long contentLength, @HeaderParam("Content-MD5") String transactionalContentMD5, @HeaderParam("x-ms-version") String version, @HeaderParam("x-ms-client-request-id") String requestId, @QueryParam("comp") String comp, @HeaderParam("x-ms-lease-id") String leaseId, @HeaderParam("x-ms-blob-condition-maxsize") Long maxSize, @HeaderParam("x-ms-blob-condition-appendpos") Long appendPosition, @HeaderParam("If-Modified-Since") DateTimeRfc1123 ifModifiedSince, @HeaderParam("If-Unmodified-Since") DateTimeRfc1123 ifUnmodifiedSince, @HeaderParam("If-Match") String ifMatch, @HeaderParam("If-None-Match") String ifNoneMatch);
 
         @PUT("{containerName}/{blob}")
         @ExpectedResponses({201})
@@ -145,9 +146,6 @@ public final class GeneratedAppendBlobs {
     public Single<AppendBlobCreateResponse> createWithRestResponseAsync(Context context, @NonNull long contentLength, Integer timeout, Map<String, String> metadata, String requestId, BlobHTTPHeaders blobHTTPHeaders, LeaseAccessConditions leaseAccessConditions, ModifiedAccessConditions modifiedAccessConditions) {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(metadata);
         Validator.validate(blobHTTPHeaders);
@@ -291,9 +289,6 @@ public final class GeneratedAppendBlobs {
         if (body == null) {
             throw new IllegalArgumentException("Parameter body is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(leaseAccessConditions);
         Validator.validate(appendPositionAccessConditions);
         Validator.validate(modifiedAccessConditions);
@@ -425,9 +420,6 @@ public final class GeneratedAppendBlobs {
         }
         if (sourceUrl == null) {
             throw new IllegalArgumentException("Parameter sourceUrl is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(sourceUrl);
         Validator.validate(leaseAccessConditions);

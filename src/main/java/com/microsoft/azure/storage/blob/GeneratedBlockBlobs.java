@@ -47,6 +47,7 @@ import io.reactivex.annotations.NonNull;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.time.OffsetDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -167,9 +168,6 @@ public final class GeneratedBlockBlobs {
         }
         if (body == null) {
             throw new IllegalArgumentException("Parameter body is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(metadata);
         Validator.validate(blobHTTPHeaders);
@@ -314,9 +312,6 @@ public final class GeneratedBlockBlobs {
         if (body == null) {
             throw new IllegalArgumentException("Parameter body is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(leaseAccessConditions);
         final String comp = "block";
         String leaseId = null;
@@ -413,9 +408,6 @@ public final class GeneratedBlockBlobs {
         }
         if (sourceUrl == null) {
             throw new IllegalArgumentException("Parameter sourceUrl is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(sourceUrl);
         Validator.validate(leaseAccessConditions);
@@ -532,9 +524,6 @@ public final class GeneratedBlockBlobs {
         }
         if (blocks == null) {
             throw new IllegalArgumentException("Parameter blocks is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(metadata);
         Validator.validate(blocks);
@@ -670,9 +659,6 @@ public final class GeneratedBlockBlobs {
         }
         if (listType == null) {
             throw new IllegalArgumentException("Parameter listType is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(leaseAccessConditions);
         final String comp = "blocklist";

@@ -167,6 +167,7 @@ public final class GeneratedStorageClient extends ServiceClient {
      */
     public GeneratedStorageClient(@NonNull HttpPipeline httpPipeline) {
         super(httpPipeline);
+        this.version = "2018-11-09";
         this.generatedServices = new GeneratedServices(this);
         this.generatedContainers = new GeneratedContainers(this);
         this.generatedBlobs = new GeneratedBlobs(this);

@@ -52,14 +52,6 @@ public final class BlockBlobStageBlockHeaders {
     private DateTimeRfc1123 date;
 
     /**
-     * The value of this header is set to true if the contents of the request
-     * are successfully encrypted using the specified algorithm, and false
-     * otherwise.
-     */
-    @JsonProperty(value = "x-ms-request-server-encrypted")
-    private Boolean isServerEncrypted;
-
-    /**
      * Get the contentMD5 value.
      *
      * @return the contentMD5 value.
@@ -143,26 +135,6 @@ public final class BlockBlobStageBlockHeaders {
         } else {
             this.date = new DateTimeRfc1123(date);
         }
-        return this;
-    }
-
-    /**
-     * Get the isServerEncrypted value.
-     *
-     * @return the isServerEncrypted value.
-     */
-    public Boolean isServerEncrypted() {
-        return this.isServerEncrypted;
-    }
-
-    /**
-     * Set the isServerEncrypted value.
-     *
-     * @param isServerEncrypted the isServerEncrypted value to set.
-     * @return the BlockBlobStageBlockHeaders object itself.
-     */
-    public BlockBlobStageBlockHeaders withIsServerEncrypted(Boolean isServerEncrypted) {
-        this.isServerEncrypted = isServerEncrypted;
         return this;
     }
 }

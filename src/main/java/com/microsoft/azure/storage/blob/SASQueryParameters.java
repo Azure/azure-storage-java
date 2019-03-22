@@ -492,6 +492,40 @@ public final class SASQueryParameters {
         return contentType;
     }
 
+    public String keyOid() {
+        return keyOid;
+    }
+
+    public String keyTid() {
+        return keyTid;
+    }
+
+    public OffsetDateTime keyStart() {
+        return keyStart;
+    }
+
+    public OffsetDateTime keyExpiry() {
+        return keyExpiry;
+    }
+
+    public String keyService() {
+        return keyService;
+    }
+
+    public String keyVersion() {
+        return keyVersion;
+    }
+
+    UserDelegationKey userDelegationKey() {
+        return new UserDelegationKey()
+                .withSignedExpiry(this.keyExpiry)
+                .withSignedOid(this.keyOid)
+                .withSignedService(this.keyService)
+                .withSignedStart(this.keyStart)
+                .withSignedTid(this.keyTid)
+                .withSignedVersion(this.keyVersion);
+    }
+
     private void tryAppendQueryParameter(StringBuilder sb, String param, Object value) {
         if (value != null) {
             if (sb.length() == 0) {

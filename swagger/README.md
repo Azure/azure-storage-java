@@ -5,11 +5,11 @@ title: StorageClient
 description: Storage Client
 java: true
 enable-xml: true
-namespace: com.microsoft.azure.storage
+namespace: com.microsoft.azure.storage.blob
 license-header: MICROSOFT_MIT_NO_VERSION
-output-folder: ../blob
+output-folder: ../
 input-file:
-- path\to\json
+- C:\Users\frley\Desktop\temp\putFromURL.json
 directive:
   # removes the x-ms-error-code from default response headers
   where: $..default.headers["x-ms-error-code"]

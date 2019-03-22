@@ -15,6 +15,7 @@ XXXX.XX.XX Version X.X.X
 * Changed the logger name to be the name of class that uses it, which is a more conventional practice
 * Support added for SAS tokens to scope to blob snapshot.
 * Added getUserDelegationKey to ServiceURL, the result of which can be used to generate a user-delegation SAS.
+* Made the max results field on listing responses Integer instead of int as it is an optional field only returned when specified in the request.
 
 2019.02.15 Version 10.5.0
 * Added uploadFromNonReplayableFlowable to support uploading arbitrary data sources (like network streams) to a block blob.

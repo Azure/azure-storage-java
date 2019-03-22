@@ -59,6 +59,7 @@ import io.reactivex.annotations.NonNull;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.time.OffsetDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -172,14 +173,14 @@ public final class GeneratedBlobs {
         @UnexpectedResponseExceptionType(StorageErrorException.class)
         Single<BlobSetTierResponse> setTier(Context context, @HostParam("url") String url, @QueryParam("timeout") Integer timeout, @HeaderParam("x-ms-access-tier") AccessTier tier, @HeaderParam("x-ms-version") String version, @HeaderParam("x-ms-client-request-id") String requestId, @QueryParam("comp") String comp, @HeaderParam("x-ms-lease-id") String leaseId);
 
-        @GET("{containerName}/{blobName}")
+        @GET("{containerName}/{blob}")
         @ExpectedResponses({200})
         @UnexpectedResponseExceptionType(StorageErrorException.class)
         Single<BlobGetAccountInfoResponse> getAccountInfo(Context context, @HostParam("url") String url, @HeaderParam("x-ms-version") String version, @QueryParam("restype") String restype, @QueryParam("comp") String comp);
     }
 
     /**
-     * The Download operation reads or downloads a blob from the system, including its metadata and properties. You can also call Download to read a snapshot.
+     * The Download operation reads or downloads a blob from the system, including its metadata and properties. You can also call Download to read a snapshot or verison.
      *
      * @param context The context to associate with this operation.
      * @param snapshot The snapshot parameter is an opaque DateTime value that, when present, specifies the blob snapshot to retrieve. For more information on working with blob snapshots, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/creating-a-snapshot-of-a-blob"&gt;Creating a Snapshot of a Blob.&lt;/a&gt;.
@@ -199,7 +200,7 @@ public final class GeneratedBlobs {
     }
 
     /**
-     * The Download operation reads or downloads a blob from the system, including its metadata and properties. You can also call Download to read a snapshot.
+     * The Download operation reads or downloads a blob from the system, including its metadata and properties. You can also call Download to read a snapshot or verison.
      *
      * @param context The context to associate with this operation.
      * @param snapshot The snapshot parameter is an opaque DateTime value that, when present, specifies the blob snapshot to retrieve. For more information on working with blob snapshots, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/creating-a-snapshot-of-a-blob"&gt;Creating a Snapshot of a Blob.&lt;/a&gt;.
@@ -218,7 +219,7 @@ public final class GeneratedBlobs {
     }
 
     /**
-     * The Download operation reads or downloads a blob from the system, including its metadata and properties. You can also call Download to read a snapshot.
+     * The Download operation reads or downloads a blob from the system, including its metadata and properties. You can also call Download to read a snapshot or verison.
      *
      * @param context The context to associate with this operation.
      * @param snapshot The snapshot parameter is an opaque DateTime value that, when present, specifies the blob snapshot to retrieve. For more information on working with blob snapshots, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/creating-a-snapshot-of-a-blob"&gt;Creating a Snapshot of a Blob.&lt;/a&gt;.
@@ -234,9 +235,6 @@ public final class GeneratedBlobs {
     public Single<BlobDownloadResponse> downloadWithRestResponseAsync(Context context, String snapshot, Integer timeout, String range, Boolean rangeGetContentMD5, String requestId, LeaseAccessConditions leaseAccessConditions, ModifiedAccessConditions modifiedAccessConditions) {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(leaseAccessConditions);
         Validator.validate(modifiedAccessConditions);
@@ -272,7 +270,7 @@ public final class GeneratedBlobs {
     }
 
     /**
-     * The Download operation reads or downloads a blob from the system, including its metadata and properties. You can also call Download to read a snapshot.
+     * The Download operation reads or downloads a blob from the system, including its metadata and properties. You can also call Download to read a snapshot or verison.
      *
      * @param context The context to associate with this operation.
      * @param snapshot The snapshot parameter is an opaque DateTime value that, when present, specifies the blob snapshot to retrieve. For more information on working with blob snapshots, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/creating-a-snapshot-of-a-blob"&gt;Creating a Snapshot of a Blob.&lt;/a&gt;.
@@ -340,9 +338,6 @@ public final class GeneratedBlobs {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(leaseAccessConditions);
         Validator.validate(modifiedAccessConditions);
         String leaseId = null;
@@ -394,7 +389,7 @@ public final class GeneratedBlobs {
     }
 
     /**
-     * If the storage account's soft delete feature is disabled then, when a blob is deleted, it is permanently removed from the storage account. If the storage account's soft delete feature is enabled, then, when a blob is deleted, it is marked for deletion and becomes inaccessible immediately. However, the blob service retains the blob or snapshot for the number of days specified by the DeleteRetentionPolicy section of [Storage service properties] (Set-Blob-Service-Properties.md). After the specified number of days has passed, the blob's data is permanently removed from the storage account. Note that you continue to be charged for the soft-deleted blob's storage until it is permanently removed. Use the List Blobs API and specify the "include=deleted" query parameter to discover which blobs and snapshots have been soft deleted. You can then use the Undelete Blob API to restore a soft-deleted blob. All other operations on a soft-deleted blob or snapshot causes the service to return an HTTP status code of 404 (ResourceNotFound).
+     * If the storage account's soft delete feature is disabled then, when a blob is deleted, it is permanently removed from the storage account. If the storage account's soft delete feature is enabled, then, when a blob is deleted, it is marked for deletion and becomes inaccessible immediately. However, the blob service retains the blob or snapshot for the number of days specified by the DeleteRetentionPolicy section of [Storage service properties] (Set-Blob-Service-Properties.md). After the specified number of days has passed, the blob's data is permanently removed from the storage account. Note that you continue to be charged for the soft-deleted blob's storage until it is permanently removed. Use the List Blobs API and specify the "include=deleted" query parameter to discover which blobs and snapshots have been soft deleted. You can then use the Undelete Blob API to restore a soft-deleted blob. All other operations on a soft-deleted blob or snapshot causes the service to return an HTTP status code of 404 (ResourceNotFound). If the storage account's automatic snapshot feature is enabled, then, when a blob is deleted, an automatic snapshot is created. The blob becomes inaccessible immediately. All other operations on the blob causes the service to return an HTTP status code of 404 (ResourceNotFound). You can access automatic snapshot using snapshot timestamp or version id. You can restore the blob by calling Put or Copy Blob API with automatic snapshot as source. Deleting automatic snapshot requires shared key or special SAS/RBAC permissions.
      *
      * @param context The context to associate with this operation.
      * @param snapshot The snapshot parameter is an opaque DateTime value that, when present, specifies the blob snapshot to retrieve. For more information on working with blob snapshots, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/creating-a-snapshot-of-a-blob"&gt;Creating a Snapshot of a Blob.&lt;/a&gt;.
@@ -412,7 +407,7 @@ public final class GeneratedBlobs {
     }
 
     /**
-     * If the storage account's soft delete feature is disabled then, when a blob is deleted, it is permanently removed from the storage account. If the storage account's soft delete feature is enabled, then, when a blob is deleted, it is marked for deletion and becomes inaccessible immediately. However, the blob service retains the blob or snapshot for the number of days specified by the DeleteRetentionPolicy section of [Storage service properties] (Set-Blob-Service-Properties.md). After the specified number of days has passed, the blob's data is permanently removed from the storage account. Note that you continue to be charged for the soft-deleted blob's storage until it is permanently removed. Use the List Blobs API and specify the "include=deleted" query parameter to discover which blobs and snapshots have been soft deleted. You can then use the Undelete Blob API to restore a soft-deleted blob. All other operations on a soft-deleted blob or snapshot causes the service to return an HTTP status code of 404 (ResourceNotFound).
+     * If the storage account's soft delete feature is disabled then, when a blob is deleted, it is permanently removed from the storage account. If the storage account's soft delete feature is enabled, then, when a blob is deleted, it is marked for deletion and becomes inaccessible immediately. However, the blob service retains the blob or snapshot for the number of days specified by the DeleteRetentionPolicy section of [Storage service properties] (Set-Blob-Service-Properties.md). After the specified number of days has passed, the blob's data is permanently removed from the storage account. Note that you continue to be charged for the soft-deleted blob's storage until it is permanently removed. Use the List Blobs API and specify the "include=deleted" query parameter to discover which blobs and snapshots have been soft deleted. You can then use the Undelete Blob API to restore a soft-deleted blob. All other operations on a soft-deleted blob or snapshot causes the service to return an HTTP status code of 404 (ResourceNotFound). If the storage account's automatic snapshot feature is enabled, then, when a blob is deleted, an automatic snapshot is created. The blob becomes inaccessible immediately. All other operations on the blob causes the service to return an HTTP status code of 404 (ResourceNotFound). You can access automatic snapshot using snapshot timestamp or version id. You can restore the blob by calling Put or Copy Blob API with automatic snapshot as source. Deleting automatic snapshot requires shared key or special SAS/RBAC permissions.
      *
      * @param context The context to associate with this operation.
      * @param snapshot The snapshot parameter is an opaque DateTime value that, when present, specifies the blob snapshot to retrieve. For more information on working with blob snapshots, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/creating-a-snapshot-of-a-blob"&gt;Creating a Snapshot of a Blob.&lt;/a&gt;.
@@ -430,7 +425,7 @@ public final class GeneratedBlobs {
     }
 
     /**
-     * If the storage account's soft delete feature is disabled then, when a blob is deleted, it is permanently removed from the storage account. If the storage account's soft delete feature is enabled, then, when a blob is deleted, it is marked for deletion and becomes inaccessible immediately. However, the blob service retains the blob or snapshot for the number of days specified by the DeleteRetentionPolicy section of [Storage service properties] (Set-Blob-Service-Properties.md). After the specified number of days has passed, the blob's data is permanently removed from the storage account. Note that you continue to be charged for the soft-deleted blob's storage until it is permanently removed. Use the List Blobs API and specify the "include=deleted" query parameter to discover which blobs and snapshots have been soft deleted. You can then use the Undelete Blob API to restore a soft-deleted blob. All other operations on a soft-deleted blob or snapshot causes the service to return an HTTP status code of 404 (ResourceNotFound).
+     * If the storage account's soft delete feature is disabled then, when a blob is deleted, it is permanently removed from the storage account. If the storage account's soft delete feature is enabled, then, when a blob is deleted, it is marked for deletion and becomes inaccessible immediately. However, the blob service retains the blob or snapshot for the number of days specified by the DeleteRetentionPolicy section of [Storage service properties] (Set-Blob-Service-Properties.md). After the specified number of days has passed, the blob's data is permanently removed from the storage account. Note that you continue to be charged for the soft-deleted blob's storage until it is permanently removed. Use the List Blobs API and specify the "include=deleted" query parameter to discover which blobs and snapshots have been soft deleted. You can then use the Undelete Blob API to restore a soft-deleted blob. All other operations on a soft-deleted blob or snapshot causes the service to return an HTTP status code of 404 (ResourceNotFound). If the storage account's automatic snapshot feature is enabled, then, when a blob is deleted, an automatic snapshot is created. The blob becomes inaccessible immediately. All other operations on the blob causes the service to return an HTTP status code of 404 (ResourceNotFound). You can access automatic snapshot using snapshot timestamp or version id. You can restore the blob by calling Put or Copy Blob API with automatic snapshot as source. Deleting automatic snapshot requires shared key or special SAS/RBAC permissions.
      *
      * @param context The context to associate with this operation.
      * @param snapshot The snapshot parameter is an opaque DateTime value that, when present, specifies the blob snapshot to retrieve. For more information on working with blob snapshots, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/creating-a-snapshot-of-a-blob"&gt;Creating a Snapshot of a Blob.&lt;/a&gt;.
@@ -445,9 +440,6 @@ public final class GeneratedBlobs {
     public Single<BlobDeleteResponse> deleteWithRestResponseAsync(Context context, String snapshot, Integer timeout, DeleteSnapshotsOptionType deleteSnapshots, String requestId, LeaseAccessConditions leaseAccessConditions, ModifiedAccessConditions modifiedAccessConditions) {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(leaseAccessConditions);
         Validator.validate(modifiedAccessConditions);
@@ -483,7 +475,7 @@ public final class GeneratedBlobs {
     }
 
     /**
-     * If the storage account's soft delete feature is disabled then, when a blob is deleted, it is permanently removed from the storage account. If the storage account's soft delete feature is enabled, then, when a blob is deleted, it is marked for deletion and becomes inaccessible immediately. However, the blob service retains the blob or snapshot for the number of days specified by the DeleteRetentionPolicy section of [Storage service properties] (Set-Blob-Service-Properties.md). After the specified number of days has passed, the blob's data is permanently removed from the storage account. Note that you continue to be charged for the soft-deleted blob's storage until it is permanently removed. Use the List Blobs API and specify the "include=deleted" query parameter to discover which blobs and snapshots have been soft deleted. You can then use the Undelete Blob API to restore a soft-deleted blob. All other operations on a soft-deleted blob or snapshot causes the service to return an HTTP status code of 404 (ResourceNotFound).
+     * If the storage account's soft delete feature is disabled then, when a blob is deleted, it is permanently removed from the storage account. If the storage account's soft delete feature is enabled, then, when a blob is deleted, it is marked for deletion and becomes inaccessible immediately. However, the blob service retains the blob or snapshot for the number of days specified by the DeleteRetentionPolicy section of [Storage service properties] (Set-Blob-Service-Properties.md). After the specified number of days has passed, the blob's data is permanently removed from the storage account. Note that you continue to be charged for the soft-deleted blob's storage until it is permanently removed. Use the List Blobs API and specify the "include=deleted" query parameter to discover which blobs and snapshots have been soft deleted. You can then use the Undelete Blob API to restore a soft-deleted blob. All other operations on a soft-deleted blob or snapshot causes the service to return an HTTP status code of 404 (ResourceNotFound). If the storage account's automatic snapshot feature is enabled, then, when a blob is deleted, an automatic snapshot is created. The blob becomes inaccessible immediately. All other operations on the blob causes the service to return an HTTP status code of 404 (ResourceNotFound). You can access automatic snapshot using snapshot timestamp or version id. You can restore the blob by calling Put or Copy Blob API with automatic snapshot as source. Deleting automatic snapshot requires shared key or special SAS/RBAC permissions.
      *
      * @param context The context to associate with this operation.
      * @param snapshot The snapshot parameter is an opaque DateTime value that, when present, specifies the blob snapshot to retrieve. For more information on working with blob snapshots, see &lt;a href="https://docs.microsoft.com/en-us/rest/api/storageservices/fileservices/creating-a-snapshot-of-a-blob"&gt;Creating a Snapshot of a Blob.&lt;/a&gt;.
@@ -540,9 +532,6 @@ public final class GeneratedBlobs {
     public Single<BlobUndeleteResponse> undeleteWithRestResponseAsync(Context context, Integer timeout, String requestId) {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         final String comp = "undelete";
         return service.undelete(context, this.client.url(), timeout, this.client.version(), requestId, comp);
@@ -611,9 +600,6 @@ public final class GeneratedBlobs {
     public Single<BlobSetHTTPHeadersResponse> setHTTPHeadersWithRestResponseAsync(Context context, Integer timeout, String requestId, BlobHTTPHeaders blobHTTPHeaders, LeaseAccessConditions leaseAccessConditions, ModifiedAccessConditions modifiedAccessConditions) {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(blobHTTPHeaders);
         Validator.validate(leaseAccessConditions);
@@ -742,9 +728,6 @@ public final class GeneratedBlobs {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(metadata);
         Validator.validate(leaseAccessConditions);
         Validator.validate(modifiedAccessConditions);
@@ -847,9 +830,6 @@ public final class GeneratedBlobs {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(modifiedAccessConditions);
         final String comp = "lease";
         final String action = "acquire";
@@ -947,9 +927,6 @@ public final class GeneratedBlobs {
         if (leaseId == null) {
             throw new IllegalArgumentException("Parameter leaseId is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(modifiedAccessConditions);
         final String comp = "lease";
         final String action = "release";
@@ -1045,9 +1022,6 @@ public final class GeneratedBlobs {
         }
         if (leaseId == null) {
             throw new IllegalArgumentException("Parameter leaseId is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(modifiedAccessConditions);
         final String comp = "lease";
@@ -1151,9 +1125,6 @@ public final class GeneratedBlobs {
         if (proposedLeaseId == null) {
             throw new IllegalArgumentException("Parameter proposedLeaseId is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(modifiedAccessConditions);
         final String comp = "lease";
         final String action = "change";
@@ -1247,9 +1218,6 @@ public final class GeneratedBlobs {
     public Single<BlobBreakLeaseResponse> breakLeaseWithRestResponseAsync(Context context, Integer timeout, Integer breakPeriod, String requestId, ModifiedAccessConditions modifiedAccessConditions) {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(modifiedAccessConditions);
         final String comp = "lease";
@@ -1346,9 +1314,6 @@ public final class GeneratedBlobs {
     public Single<BlobCreateSnapshotResponse> createSnapshotWithRestResponseAsync(Context context, Integer timeout, Map<String, String> metadata, String requestId, ModifiedAccessConditions modifiedAccessConditions, LeaseAccessConditions leaseAccessConditions) {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(metadata);
         Validator.validate(modifiedAccessConditions);
@@ -1460,9 +1425,6 @@ public final class GeneratedBlobs {
         }
         if (copySource == null) {
             throw new IllegalArgumentException("Parameter copySource is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(metadata);
         Validator.validate(copySource);
@@ -1602,9 +1564,6 @@ public final class GeneratedBlobs {
         if (copySource == null) {
             throw new IllegalArgumentException("Parameter copySource is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(metadata);
         Validator.validate(copySource);
         Validator.validate(sourceModifiedAccessConditions);
@@ -1735,9 +1694,6 @@ public final class GeneratedBlobs {
         if (copyId == null) {
             throw new IllegalArgumentException("Parameter copyId is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(leaseAccessConditions);
         final String comp = "copy";
         final String copyActionAbortConstant = "abort";
@@ -1814,9 +1770,6 @@ public final class GeneratedBlobs {
         if (tier == null) {
             throw new IllegalArgumentException("Parameter tier is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(leaseAccessConditions);
         final String comp = "tier";
         String leaseId = null;
@@ -1876,9 +1829,6 @@ public final class GeneratedBlobs {
     public Single<BlobGetAccountInfoResponse> getAccountInfoWithRestResponseAsync(Context context) {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         final String restype = "account";
         final String comp = "properties";
