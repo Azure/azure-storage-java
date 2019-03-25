@@ -50,7 +50,7 @@ class BlobAPITest extends APISpec {
         headers.metadata().isEmpty()
         headers.contentLength() != null
         headers.contentType() != null
-        headers.contentRange() != null
+        headers.contentRange() == null
         headers.contentMD5() == null
         headers.contentEncoding() == null
         headers.cacheControl() == null
@@ -164,7 +164,7 @@ class BlobAPITest extends APISpec {
                 .withLeaseAccessConditions(new LeaseAccessConditions().withLeaseId(leaseID))
 
         expect:
-        bu.download(null, bac, false, null).blockingGet().statusCode() == 206
+        bu.download(null, bac, false, null).blockingGet().statusCode() == 200
 
         where:
         modified | unmodified | match        | noneMatch   | leaseID
@@ -229,12 +229,7 @@ class BlobAPITest extends APISpec {
         bu.download(null, null, false, defaultContext).blockingGet()
 
         then:
-        /*
-        DownloadResponse requires that there be an etag present, but our mock response doesn't give back an etag. The
-        easiest way to validate this is to ensure the cause of the exception is in fact the absence of the etag.
-         */
-        def e = thrown(IllegalArgumentException)
-        e.getMessage().contains("eTag")
+        notThrown(RuntimeException)
     }
 
     def "Get properties default"() {

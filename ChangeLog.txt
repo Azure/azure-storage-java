@@ -1,4 +1,4 @@
-XXXX.XX.XX Version X.X.X
+2019.03.22 Version 11.0.0
 * Support for 2018-11-09 REST version. Please see our REST API documentation and blogs for information about the related added features.
 * Added appendBlockFromURL method. A block may be created with another blob as its source.
 * Added uploadPagesFromURL method. Pages may be written to with another blob as their source.

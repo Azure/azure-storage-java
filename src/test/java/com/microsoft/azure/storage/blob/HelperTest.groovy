@@ -924,7 +924,7 @@ class HelperTest extends APISpec {
 
     def "URLParser"() {
         when:
-        def parts = URLParser.parse(new URL("http://host/container/blob?snapshot=snapshot&sv=2018-06-17&sr=c&sp=r&sig=Ee%2BSodSXamKSzivSdRTqYGh7AeMVEk3wEoRZ1yzkpSc%3D"))
+        def parts = URLParser.parse(new URL("http://host/container/blob?snapshot=snapshot&sv=" + Constants.HeaderConstants.TARGET_STORAGE_VERSION + "&sr=c&sp=r&sig=Ee%2BSodSXamKSzivSdRTqYGh7AeMVEk3wEoRZ1yzkpSc%3D"))
 
         then:
         parts.scheme() == "http"

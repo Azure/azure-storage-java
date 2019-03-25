@@ -328,7 +328,8 @@ class TransferManagerTest extends APISpec {
 
     def "Upload single shot size fail"() {
         when:
-        TransferManager.uploadFileToBlockBlob(getRandomFile(0), bu, 50, maxSingleShot, null)
+        TransferManager.uploadFileToBlockBlob(AsynchronousFileChannel.open(getRandomFile(0).toPath()), bu, 50,
+                maxSingleShot, null)
 
         then:
         thrown(IllegalArgumentException)
@@ -755,9 +756,9 @@ class TransferManagerTest extends APISpec {
         channel.close()
 
         where:
-        fileSize              | _
-        100                   | _
-        8L * 1026 * 1024 + 10 | _
+        fileSize             | _
+        100                  | _
+        8 * 1026 * 1024 + 10 | _
     }
 
     @Unroll

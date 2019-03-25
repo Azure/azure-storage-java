@@ -13,6 +13,7 @@ package com.microsoft.azure.storage.blob.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Map;
 
 /**
  * An Azure Storage blob.
@@ -47,7 +48,7 @@ public final class BlobItem {
      * The metadata property.
      */
     @JsonProperty(value = "Metadata")
-    private BlobMetadata metadata;
+    private Map<String, String> metadata;
 
     /**
      * Get the name value.
@@ -134,7 +135,7 @@ public final class BlobItem {
      *
      * @return the metadata value.
      */
-    public BlobMetadata metadata() {
+    public Map<String, String> metadata() {
         return this.metadata;
     }
 
@@ -144,7 +145,7 @@ public final class BlobItem {
      * @param metadata the metadata value to set.
      * @return the BlobItem object itself.
      */
-    public BlobItem withMetadata(BlobMetadata metadata) {
+    public BlobItem withMetadata(Map<String, String> metadata) {
         this.metadata = metadata;
         return this;
     }

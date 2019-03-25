@@ -29,6 +29,7 @@ import org.spockframework.lang.ISpecificationContext
 import spock.lang.Shared
 import spock.lang.Specification
 
+import java.lang.reflect.Method
 import java.nio.ByteBuffer
 import java.time.OffsetDateTime
 import java.util.concurrent.Executors
@@ -52,7 +53,7 @@ class APISpec extends Specification {
     static defaultDataSize = defaultData.remaining()
 
     // If debugging is enabled, recordings cannot run as there can only be one proxy at a time.
-    static boolean enableDebugging = false
+    static boolean enableDebugging = true
 
     // Prefixes for blobs and containers
     static String containerPrefix = "jtc" // java test container
@@ -492,7 +493,16 @@ class APISpec extends Specification {
 
             @Override
             Object deserializedHeaders() {
-                return responseHeadersType.getConstructor().newInstance()
+                def headers = responseHeadersType.getConstructor().newInstance()
+
+                // If the headers have an etag method, we need to set it to prevent postProcessResponse from breaking.
+                try {
+                    headers.getClass().getMethod("withETag", String.class).invoke(headers, "etag");
+                }
+                catch (NoSuchMethodException e) {
+                    // No op
+                }
+                return headers
             }
 
             @Override

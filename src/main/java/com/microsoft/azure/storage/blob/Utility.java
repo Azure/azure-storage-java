@@ -280,6 +280,10 @@ final class Utility {
                 Object headers = response.getClass().getMethod("headers").invoke(response);
                 Method etagGetterMethod = headers.getClass().getMethod("eTag");
                 String etag = (String) etagGetterMethod.invoke(headers);
+                // CommitBlockListHeaders has an etag property, but it's only set if the blob has committed blocks.
+                if (etag == null) {
+                    return response;
+                }
                 etag = etag.replace("\"", ""); // Etag headers without the quotes will be unaffected.
                 headers.getClass().getMethod("withETag", String.class).invoke(headers, etag);
             } catch (NoSuchMethodException e) {
