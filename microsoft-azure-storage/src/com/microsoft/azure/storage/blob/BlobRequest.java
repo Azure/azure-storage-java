@@ -197,6 +197,10 @@ final class BlobRequest {
             accessCondition.applyAppendConditionToRequest(request);
         }
 
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
         return request;
     }
 
@@ -262,6 +266,15 @@ final class BlobRequest {
         addSourceRange(request, offset, length);
 
         BaseRequest.addOptionalHeader(request, HeaderConstants.SOURCE_CONTENT_MD5_HEADER, md5);
+
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
+        // TODO uncomment when append block from URL allows source CPK
+        //if (blobOptions.getSourceCustomerProvidedKey() != null) {
+        //    addCustomerProvidedKey(request, blobOptions.getSourceCustomerProvidedKey(), true);
+        //}
 
         return request;
     }
@@ -402,6 +415,15 @@ final class BlobRequest {
         if (!Utility.isNullOrEmpty(contentMd5)) {
             request.setRequestProperty(HeaderConstants.SOURCE_CONTENT_MD5_HEADER, contentMd5);
         }
+
+        // TODO uncomment when copy blob with CPK is ready
+        /*if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
+        if (blobOptions.getSourceCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getSourceCustomerProvidedKey(), true);
+        }*/
 
         return request;
     }
@@ -677,7 +699,37 @@ final class BlobRequest {
             request.setRequestProperty(Constants.HeaderConstants.RANGE_GET_CONTENT_MD5, Constants.TRUE);
         }
 
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
         return request;
+    }
+
+    /**
+     * Adds headers for customer-provided key encryption.
+     *
+     * @param request
+     *            The request to add the headers to.
+     * @param key
+     *            The key to apply to the request.
+     */
+    private static void addCustomerProvidedKey(HttpURLConnection request, BlobCustomerProvidedKey key, boolean isSource) {
+        request.setRequestProperty(
+                isSource
+                    ? HeaderConstants.CLIENT_PROVIDED_ENCRYPTION_KEY_SOURCE
+                    : HeaderConstants.CLIENT_PROVIDED_ENCRYPTION_KEY,
+                key.getKey());
+        request.setRequestProperty(
+                isSource
+                    ? HeaderConstants.CLIENT_PROVIDED_ENCRYPTION_KEY_HASH_SOURCE
+                    : HeaderConstants.CLIENT_PROVIDED_ENCRYPTION_KEY_HASH,
+                key.getKeySHA256());
+        request.setRequestProperty(
+                isSource
+                    ? HeaderConstants.CLIENT_PROVIDED_ENCRYPTION_ALGORITHM_SOURCE
+                    : HeaderConstants.CLIENT_PROVIDED_ENCRYPTION_ALGORITHM,
+                key.getEncryptionAlgorithm());
     }
 
     /**
@@ -994,6 +1046,10 @@ final class BlobRequest {
 
         if (accessCondition != null) {
             accessCondition.applyLeaseConditionToRequest(request);
+        }
+
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
         }
 
         return request;
@@ -1425,6 +1481,10 @@ final class BlobRequest {
             accessCondition.applyConditionToRequest(request);
         }
 
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
         return request;
     }
 
@@ -1470,6 +1530,10 @@ final class BlobRequest {
             accessCondition.applyConditionToRequest(request);
         }
 
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
         return request;
     }
 
@@ -1509,7 +1573,7 @@ final class BlobRequest {
      *             an exception representing any error which occurred during the operation.
      * @throws IllegalArgumentException
      */
-    public static HttpURLConnection putBlock(final URI uri, final String source, long offset, Long length,
+    public static HttpURLConnection putBlock(final URI uri, final String source, Long offset, Long length,
             final BlobRequestOptions blobOptions, String md5, final OperationContext opContext,
             final AccessCondition sourceAccessCondition, final String blockId)
             throws IOException, URISyntaxException, StorageException {
@@ -1533,6 +1597,15 @@ final class BlobRequest {
         addSourceRange(request, offset, length);
 
         BaseRequest.addOptionalHeader(request, HeaderConstants.SOURCE_CONTENT_MD5_HEADER, md5);
+
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
+        // TODO uncomment when append block from URL allows source CPK
+        //if (blobOptions.getSourceCustomerProvidedKey() != null) {
+        //    addCustomerProvidedKey(request, blobOptions.getSourceCustomerProvidedKey(), true);
+        //}
 
         return request;
     }
@@ -1581,6 +1654,11 @@ final class BlobRequest {
         if(rehydratePriority!=null){
             request.setRequestProperty(BlobConstants.REHYDRATE_PRIORITY_HEADER, rehydratePriority);
         }
+
+        // TODO uncomment when set tier with CPK is ready
+        /*if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }*/
 
         return request;
     }
@@ -1633,6 +1711,10 @@ final class BlobRequest {
         }
 
         addProperties(request, properties);
+
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
 
         return request;
     }
@@ -1687,6 +1769,10 @@ final class BlobRequest {
         if (accessCondition != null) {
             accessCondition.applyConditionToRequest(request);
             accessCondition.applySequenceConditionToRequest(request);
+        }
+
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
         }
 
         return request;
@@ -1756,6 +1842,15 @@ final class BlobRequest {
         addSourceRange(request, sourceOffset, sourceLength);
 
         BaseRequest.addOptionalHeader(request, HeaderConstants.SOURCE_CONTENT_MD5_HEADER, md5);
+
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
+        // TODO uncomment when put page from URL allows source CPK
+        //if (blobOptions.getSourceCustomerProvidedKey() != null) {
+        //    addCustomerProvidedKey(request, blobOptions.getSourceCustomerProvidedKey(), true);
+        //}
 
         return request;
     }
@@ -1932,6 +2027,10 @@ final class BlobRequest {
             addProperties(request, properties);
         }
 
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
         return request;
     }
 
@@ -1993,6 +2092,10 @@ final class BlobRequest {
             accessCondition.applyConditionToRequest(request);
         }
 
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
         return request;
     }
 
@@ -2033,6 +2136,10 @@ final class BlobRequest {
 
         if (accessCondition != null) {
             accessCondition.applyConditionToRequest(request);
+        }
+
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
         }
 
         return request;

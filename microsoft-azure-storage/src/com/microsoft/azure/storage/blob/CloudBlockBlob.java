@@ -490,6 +490,9 @@ public final class CloudBlockBlob extends CloudBlob {
 
                     blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                     this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                    this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                    validateCPKHeaders(this, options);
+
                     return null;
                 }
 
@@ -1071,6 +1074,9 @@ public final class CloudBlockBlob extends CloudBlob {
 
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options);
+
                 return null;
             }
 
@@ -1277,6 +1283,9 @@ public final class CloudBlockBlob extends CloudBlob {
                 }
 
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options);
+
                 return null;
             }
 
@@ -1451,6 +1460,9 @@ public final class CloudBlockBlob extends CloudBlob {
                 }
 
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options);
+
                 return null;
             }
         };

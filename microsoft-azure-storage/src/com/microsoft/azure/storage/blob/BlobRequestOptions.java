@@ -64,7 +64,18 @@ public final class BlobRequestOptions extends RequestOptions {
     /**
      * The encryption policy to use for the request.
      */
-    private BlobEncryptionPolicy encryptionPolicy;  
+    private BlobEncryptionPolicy encryptionPolicy;
+
+    /**
+     * The customer-provided key wrapper for server-side encryption.
+     */
+    private BlobCustomerProvidedKey customerProvidedKey;
+
+    /**
+     * The customer-provided key wrapper for server-side decryption of the source for a copy operation.
+     */
+    // TODO uncomment when source CPK decryption is supported
+    //private BlobCustomerProvidedKey sourceCustomerProvidedKey;
 
     /**
      * Stores a value indicating whether to validate the presence of the encryption policy. 
@@ -103,6 +114,9 @@ public final class BlobRequestOptions extends RequestOptions {
             this.setDisableContentMD5Validation(other.getDisableContentMD5Validation());
             this.setSingleBlobPutThresholdInBytes(other.getSingleBlobPutThresholdInBytes());
             this.setEncryptionPolicy(other.getEncryptionPolicy());
+            this.setCustomerProvidedKey(other.getCustomerProvidedKey());
+            // TODO uncomment when source CPK decryption is supported
+            //this.setSourceCustomerProvidedKey(other.getSourceCustomerProvidedKey());
             this.setValidateEncryptionPolicy(other.getValidateEncryptionPolicy());
             this.setSkipEtagLocking(other.getSkipEtagLocking());
         }
@@ -223,6 +237,15 @@ public final class BlobRequestOptions extends RequestOptions {
         if (modifiedOptions.getEncryptionPolicy() == null) {
             modifiedOptions.setEncryptionPolicy(clientOptions.getEncryptionPolicy());
         }
+
+        if (modifiedOptions.getCustomerProvidedKey() == null) {
+            modifiedOptions.setCustomerProvidedKey(clientOptions.getCustomerProvidedKey());
+        }
+
+        // TODO uncomment when source CPK decryption is supported
+        /*if (modifiedOptions.getSourceCustomerProvidedKey() == null) {
+            modifiedOptions.setSourceCustomerProvidedKey(clientOptions.getSourceCustomerProvidedKey());
+        }*/
     }
 
     /**
@@ -298,7 +321,26 @@ public final class BlobRequestOptions extends RequestOptions {
     public BlobEncryptionPolicy getEncryptionPolicy() {
         return this.encryptionPolicy;
     }
-    
+
+    /**
+     * Gets the customer-provided key to use for this request.
+     *
+     * @return A {@link BlobCustomerProvidedKey} object that represents the current customer-provided key.
+     */
+    public BlobCustomerProvidedKey getCustomerProvidedKey() {
+        return this.customerProvidedKey;
+    }
+
+    /**
+     * Gets the customer-provided key to use on the source for a copy request.
+     *
+     * @return A {@link BlobCustomerProvidedKey} object that represents the source's customer-provided key.
+     */
+    // TODO uncomment when source CPK decryption is supported
+    /*public BlobCustomerProvidedKey getSourceCustomerProvidedKey() {
+        return this.sourceCustomerProvidedKey;
+    }*/
+
     /**
      * Gets a value to indicating whether the presence of the encryption policy should validated.
      * 
@@ -437,6 +479,31 @@ public final class BlobRequestOptions extends RequestOptions {
     public void setEncryptionPolicy(BlobEncryptionPolicy encryptionPolicy) {
         this.encryptionPolicy = encryptionPolicy;
     }
+
+    /**
+     * Sets the BlobCustomerProvidedKey object to use for this request.
+     * Customer-provided key encryption is supported for most upload, download, and copy requests to blob storage, as well
+     * as fetching of properties and metadata.
+     *
+     * @param key
+     *            the BlobCustomerProvidedKey object to use when making service requests.
+     */
+    public void setCustomerProvidedKey(BlobCustomerProvidedKey key) {
+        this.customerProvidedKey = key;
+    }
+
+    /**
+     * Sets the BlobCustomerProvidedKey object to use for a source blob.
+     * Customer-provided key encryption is supported for most upload, download, and copy requests to blob storage, as well
+     * as fetching of properties and metadata.
+     *
+     * @param key
+     *            the BlobCustomerProvidedKey object to use when making service requests.
+     */
+    // TODO uncomment when source CPK decryption is supported
+    /*public void setSourceCustomerProvidedKey(BlobCustomerProvidedKey key) {
+        this.sourceCustomerProvidedKey = key;
+    }*/
 
     /**
      * Sets a value to indicate whether the presence of the encryption policy should validated.

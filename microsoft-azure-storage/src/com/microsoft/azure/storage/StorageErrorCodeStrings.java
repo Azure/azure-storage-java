@@ -65,6 +65,11 @@ public final class StorageErrorCodeStrings {
     public static final String CLIENT_CACHE_FLUSH_DELAY = "ClientCacheFlushDelay";
 
     /**
+     * Error encrypting/decrypting data with client provided key.
+     */
+    public static final String CLIENT_PROVIDED_KEY_ERROR = "ClientProvidedKeyError";
+
+    /**
      * Condition headers are not supported.
      */
     public static final String CONDITION_HEADERS_NOT_SUPPORTED = "ConditionHeadersNotSupported";

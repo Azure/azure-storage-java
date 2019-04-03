@@ -37,9 +37,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.*;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -2756,4 +2754,366 @@ public class CloudBlockBlobTests {
         // cleanup
         stream.close();
     }
+
+    @Test
+    public void testPutGetBlobCPK() throws URISyntaxException, StorageException, IOException {
+        // load CPK into options
+        BlobRequestOptions options = new BlobRequestOptions();
+        options.setCustomerProvidedKey(BlobTestHelper.generateCPK());
+
+        // get blob reference
+        CloudBlockBlob blob = this.container.getBlockBlobReference(
+                BlobTestHelper.generateRandomBlobNameWithPrefix("testBlockBlob"));
+        // force https
+        blob = new CloudBlockBlob(
+                new URL(blob.getUri().toString().replace("http", "https")).toURI(),
+                container.getServiceClient().getCredentials());
+
+        // generate random data
+        byte[] buffer = BlobTestHelper.getRandomBuffer(128 * Constants.KB);
+        ByteArrayInputStream stream = new ByteArrayInputStream(buffer);
+
+        // upload blob with CPK
+        OperationContext operationContext = new OperationContext();
+        blob.upload(stream, buffer.length, null, options, operationContext);
+
+        // validate response
+        assertTrue(operationContext.getRequestResults().get(0).isRequestServiceEncrypted());
+        assertEquals(
+                options.getCustomerProvidedKey().getKeySHA256(),
+                operationContext.getRequestResults().get(0).getEncryptionKeySHA256());
+
+        // download blob with CPK
+        operationContext = new OperationContext();
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        blob.download(os, null, options, operationContext);
+
+        // validate response
+        assertTrue(operationContext.getRequestResults().get(0).isServiceEncrypted());
+        assertEquals(
+                options.getCustomerProvidedKey().getKeySHA256(),
+                operationContext.getRequestResults().get(0).getEncryptionKeySHA256());
+        assertArrayEquals(buffer, os.toByteArray());
+    }
+
+    @Test
+    public void testPutBlockAndPutBlockListCPK() throws URISyntaxException, StorageException, IOException {
+        // load CPK into options
+        BlobRequestOptions options = new BlobRequestOptions();
+        options.setCustomerProvidedKey(BlobTestHelper.generateCPK());
+
+        // get blob reference
+        CloudBlockBlob blob = this.container.getBlockBlobReference(
+                BlobTestHelper.generateRandomBlobNameWithPrefix("testBlockBlob"));
+        // force https
+        blob = new CloudBlockBlob(
+                new URL(blob.getUri().toString().replace("http", "https")).toURI(),
+                container.getServiceClient().getCredentials());
+
+        final int NUM_BLOCKS = 2;
+        List<BlockEntry> blockIds = new ArrayList<>(NUM_BLOCKS);
+        for (int i = 0; i < NUM_BLOCKS; i++) {
+            // generate random data
+            byte[] buffer = BlobTestHelper.getRandomBuffer(128 * Constants.KB);
+            ByteArrayInputStream stream = new ByteArrayInputStream(buffer);
+            OperationContext operationContext = new OperationContext();
+            blockIds.add(i, new BlockEntry("TestBlockId" + i));
+
+            // stage block with CPK
+            blob.uploadBlock(blockIds.get(i).getId(), stream, buffer.length, null, options, operationContext);
+            stream.close();
+
+            // validate response
+            assertTrue(operationContext.getRequestResults().get(0).isRequestServiceEncrypted());
+            assertEquals(
+                    options.getCustomerProvidedKey().getKeySHA256(),
+                    operationContext.getRequestResults().get(0).getEncryptionKeySHA256());
+        }
+
+        OperationContext operationContext = new OperationContext();
+        blob.commitBlockList(blockIds, null, options, operationContext);
+
+        // validate response
+        assertTrue(operationContext.getRequestResults().get(0).isRequestServiceEncrypted());
+        assertEquals(
+                options.getCustomerProvidedKey().getKeySHA256(),
+                operationContext.getRequestResults().get(0).getEncryptionKeySHA256());
+    }
+
+    @Test
+    public void testPutBlockFromURLCPK() throws URISyntaxException, StorageException, IOException, InvalidKeyException {
+        // CPK on source blobs for put block from URL is not yet supported
+        // TODO uncomment the marked comments AND the work in the actual web request factories when the feature is ready
+
+        ////// SETUP
+
+        final int NUM_BLOCKS = 2;
+        // NOT YET SUPPORTED // List<BlobCustomerProvidedKey> srcBlobKeys = new ArrayList<>(NUM_BLOCKS);
+        List<URI> srcBlobs = new ArrayList<>(NUM_BLOCKS);
+
+        // create 2 blobs with different CPKs
+        for (int i = 0; i < NUM_BLOCKS; i++) {
+            // make key for this blob
+            // NOT YET SUPPORTED // srcBlobKeys.add(i, BlobTestHelper.generateCPK());
+
+            // load CPK into options
+            BlobRequestOptions options = new BlobRequestOptions();
+            // NOT YET SUPPORTED // options.setCustomerProvidedKey(srcBlobKeys.get(i));
+
+            // get blob reference
+            CloudBlockBlob temp = this.container.getBlockBlobReference(
+                    BlobTestHelper.generateRandomBlobNameWithPrefix("testBlockBlob"));
+            // force https
+            temp = new CloudBlockBlob(
+                    new URL(temp.getUri().toString().replace("http", "https")).toURI(),
+                    container.getServiceClient().getCredentials());
+
+            // generate random data
+            byte[] buffer = BlobTestHelper.getRandomBuffer(128 * Constants.KB);
+            ByteArrayInputStream stream = new ByteArrayInputStream(buffer);
+
+            // upload blob with CPK
+            temp.upload(stream, buffer.length, null, options, null);
+
+            // save blob URI with SAS authentication (important for later when this is a source URL)
+            SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy();
+            policy.setPermissions(EnumSet.of(SharedAccessBlobPermissions.READ, SharedAccessBlobPermissions.WRITE));
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.MINUTE, 10);
+            policy.setSharedAccessExpiryTime(cal.getTime());
+            String sas = temp.generateSharedAccessSignature(policy, null);
+            srcBlobs.add(i, new URI(temp.getUri().toString() + "?" + sas));
+        }
+
+        // get blob reference
+        CloudBlockBlob blob = this.container.getBlockBlobReference(
+                BlobTestHelper.generateRandomBlobNameWithPrefix("testBlockBlob"));
+        // force https
+        blob = new CloudBlockBlob(
+                new URL(blob.getUri().toString().replace("http", "https")).toURI(),
+                container.getServiceClient().getCredentials());
+
+        // get CPK for the new blob
+        BlobCustomerProvidedKey blobCPK = BlobTestHelper.generateCPK();
+
+        ////// ACT
+
+        // put blocks from URLs of previously created blobs
+        List<BlockEntry> blockIds = new ArrayList<>(NUM_BLOCKS);
+        for (int i = 0; i < NUM_BLOCKS; i++) {
+            // load src CPK into options
+            BlobRequestOptions options = new BlobRequestOptions();
+            // NOT YET SUPPORTED // options.setSourceCustomerProvidedKey(srcBlobKeys.get(i));
+            options.setCustomerProvidedKey(blobCPK);
+
+            blockIds.add(i, new BlockEntry("TestBlockId" + i));
+
+            // put block from URI
+            OperationContext operationContext = new OperationContext();
+            blob.createBlockFromURI(blockIds.get(i).getId(), srcBlobs.get(i), null, null, null, null, options, operationContext);
+
+            // validate response
+            assertTrue(operationContext.getRequestResults().get(0).isRequestServiceEncrypted());
+            assertEquals(
+                    options.getCustomerProvidedKey().getKeySHA256(),
+                    operationContext.getRequestResults().get(0).getEncryptionKeySHA256());
+        }
+
+        BlobRequestOptions options = new BlobRequestOptions();
+        options.setCustomerProvidedKey(blobCPK);
+        OperationContext operationContext = new OperationContext();
+        blob.commitBlockList(blockIds, null, options, operationContext);
+
+        // validate response
+        assertTrue(operationContext.getRequestResults().get(0).isRequestServiceEncrypted());
+        assertEquals(
+                options.getCustomerProvidedKey().getKeySHA256(),
+                operationContext.getRequestResults().get(0).getEncryptionKeySHA256());
+    }
+
+    @Test
+    public void testGetSetMetadataCPK() throws URISyntaxException, StorageException, IOException {
+        // load CPK into options
+        BlobRequestOptions options = new BlobRequestOptions();
+        options.setCustomerProvidedKey(BlobTestHelper.generateCPK());
+
+        // get blob reference
+        CloudBlockBlob blob = this.container.getBlockBlobReference(
+                BlobTestHelper.generateRandomBlobNameWithPrefix("testBlockBlob"));
+        // force https
+        blob = new CloudBlockBlob(
+                new URL(blob.getUri().toString().replace("http", "https")).toURI(),
+                container.getServiceClient().getCredentials());
+
+        // generate random data
+        byte[] buffer = BlobTestHelper.getRandomBuffer(128 * Constants.KB);
+        ByteArrayInputStream stream = new ByteArrayInputStream(buffer);
+
+        // upload blob with CPK
+        blob.upload(stream, buffer.length, null, options, null);
+
+        // upload metadata
+        blob.setMetadata(BlobTestHelper.generateSampleMetadata(1));
+        OperationContext operationContext = new OperationContext();
+        blob.uploadMetadata(null, options, operationContext);
+
+        // validate response
+        assertTrue(operationContext.getRequestResults().get(0).isRequestServiceEncrypted());
+        assertEquals(
+                options.getCustomerProvidedKey().getKeySHA256(),
+                operationContext.getRequestResults().get(0).getEncryptionKeySHA256());
+
+        // download metadata
+        CloudBlockBlob blobRefCopy = new CloudBlockBlob(blob.getUri(), blob.getServiceClient().getCredentials());
+        blobRefCopy.downloadAttributes(null, options, null);
+
+        assert(blob.getMetadata().entrySet().equals(blobRefCopy.getMetadata().entrySet()));
+    }
+
+    @Test
+    public void testGetSetPropertiesCPK() throws URISyntaxException, StorageException, IOException {
+        // load CPK into options
+        BlobRequestOptions options = new BlobRequestOptions();
+        options.setCustomerProvidedKey(BlobTestHelper.generateCPK());
+
+        // get blob reference
+        CloudBlockBlob blob = this.container.getBlockBlobReference(
+                BlobTestHelper.generateRandomBlobNameWithPrefix("testBlockBlob"));
+        // force https
+        blob = new CloudBlockBlob(
+                new URL(blob.getUri().toString().replace("http", "https")).toURI(),
+                container.getServiceClient().getCredentials());
+
+        // generate random data
+        byte[] buffer = BlobTestHelper.getRandomBuffer(128 * Constants.KB);
+        ByteArrayInputStream stream = new ByteArrayInputStream(buffer);
+
+        // upload blob with CPK
+        blob.upload(stream, buffer.length, null, options, null);
+
+        // upload properties
+        BlobTestHelper.setBlobProperties(blob);
+        blob.uploadProperties(); // does not require the CPK
+
+        // download metadata
+        CloudBlockBlob blobRefCopy = new CloudBlockBlob(blob.getUri(), blob.getServiceClient().getCredentials());
+        blobRefCopy.downloadAttributes(null, options, null);
+
+        // check all properties manually, we need to skip one check because it's set on the service and upload
+        // properties won't set it for us, but we can't just redownload because we need the originals to compare against
+        assertEquals(blob.properties.getBlobType(), blobRefCopy.properties.getBlobType());
+        assertEquals(blob.properties.getCacheControl(), blobRefCopy.properties.getCacheControl());
+        assertEquals(blob.properties.getContentDisposition(), blobRefCopy.properties.getContentDisposition());
+        assertEquals(blob.properties.getContentEncoding(), blobRefCopy.properties.getContentEncoding());
+        assertEquals(blob.properties.getContentLanguage(), blobRefCopy.properties.getContentLanguage());
+        assertEquals(blob.properties.getContentMD5(), blobRefCopy.properties.getContentMD5());
+        assertEquals(blob.properties.getContentType(), blobRefCopy.properties.getContentType());
+        assertEquals(blob.properties.getEtag(), blobRefCopy.properties.getEtag());
+        assertEquals(blob.properties.getLastModified(), blobRefCopy.properties.getLastModified());
+        // assertEquals(blob.properties.getLength(), blobRefCopy.properties.getLength()); this is the one we skip
+        assertEquals(blob.properties.getPageBlobSequenceNumber(), blobRefCopy.properties.getPageBlobSequenceNumber());
+    }
+
+    // TODO uncomment when CPK is ready for set tier
+    /*@Test
+    public void testSetBlobTierCPK() throws URISyntaxException, StorageException, IOException {
+        // load CPK into options
+        BlobRequestOptions options = new BlobRequestOptions();
+        options.setCustomerProvidedKey(BlobTestHelper.generateCPK());
+
+        // get blob reference
+        CloudBlockBlob blob = this.container.getBlockBlobReference(
+                BlobTestHelper.generateRandomBlobNameWithPrefix("testBlockBlob"));
+        // force https
+        blob = new CloudBlockBlob(
+                new URL(blob.getUri().toString().replace("http", "https")).toURI(),
+                container.getServiceClient().getCredentials());
+
+        // generate random data
+        byte[] buffer = BlobTestHelper.getRandomBuffer(128 * Constants.KB);
+        ByteArrayInputStream stream = new ByteArrayInputStream(buffer);
+
+        // upload blob with CPK
+        blob.upload(stream, buffer.length, null, options, null);
+
+        // set tier with CPK
+        OperationContext operationContext = new OperationContext();
+        blob.uploadStandardBlobTier(StandardBlobTier.COOL, options, operationContext);
+
+        // validate response
+        assertTrue(operationContext.getRequestResults().get(0).isRequestServiceEncrypted());
+        assertEquals(
+                options.getCustomerProvidedKey().getKeySHA256(),
+                operationContext.getRequestResults().get(0).getEncryptionKeySHA256());
+    }*/
+
+    @Test
+    public void testSnapshotBlobCPK() throws URISyntaxException, StorageException, IOException {
+        // load CPK into options
+        BlobRequestOptions options = new BlobRequestOptions();
+        options.setCustomerProvidedKey(BlobTestHelper.generateCPK());
+
+        // get blob reference
+        CloudBlockBlob blob = this.container.getBlockBlobReference(
+                BlobTestHelper.generateRandomBlobNameWithPrefix("testBlockBlob"));
+        // force https
+        blob = new CloudBlockBlob(
+                new URL(blob.getUri().toString().replace("http", "https")).toURI(),
+                container.getServiceClient().getCredentials());
+
+        // generate random data
+        byte[] buffer = BlobTestHelper.getRandomBuffer(128 * Constants.KB);
+        ByteArrayInputStream stream = new ByteArrayInputStream(buffer);
+
+        // upload blob with CPK
+        blob.upload(stream, buffer.length, null, options, null);
+
+        // snapshot with CPK (no CPK return headers)
+        OperationContext operationContext = new OperationContext();
+        blob.createSnapshot(null, options, operationContext);
+
+        // lack of throw is all the validation needed
+
+        // snapshot with CPK and metadata on snapshot (we encrypted new metadata, so headers to validate)
+        operationContext = new OperationContext();
+        blob.createSnapshot(BlobTestHelper.generateSampleMetadata(2), null, options, operationContext);
+
+        // validate response
+        assertTrue(operationContext.getRequestResults().get(0).isRequestServiceEncrypted());
+        assertEquals(
+                options.getCustomerProvidedKey().getKeySHA256(),
+                operationContext.getRequestResults().get(0).getEncryptionKeySHA256());
+    }
+
+    /*@Test
+    public void testCopyBlobCPK() throws URISyntaxException, StorageException, IOException {
+        // load CPK into options
+        BlobRequestOptions options = new BlobRequestOptions();
+        options.setCustomerProvidedKey(BlobTestHelper.generateCPK());
+
+        // get blob reference
+        CloudBlockBlob blob = this.container.getBlockBlobReference(
+                BlobTestHelper.generateRandomBlobNameWithPrefix("testBlockBlob"));
+        // force https
+        blob = new CloudBlockBlob(
+                new URL(blob.getUri().toString().replace("http", "https")).toURI(),
+                container.getServiceClient().getCredentials());
+
+        // generate random data
+        byte[] buffer = BlobTestHelper.getRandomBuffer(128 * Constants.KB);
+        ByteArrayInputStream stream = new ByteArrayInputStream(buffer);
+
+        // upload blob with CPK
+        blob.upload(stream, buffer.length, null, options, null);
+
+        // snapshot with CPK (no CPK return headers)
+        OperationContext operationContext = new OperationContext();
+        // TODO actually invoke the copy
+
+        // validate response
+        assertTrue(operationContext.getRequestResults().get(0).isRequestServiceEncrypted());
+        assertEquals(
+                options.getCustomerProvidedKey().getKeySHA256(),
+                operationContext.getRequestResults().get(0).getEncryptionKeySHA256());
+    }*/
 }

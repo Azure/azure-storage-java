@@ -370,6 +370,41 @@ public final class Constants {
         public static final String CACHE_CONTROL_HEADER = PREFIX_FOR_STORAGE_HEADER + "blob-cache-control";
 
         /**
+         * The key header for client-provided key encryption.
+         */
+        public static final String CLIENT_PROVIDED_ENCRYPTION_SUCCESS = PREFIX_FOR_STORAGE_HEADER + "request-server-encrypted";
+
+        /**
+         * The key header for client-provided key encryption.
+         */
+        public static final String CLIENT_PROVIDED_ENCRYPTION_KEY = PREFIX_FOR_STORAGE_HEADER + "encryption-key";
+
+        /**
+         * The key hash header for client-provided key encryption
+         */
+        public static final String CLIENT_PROVIDED_ENCRYPTION_KEY_HASH = PREFIX_FOR_STORAGE_HEADER + "encryption-key-sha256";
+
+        /**
+         * The encryption algorithm header for client-provided key encryption.
+         */
+        public static final String CLIENT_PROVIDED_ENCRYPTION_ALGORITHM = PREFIX_FOR_STORAGE_HEADER + "encryption-algorithm";
+
+        /**
+         * The key header for client-provided key encryption.
+         */
+        public static final String CLIENT_PROVIDED_ENCRYPTION_KEY_SOURCE = PREFIX_FOR_STORAGE_HEADER + "source-encryption-key";
+
+        /**
+         * The key hash header for client-provided key encryption
+         */
+        public static final String CLIENT_PROVIDED_ENCRYPTION_KEY_HASH_SOURCE = PREFIX_FOR_STORAGE_HEADER + "source-encryption-key-sha256";
+
+        /**
+         * The encryption algorithm header for client-provided key encryption.
+         */
+        public static final String CLIENT_PROVIDED_ENCRYPTION_ALGORITHM_SOURCE = PREFIX_FOR_STORAGE_HEADER + "source-encryption-algorithm";
+
+        /**
          * The header that indicates the client request ID.
          */
         public static final String CLIENT_REQUEST_ID_HEADER = PREFIX_FOR_STORAGE_HEADER + "client-request-id";

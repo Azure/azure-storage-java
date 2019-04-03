@@ -25,13 +25,7 @@ import java.util.List;
 
 import javax.crypto.Cipher;
 
-import com.microsoft.azure.storage.AccessCondition;
-import com.microsoft.azure.storage.Constants;
-import com.microsoft.azure.storage.DoesServiceRequest;
-import com.microsoft.azure.storage.OperationContext;
-import com.microsoft.azure.storage.StorageCredentials;
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.StorageUri;
+import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.core.Base64;
 import com.microsoft.azure.storage.core.BaseResponse;
 import com.microsoft.azure.storage.core.ExecutionEngine;
@@ -578,6 +572,8 @@ public final class CloudPageBlob extends CloudBlob {
 
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options);
                 blob.getProperties().setLength(length);
 
                 if(EnumUtils.isValidEnum(PremiumPageBlobTier.class, blobTierString)){
@@ -1159,8 +1155,8 @@ public final class CloudPageBlob extends CloudBlob {
 
         PageRange range = new PageRange(offset, offset + length - 1);
 
-        this.putPagesFromURIInternal(range, copySource, sourceOffset, length, md5, accessCondition,
-                sourceAccessCondition, options, opContext);
+        this.putPagesFromURIInternal(range, copySource, sourceOffset == null ? 0 : sourceOffset, length, md5,
+                accessCondition, sourceAccessCondition, options, opContext);
     }
 
     /**
@@ -1237,6 +1233,9 @@ public final class CloudPageBlob extends CloudBlob {
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 blob.updateSequenceNumberFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options);
+
                 return null;
             }
         };
@@ -1329,6 +1328,9 @@ public final class CloudPageBlob extends CloudBlob {
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 blob.updateSequenceNumberFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options);
+
                 return null;
             }
         };

@@ -829,6 +829,11 @@ public abstract class CloudBlob implements ListBlobItem {
                     return null;
                 }
 
+                this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                // TODO uncomment when copy blob with CPK is ready
+                // validateCPKHeaders(this, options);
+
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 blob.properties.setCopyState(BlobResponse.getCopyState(this.getConnection()));
 
@@ -958,6 +963,14 @@ public abstract class CloudBlob implements ListBlobItem {
                     this.setNonExceptionedRetryableFailure(true);
                     return null;
                 }
+
+                this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                // we also check if metadata was passed because if it wasn't we won't get the headers back
+                if (metadata != null) {
+                    validateCPKHeaders(this, options);
+                }
+
                 CloudBlob snapshot = null;
                 final String snapshotTime = BlobResponse.getSnapshotTime(this.getConnection());
                 if (blob instanceof CloudBlockBlob) {
@@ -1553,6 +1566,10 @@ public abstract class CloudBlob implements ListBlobItem {
                     this.setNonExceptionedRetryableFailure(true);
                     return null;
                 }
+
+                this.getResult().setServiceEncrypted(BaseResponse.isServerEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options);
 
                 if (!this.getArePropertiesPopulated()) {
                     final BlobAttributes retrievedAttributes = BlobResponse.getBlobAttributes(this.getConnection(),
@@ -2872,6 +2889,9 @@ public abstract class CloudBlob implements ListBlobItem {
 
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                // TODO uncomment when set tier with CPK is ready
+                // validateCPKHeaders(this, options);
 
                 blob.getProperties().setBlobTierInferred(false);
 
@@ -3128,6 +3148,9 @@ public abstract class CloudBlob implements ListBlobItem {
 
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options);
+
                 return null;
             }
         };
@@ -3351,5 +3374,38 @@ public abstract class CloudBlob implements ListBlobItem {
         };
 
         return headRequest;
+    }
+
+    /**
+     * If the request options contain a CPK, validate the associated response headers.
+     *
+     * @param request
+     *          The storage request to check the response of.
+     * @param options
+     *          The blob options used on the request.
+     * @param <T>
+     *          CloudBlob type.
+     * @param <R>
+     *          The response type of the request.
+     *
+     * @throws StorageException
+     *          Throws if CPK was used in the request and the response failed validation.
+     */
+    protected static <T extends CloudBlob, R> void validateCPKHeaders(
+            StorageRequest<CloudBlobClient, T, R> request,
+            BlobRequestOptions options) throws StorageException {
+        BlobCustomerProvidedKey key;
+        if ((key = options.getCustomerProvidedKey()) != null) {
+            if (!key.getKeySHA256().equals(request.getResult().getEncryptionKeySHA256())) {
+                throw new StorageException(
+                        StorageErrorCodeStrings.CLIENT_PROVIDED_KEY_ERROR,
+                        SR.CLIENT_PROVIDED_KEY_BAD_HASH, null);
+            }
+            if (!request.getResult().isRequestServiceEncrypted()) {
+                throw new StorageException(
+                        StorageErrorCodeStrings.CLIENT_PROVIDED_KEY_ERROR,
+                        SR.CLIENT_PROVIDED_KEY_ENCRYPTION_FAILURE, null);
+            }
+        }
     }
 }

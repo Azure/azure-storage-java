@@ -24,7 +24,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.ByteBuffer;
+import java.net.URL;
 import java.security.DigestException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -1475,5 +1475,123 @@ public class CloudPageBlobTests {
         finally {
             container.deleteIfExists();
         }
+    }
+
+    @Test
+    public void testPutPageCPK() throws URISyntaxException, StorageException, IOException {
+
+        final int BLOB_SIZE = 128 * Constants.KB;
+
+        // load CPK into options
+        BlobRequestOptions options = new BlobRequestOptions();
+        options.setCustomerProvidedKey(BlobTestHelper.generateCPK());
+
+        // get blob reference
+        CloudPageBlob blob = this.container.getPageBlobReference(
+                BlobTestHelper.generateRandomBlobNameWithPrefix("testPageBlob"));
+        // force https
+        blob = new CloudPageBlob(
+                new URL(blob.getUri().toString().replace("http", "https")).toURI(),
+                container.getServiceClient().getCredentials());
+
+        OperationContext operationContext = new OperationContext();
+        blob.create(BLOB_SIZE, null, options, operationContext);
+
+        // validate response
+        assertTrue(operationContext.getRequestResults().get(0).isRequestServiceEncrypted());
+        assertEquals(
+                options.getCustomerProvidedKey().getKeySHA256(),
+                operationContext.getRequestResults().get(0).getEncryptionKeySHA256());
+
+        // generate random data
+        byte[] buffer = BlobTestHelper.getRandomBuffer(BLOB_SIZE);
+        ByteArrayInputStream stream = new ByteArrayInputStream(buffer);
+        operationContext = new OperationContext();
+
+        // put pages with CPK
+        blob.uploadPages(stream, 0, BLOB_SIZE, null, options, operationContext);
+        stream.close();
+
+        // validate response
+        assertTrue(operationContext.getRequestResults().get(0).isRequestServiceEncrypted());
+        assertEquals(
+                options.getCustomerProvidedKey().getKeySHA256(),
+                operationContext.getRequestResults().get(0).getEncryptionKeySHA256());
+    }
+
+    @Test
+    public void testPutPageFromURLCPK() throws URISyntaxException, StorageException, IOException, InvalidKeyException {
+        // CPK on source blobs for put page from URL is not yet supported
+        // TODO uncomment the marked comments AND the work in the actual web request factories when the feature is ready
+
+        ////// SETUP
+
+        final int BLOB_SIZE = 128 * Constants.KB;
+
+        // make key for this blob
+        // NOT YET SUPPORTED // BlobCustomerProvidedKey srcBlobKey = BlobTestHelper.generateCPK();
+
+        // load CPK into srcOptions
+        BlobRequestOptions srcOptions = new BlobRequestOptions();
+        // NOT YET SUPPORTED // srcOptions.setCustomerProvidedKey(srcBlobKey);
+
+        // get blob reference
+        CloudBlockBlob temp = this.container.getBlockBlobReference(
+                BlobTestHelper.generateRandomBlobNameWithPrefix("testPageBlob"));
+        // force https
+        temp = new CloudBlockBlob(
+                new URL(temp.getUri().toString().replace("http", "https")).toURI(),
+                container.getServiceClient().getCredentials());
+
+        // generate random data
+        byte[] buffer = BlobTestHelper.getRandomBuffer(BLOB_SIZE);
+        ByteArrayInputStream stream = new ByteArrayInputStream(buffer);
+
+        // upload blob with CPK
+        temp.upload(stream, buffer.length, null, srcOptions, null);
+
+        // save blob URI with SAS authentication (important for later when this is a source URL)
+        SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy();
+        policy.setPermissions(EnumSet.of(SharedAccessBlobPermissions.READ, SharedAccessBlobPermissions.WRITE));
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.MINUTE, 10);
+        policy.setSharedAccessExpiryTime(cal.getTime());
+        String sas = temp.generateSharedAccessSignature(policy, null);
+        URI srcBlobURI = new URI(temp.getUri().toString() + "?" + sas);
+
+        // get blob reference
+        CloudPageBlob blob = this.container.getPageBlobReference(
+                BlobTestHelper.generateRandomBlobNameWithPrefix("testPageBlob"));
+        // force https
+        blob = new CloudPageBlob(
+                new URL(blob.getUri().toString().replace("http", "https")).toURI(),
+                container.getServiceClient().getCredentials());
+
+        ////// ACT
+
+        // load CPK into srcOptions
+        BlobCustomerProvidedKey blobKey = BlobTestHelper.generateCPK();
+        BlobRequestOptions options = new BlobRequestOptions();
+        options.setCustomerProvidedKey(blobKey);
+
+        // create page blob
+        OperationContext operationContext = new OperationContext();
+        blob.create(BLOB_SIZE, null, options, operationContext);
+
+        // validate response
+        assertTrue(operationContext.getRequestResults().get(0).isRequestServiceEncrypted());
+        assertEquals(
+                options.getCustomerProvidedKey().getKeySHA256(),
+                operationContext.getRequestResults().get(0).getEncryptionKeySHA256());
+
+        // put pages from URI
+        operationContext = new OperationContext();
+        blob.putPagesFromURI(0, BLOB_SIZE, srcBlobURI, null, null, null, null, options, operationContext);
+
+        // validate response
+        assertTrue(operationContext.getRequestResults().get(0).isRequestServiceEncrypted());
+        assertEquals(
+                options.getCustomerProvidedKey().getKeySHA256(),
+                operationContext.getRequestResults().get(0).getEncryptionKeySHA256());
     }
 }

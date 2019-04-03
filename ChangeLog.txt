@@ -16,6 +16,7 @@ XXXX.XX.XX Version X.X.X
  * Fixed a bug in which putBlockFromURI accessConditions were indicated as being on the destination when in actuality they only apply to the source.
  * Added a method to get share stats in bytes.
  * Support for snapshot-level shared access signature tokens on blobs.
+ * Support for customer-provided keys with server-side encryption.
 
 2019.03.01 Version 8.1.0
  * Added support for the deep sync copy blob api.
