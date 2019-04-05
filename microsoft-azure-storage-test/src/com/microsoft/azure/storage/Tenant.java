@@ -35,6 +35,7 @@ public class Tenant {
     private String activeDirectoryApplicationId;
     private String activeDirectoryApplicationSecret;
     private String activeDirectoryTenantId;
+    private String activeDirectoryAuthEndpoint;
 
     public String getTenantName() {
         return this.tenantName;
@@ -108,6 +109,10 @@ public class Tenant {
         return this.activeDirectoryTenantId;
     }
 
+    public String getActiveDirectoryAuthEndpoint() {
+        return this.activeDirectoryAuthEndpoint;
+    }
+
     public void setActiveDirectoryApplicationId(String activeDirectoryApplicationId) {
         this.activeDirectoryApplicationId = activeDirectoryApplicationId;
     }
@@ -118,6 +123,10 @@ public class Tenant {
 
     public void setActiveDirectoryTenantId(String activeDirectoryTenantId) {
         this.activeDirectoryTenantId = activeDirectoryTenantId;
+    }
+
+    public void setActiveDirectoryAuthEndpoint(String activeDirectoryAuthEndpoint) {
+        this.activeDirectoryAuthEndpoint = activeDirectoryAuthEndpoint;
     }
 
     void setTenantName(String tenantName) {

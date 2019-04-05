@@ -24,7 +24,11 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
+import java.security.DigestException;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -36,23 +40,13 @@ import java.util.TimeZone;
 
 import static org.junit.Assert.*;
 
+import com.microsoft.azure.storage.*;
+import com.microsoft.azure.storage.core.Base64;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import com.microsoft.azure.storage.AccessCondition;
-import com.microsoft.azure.storage.Constants;
-import com.microsoft.azure.storage.OperationContext;
-import com.microsoft.azure.storage.RetryNoRetry;
-import com.microsoft.azure.storage.SendingRequestEvent;
-import com.microsoft.azure.storage.SharedAccessAccountPermissions;
-import com.microsoft.azure.storage.SharedAccessAccountPolicy;
-import com.microsoft.azure.storage.SharedAccessAccountResourceType;
-import com.microsoft.azure.storage.SharedAccessAccountService;
-import com.microsoft.azure.storage.StorageEvent;
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.TestHelper;
 import com.microsoft.azure.storage.TestRunners.CloudTests;
 import com.microsoft.azure.storage.TestRunners.DevFabricTests;
 import com.microsoft.azure.storage.TestRunners.DevStoreTests;
@@ -794,6 +788,61 @@ public class CloudPageBlobTests {
         }
         catch (IllegalArgumentException ex) {
             assertEquals(SR.INVALID_PAGE_START_OFFSET, ex.getMessage());
+        }
+    }
+
+    @Test
+    @Category({ DevFabricTests.class, TestRunners.DevStoreTests.class })
+    public void testPutPagesFromURI() throws URISyntaxException, StorageException, IOException,
+            NoSuchAlgorithmException, DigestException {
+        CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
+        container.create(BlobContainerPublicAccessType.CONTAINER, null, null);
+        final CloudBlockBlob blob = container.getBlockBlobReference(BlobTestHelper
+                .generateRandomBlobNameWithPrefix("testBlob"));
+
+        byte[] data = TestHelper.getRandomBuffer(2 * Constants.PAGE_SIZE);
+
+        // create
+        blob.uploadFromByteArray(data, 0, data.length);
+        assertTrue(blob.exists());
+
+        try {
+            final CloudPageBlob blob2 = container.getPageBlobReference(BlobTestHelper
+                    .generateRandomBlobNameWithPrefix("copyBlob"));
+
+            blob2.create(3 * Constants.PAGE_SIZE);
+            // Copy the first half of the blob.
+            blob2.putPagesFromURI(0, data.length/2L, blob.getUri(), 0L);
+
+            // Copy the second half of the blob, specifying the MD5 and setting null for the length to indicate the remainder of the blob.
+            MessageDigest digest = MessageDigest.getInstance("MD5");
+            digest.update(data, Constants.PAGE_SIZE, Constants.PAGE_SIZE);
+            String md5 = Base64.encode(digest.digest());
+            boolean exceptionThrown = false;
+            try {
+                blob2.putPagesFromURI(Constants.PAGE_SIZE * 2, Constants.PAGE_SIZE, blob.getUri(),
+                        (long)Constants.PAGE_SIZE,
+                        Base64.encode(MessageDigest.getInstance("MD5").digest("garbage".getBytes())), null, null, null,
+                        null);
+            } catch (StorageException e) {
+                exceptionThrown = true;
+                assertEquals("Md5Mismatch", e.getErrorCode());
+                // Write to the third page.
+                blob2.putPagesFromURI(Constants.PAGE_SIZE * 2, Constants.PAGE_SIZE, blob.getUri(),
+                        (long)Constants.PAGE_SIZE, md5, null, null, null, null);
+            }
+            assertTrue(exceptionThrown);
+
+            byte[] result = new byte[2 * Constants.PAGE_SIZE];
+            blob2.downloadRangeToByteArray(0, (long)Constants.PAGE_SIZE, result, 0);
+            blob2.downloadRangeToByteArray(2 * Constants.PAGE_SIZE, (long)Constants.PAGE_SIZE, result,
+                    Constants.PAGE_SIZE);
+            for (int i = 0; i < result.length; i++) {
+                assertEquals(result[i], data[i]);
+            }
+        }
+        finally {
+            container.deleteIfExists();
         }
     }
 

@@ -21,6 +21,7 @@ import java.util.Stack;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 
+import com.microsoft.azure.storage.Constants;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -35,7 +36,7 @@ final class ShareStatsHandler extends DefaultHandler {
     /**
      * The name of the share usage XML element.
      */
-    private final static String USAGE_NAME = "ShareUsage";
+    private final static String USAGE_NAME = "ShareUsageBytes";
 
     private final Stack<String> elementStack = new Stack<String>();
     private StringBuilder builder = new StringBuilder();
@@ -78,7 +79,7 @@ final class ShareStatsHandler extends DefaultHandler {
         }
 
         if (USAGE_NAME.equals(currentNode)) {
-            this.stats.setUsage(Integer.parseInt(this.builder.toString()));
+            this.stats.setUsage(Long.parseLong(this.builder.toString()));
         }
 
         this.builder = new StringBuilder();

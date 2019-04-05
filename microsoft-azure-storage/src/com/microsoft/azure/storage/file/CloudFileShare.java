@@ -1120,7 +1120,7 @@ public final class CloudFileShare {
 
         final String signature = SharedAccessSignatureHelper.generateSharedAccessSignatureHashForBlobAndFile(
                 policy, null /* SharedAccessHeaders */, groupPolicyIdentifier, resourceName,
-                ipRange, protocols, this.fileServiceClient);
+                ipRange, protocols, this.fileServiceClient, Constants.QueryConstants.FILE_SERVICE, null /* snapshotId */);
 
         final UriQueryBuilder builder = SharedAccessSignatureHelper.generateSharedAccessSignatureForBlobAndFile(
                 policy, null /* SharedAccessHeaders */, groupPolicyIdentifier, "s", ipRange, protocols, signature);

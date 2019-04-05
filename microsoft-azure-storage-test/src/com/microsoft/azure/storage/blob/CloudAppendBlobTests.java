@@ -14,16 +14,10 @@
  */
 package com.microsoft.azure.storage.blob;
 
-import com.microsoft.azure.storage.AccessCondition;
+import com.microsoft.azure.storage.*;
+import com.microsoft.azure.storage.core.Base64;
 import com.microsoft.azure.storage.core.SR;
 import com.microsoft.azure.storage.core.Utility;
-import com.microsoft.azure.storage.OperationContext;
-import com.microsoft.azure.storage.ResponseReceivedEvent;
-import com.microsoft.azure.storage.RetryNoRetry;
-import com.microsoft.azure.storage.SendingRequestEvent;
-import com.microsoft.azure.storage.StorageErrorCodeStrings;
-import com.microsoft.azure.storage.StorageEvent;
-import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.TestRunners.CloudTests;
 import com.microsoft.azure.storage.TestRunners.DevFabricTests;
 
@@ -40,6 +34,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.EnumSet;
@@ -207,6 +203,56 @@ public class CloudAppendBlobTests {
             if (!e.getErrorCode().contains("NoPendingCopyOperation")) {
                 throw e;
             }
+        }
+    }
+
+    @Test
+    @Category({ DevFabricTests.class, TestRunners.DevStoreTests.class })
+    public void testAppendBlockFromURI() throws URISyntaxException, StorageException, IOException, NoSuchAlgorithmException {
+        CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
+        container.create(BlobContainerPublicAccessType.CONTAINER, null, null);
+        final CloudBlockBlob blob = container.getBlockBlobReference(BlobTestHelper
+                .generateRandomBlobNameWithPrefix("testBlob"));
+
+        // Note that we copy the blob in halves, so text.length() % 2 must equal 0.
+        String text = "Test data.";
+
+        // create
+        blob.uploadText(text);
+        assertTrue(blob.exists());
+
+        try {
+            final CloudAppendBlob blob2 = container.getAppendBlobReference(BlobTestHelper
+                    .generateRandomBlobNameWithPrefix("copyBlob"));
+
+            blob2.createOrReplace();
+            // Copy the first half of the blob.
+            long pos = blob2.appendBlockFromURI(blob.getUri(), 0L, text.length() / 2L);
+            assertEquals(0, pos);
+
+            // Copy the second half of the blob, specifying the MD5 and setting null for the length to indicate the remainder of the blob.
+
+            String md5 = Base64.encode(MessageDigest.getInstance("MD5").digest(text.substring(5).getBytes()));
+            boolean exceptionThrown = false;
+            try {
+                blob2.appendBlockFromURI(blob.getUri(), (text.length() / 2L) + 1, null,
+                        Base64.encode(MessageDigest.getInstance("MD5").digest("garbage".getBytes())), null, null, null, null);
+            } catch (StorageException e) {
+                exceptionThrown = true;
+                assertEquals("Md5Mismatch", e.getErrorCode());
+                pos = blob2.appendBlockFromURI(blob.getUri(), 5L, null, md5, null, null, null, null);
+                assertEquals(text.length()/2L, pos);
+            }
+            assertTrue(exceptionThrown);
+
+            byte[] result = new byte[text.length()];
+            blob2.downloadToByteArray(result, 0);
+            for (int i = 0; i < result.length; i++) {
+                assertEquals(result[i], text.getBytes()[i]);
+            }
+        }
+        finally {
+            container.deleteIfExists();
         }
     }
 

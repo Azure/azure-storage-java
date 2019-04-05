@@ -381,12 +381,14 @@ public class CloudFileShareTests {
         ShareStats stats = share.getStats();
         Assert.assertNotNull(stats);
         Assert.assertEquals(0, stats.getUsage());
+        Assert.assertEquals(0, stats.getUsageInBytes());
 
         FileTestHelper.uploadNewFile(share, 512, null);
 
         stats = share.getStats();
         Assert.assertNotNull(stats);
         Assert.assertEquals(1, stats.getUsage());
+        Assert.assertEquals(512, stats.getUsageInBytes());
     }
 
     /**

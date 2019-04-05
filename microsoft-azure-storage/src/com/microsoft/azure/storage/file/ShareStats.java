@@ -14,31 +14,42 @@
  */
 package com.microsoft.azure.storage.file;
 
+import com.microsoft.azure.storage.Constants;
+
 /**
  * Class representing a set of statistics pertaining to a cloud file share.
  */
 public final class ShareStats {
     /**
-     * The approximate size of the data stored on the share, in GB.
+     * The approximate size of the data stored on the share, in bytes.
      */
-    private int usage;
+    private long usageInBytes;
 
     /**
      * Gets the approximate size of the data stored on the share, in GB.
-     * 
-     * @return the share usage
+     *
+     * @return the share usage in GB
      */
     public int getUsage() {
-        return usage;
+        return (int)Math.ceil((double) usageInBytes / Constants.GB);
     }
 
     /**
-     * Sets approximate size of the data stored on the share, in GB.
+     * Gets the approximate size of the data stored on the share, in bytes.
+     *
+     * @return the share usage in bytes
+     */
+    public long getUsageInBytes() {
+        return usageInBytes;
+    }
+
+    /**
+     * Sets approximate size of the data stored on the share, in bytes.
      * 
      * @param usage
      *            The approximate size of the data stored on the share, in GB.
      */
-    void setUsage(int usage) {
-        this.usage = usage;
+    void setUsage(long usage) {
+        this.usageInBytes = usage;
     }
 }
