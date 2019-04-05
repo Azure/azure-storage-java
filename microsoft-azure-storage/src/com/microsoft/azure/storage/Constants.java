@@ -695,7 +695,7 @@ public final class Constants {
         /**
          * The current storage version header value.
          */
-        public static final String TARGET_STORAGE_VERSION = "2018-03-28";
+        public static final String TARGET_STORAGE_VERSION = "2018-11-09";
 
         /**
          * The header that specifies the next visible time for a queue message.
@@ -715,7 +715,7 @@ public final class Constants {
         /**
          * Specifies the value to use for UserAgent header.
          */
-        public static final String USER_AGENT_VERSION = "8.1.0";
+        public static final String USER_AGENT_VERSION = "8.2.0";
 
         /**
          * The default type for content-type and accept
@@ -861,6 +861,56 @@ public final class Constants {
          * The query component for the signed SAS version.
          */
         public static final String SIGNED_VERSION = "sv";
+
+        /**
+         * The query value for blob as the signed service.
+         */
+        public static final String BLOB_RESOURCE = "b";
+
+        /**
+         * The query value for blob snapshot as the signed service.
+         */
+        public static final String BLOB_SNAPSHOT_SERVICE = "bs";
+
+        /**
+         * The query value for container as the signed service.
+         */
+        public static final String CONTAINER_RESOURCE = "c";
+
+        /**
+         * The query value for container as the signed service.
+         */
+        public static final String FILE_SERVICE = "f";
+
+        /**
+         * The query component for signed object id.
+         */
+        public static final String SIGNED_KEY_OID = "skoid";
+
+        /**
+         * The query component for signed tenant id.
+         */
+        public static final String SIGNED_KEY_TID = "sktid";
+
+        /**
+         * The query component for signed key start.
+         */
+        public static final String SIGNED_KEY_START = "skt";
+
+        /**
+         * The query component for signed key expiration.
+         */
+        public static final String SIGNED_KEY_EXPIRY = "ske";
+
+        /**
+         * The query component for signed service.
+         */
+        public static final String SIGNED_KEY_SERVICE = "sks";
+
+        /**
+         * The query component for signed version.
+         */
+        public static final String SIGNED_KEY_VERSION = "skv";
 
         /**
          * The query component for snapshot time.
@@ -1102,6 +1152,41 @@ public final class Constants {
      * XML element for the end time of an access policy.
      */
     public static final String EXPIRY = "Expiry";
+
+    /**
+     * The XML element for the signed object ID.
+     */
+    public static final String SIGNED_OID_ELEMENT = "SignedOid";
+
+    /**
+     * The XML element for the signed tenant ID.
+     */
+    public static final String SIGNED_TID_ELEMENT = "SignedTid";
+
+    /**
+     * The XML element for the signed start time.
+     */
+    public static final String SIGNED_START_ELEMENT = "SignedStart";
+
+    /**
+     * The XML element for the signed expiration time.
+     */
+    public static final String SIGNED_EXPIRY_ELEMENT = "SignedExpiry";
+
+    /**
+     * The XML element for the REST API version used to create the key.
+     */
+    public static final String SIGNED_VERSION_ELEMENT = "SignedVersion";
+
+    /**
+     * The XML element for the storage service used by this key.
+     */
+    public static final String SIGNED_SERVICE_ELEMENT = "SignedService";
+
+    /**
+     * The XML element for a generic value.
+     */
+    public static final String VALUE_ELEMENT = "Value";
 
     /**
      * Constant for False.

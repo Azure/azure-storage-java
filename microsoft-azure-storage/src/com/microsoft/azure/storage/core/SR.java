@@ -108,6 +108,7 @@ public class SR {
     public static final String INVALID_OPERATION_FOR_A_SNAPSHOT = "Cannot perform this operation on a blob representing a snapshot.";
     public static final String INVALID_OPERATION_FOR_A_SHARE_SNAPSHOT = "Cannot perform this operation on a share representing a snapshot.";
     public static final String INVALID_PAGE_BLOB_LENGTH = "Page blob length must be multiple of 512.";
+    public static final String INVALID_PAGE_BLOB_SOURCE_LENGTH = "The length of the page blob source does not match the destination length";
     public static final String INVALID_PAGE_START_OFFSET = "Page start offset must be multiple of 512.";
     public static final String INVALID_RANGE_CONTENT_MD5_HEADER = "Cannot specify x-ms-range-get-content-md5 header on ranges larger than 4 MB. Either use a BlobReadStream via openRead, or disable TransactionalMD5 via the BlobRequestOptions.";
     public static final String INVALID_RESOURCE_NAME = "Invalid %s name. Check MSDN for more information about valid naming.";

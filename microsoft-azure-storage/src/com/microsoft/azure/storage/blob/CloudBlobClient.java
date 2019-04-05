@@ -14,12 +14,16 @@
  */
 package com.microsoft.azure.storage.blob;
 
+import com.microsoft.azure.storage.*;
+import com.microsoft.azure.storage.core.*;
+
+import javax.xml.stream.XMLStreamException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
-
-import com.microsoft.azure.storage.*;
-import com.microsoft.azure.storage.core.*;
+import java.util.Date;
 
 /**
  * Provides a client for accessing the Microsoft Azure Blob service.
@@ -627,6 +631,110 @@ public final class CloudBlobClient extends ServiceClient {
         ExecutionEngine.executeWithRetry(this, null,
                 this.uploadServicePropertiesImpl(properties, options, opContext, false),
                 options.getRetryPolicyFactory(), opContext);
+    }
+
+    /**
+     * Requests a new user delegation key based on this client's oauth credentials.
+     * @param keyStart
+     *            Start time of the requested key's validity.
+     * @param keyEnd
+     *            End time of the requested key's validity.
+     * @return The requested key.
+     * @throws StorageException
+     */
+    @DoesServiceRequest
+    public UserDelegationKey getUserDelegationKey(Date keyStart, Date keyEnd) throws StorageException {
+        return this.getUserDelegationKey(keyStart, keyEnd,null /* options */, null /* opContext */);
+    }
+
+    /**
+     * Requests a new user delegation key based on this client's oauth credentials.
+     * @param keyStart
+     *            Start time of the requested key's validity.
+     * @param keyEnd
+     *            End time of the requested key's validity.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @return The requested key.
+     * @throws StorageException
+     */
+    @DoesServiceRequest
+    public UserDelegationKey getUserDelegationKey(Date keyStart, Date keyEnd, BlobRequestOptions options, OperationContext opContext)
+            throws StorageException {
+        if (opContext == null) {
+            opContext = new OperationContext();
+        }
+
+        opContext.initialize();
+        options = BlobRequestOptions.populateAndApplyDefaults(options, BlobType.UNSPECIFIED, this);
+
+        return ExecutionEngine.executeWithRetry(this, null, this.getUserDelegationKeyImpl(keyStart, keyEnd, options), options.getRetryPolicyFactory(), opContext);
+    }
+
+    private StorageRequest<CloudBlobClient, Void, UserDelegationKey> getUserDelegationKeyImpl(
+            final Date keyStart, final Date keyEnd, final BlobRequestOptions options)
+            throws StorageException {
+        try {
+            final ByteArrayInputStream requestStream = new ByteArrayInputStream(
+                    UserDelegationKeyRequestSerializer.writeKeyRequestToStream(keyStart, keyEnd));
+            final StreamMd5AndLength descriptor = Utility.analyzeStream(requestStream, -1L, -1L,
+                    true /* rewindSourceStream */, options.getUseTransactionalContentMD5() /* calculateMD5 */);
+
+            return new StorageRequest<CloudBlobClient, Void, UserDelegationKey>(options, this.getStorageUri()) {
+                @Override
+                public void setRequestLocationMode() {
+                    this.setRequestLocationMode(RequestLocationMode.PRIMARY_OR_SECONDARY);
+                }
+
+                @Override
+                public HttpURLConnection buildRequest(CloudBlobClient client, Void parentObject, OperationContext context) throws Exception {
+                    this.setSendStream(requestStream);
+                    this.setLength(descriptor.getLength());
+                    return BaseRequest.getUserDelegationKey(credentials.transformUri(client.getStorageUri().getUri(this.getCurrentLocation())),
+                            options, null, context);
+                }
+
+                @Override
+                public void setHeaders(HttpURLConnection connection, Void parentObject, OperationContext context) {
+                    if (options.getUseTransactionalContentMD5()) {
+                        connection.setRequestProperty(Constants.HeaderConstants.CONTENT_MD5, descriptor.getMd5());
+                    }
+                }
+
+                @Override
+                public void signRequest(HttpURLConnection connection, CloudBlobClient client, OperationContext context) throws Exception {
+                    StorageRequest.signBlobQueueAndFileRequest(connection, client, descriptor.getLength(), context);
+                }
+
+                @Override
+                public UserDelegationKey preProcessResponse(Void parentObject, CloudBlobClient client, OperationContext context) throws Exception {
+                    return null;
+                }
+
+                @Override
+                public UserDelegationKey postProcessResponse(HttpURLConnection connection, Void parentObject,
+                                                             CloudBlobClient client, OperationContext context, UserDelegationKey storageObject) throws Exception {
+                    return UserDelegationKeyHandler.readUserDelegationKeyFromStream(connection.getInputStream());
+                }
+
+                @Override
+                public void recoveryAction(OperationContext context) throws IOException {
+                    requestStream.reset();
+                    requestStream.mark(Constants.MAX_MARK_LENGTH);
+                }
+            };
+        }
+        catch (XMLStreamException | IOException e) {
+            // The request was not even made. There was an error while trying to read the serviceProperties and write to stream. Just throw.
+            throw StorageException.translateClientException(e);
+        }
+
     }
 
     /**

@@ -87,7 +87,7 @@ public class TestHelper {
         }
 
         // this boiler plate code is from the ADAL sample
-        String authority = String.format("https://login.microsoftonline.com/%s/oauth2/token",
+        String authority = String.format(tenant.getActiveDirectoryAuthEndpoint() + "/%s/oauth2/token",
                 tenant.getActiveDirectoryTenantId());
         ClientCredential credential = new ClientCredential(tenant.getActiveDirectoryApplicationId(),
                 tenant.getActiveDirectoryApplicationSecret());
@@ -646,6 +646,9 @@ public class TestHelper {
                         }
                         else if (name.equals("ActiveDirectoryTenantId")) {
                             tenant.setActiveDirectoryTenantId(node.getTextContent());
+                        }
+                        else if (name.equals(("ActiveDirectoryAuthEndpoint"))) {
+                            tenant.setActiveDirectoryAuthEndpoint(node.getTextContent());
                         }
                         else if (!premiumBlob){
                             throw new IllegalArgumentException(String.format(

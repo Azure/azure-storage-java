@@ -14,27 +14,20 @@
  */
 package com.microsoft.azure.storage.core;
 
+import com.microsoft.azure.storage.*;
+import com.microsoft.azure.storage.blob.CloudBlobClient;
+import com.microsoft.azure.storage.blob.SharedAccessBlobHeaders;
+import com.microsoft.azure.storage.blob.SharedAccessBlobPolicy;
+import com.microsoft.azure.storage.queue.SharedAccessQueuePolicy;
+import com.microsoft.azure.storage.table.SharedAccessTablePolicy;
+
+import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
-
-import com.microsoft.azure.storage.CloudStorageAccount;
-import com.microsoft.azure.storage.Constants;
-import com.microsoft.azure.storage.IPRange;
-import com.microsoft.azure.storage.ServiceClient;
-import com.microsoft.azure.storage.SharedAccessAccountPolicy;
-import com.microsoft.azure.storage.SharedAccessHeaders;
-import com.microsoft.azure.storage.SharedAccessPolicy;
-import com.microsoft.azure.storage.SharedAccessProtocols;
-import com.microsoft.azure.storage.StorageCredentials;
-import com.microsoft.azure.storage.StorageCredentialsSharedAccessSignature;
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.StorageUri;
-import com.microsoft.azure.storage.queue.SharedAccessQueuePolicy;
-import com.microsoft.azure.storage.table.SharedAccessTablePolicy;
 
 /**
  * RESERVED FOR INTERNAL USE. Contains helper methods for implementing shared access signatures.
@@ -132,6 +125,45 @@ public class SharedAccessSignatureHelper {
         return generateSharedAccessSignatureHelper(policy, null /* startPartitionKey */, null /* startRowKey */,
                 null /* endPartitionKey */, null /* endRowKey */, groupPolicyIdentifier, resourceType, ipRange,
                 protocols, null /* tableName */, signature, headers);
+    }
+
+    /**
+     * Get the complete query builder for creating the Shared Access Signature query.
+     * @param policy
+     *            The shared access policy for the shared access signature.
+     * @param headers
+     *            The optional header values to set for a blob or file accessed with this shared access signature.
+     * @param resourceType
+     *            Currently only "b" for blobs.
+     * @param ipRange
+     *            The range of IP addresses for the shared access signature.
+     * @param protocols
+     *            The Internet protocols for the shared access signature.
+     * @param signature
+     *            The signature to use.
+     * @param delegationKey
+     *            The key for constructing the token.
+     * @return The finished query builder.
+     * @throws StorageException
+     */
+    public static UriQueryBuilder generateUserDelegationSharedAccessSignatureForBlob(
+            final SharedAccessPolicy policy, final SharedAccessHeaders headers, final String resourceType,
+            final IPRange ipRange, final SharedAccessProtocols protocols, final String signature,
+            final UserDelegationKey delegationKey) throws StorageException {
+
+        Utility.assertNotNullOrEmpty("resourceType", resourceType);
+
+        UriQueryBuilder builder = generateSharedAccessSignatureHelper(policy, null, null, null,
+                null, null, resourceType, ipRange, protocols, null, signature, headers);
+
+        builder.add(Constants.QueryConstants.SIGNED_KEY_OID, delegationKey.getSignedOid().toString());
+        builder.add(Constants.QueryConstants.SIGNED_KEY_TID, delegationKey.getSignedTid().toString());
+        builder.add(Constants.QueryConstants.SIGNED_KEY_START, Utility.getUTCTimeOrEmpty(delegationKey.getSignedStart()));
+        builder.add(Constants.QueryConstants.SIGNED_KEY_EXPIRY, Utility.getUTCTimeOrEmpty(delegationKey.getSignedExpiry()));
+        builder.add(Constants.QueryConstants.SIGNED_KEY_VERSION, delegationKey.getSignedVersion());
+        builder.add(Constants.QueryConstants.SIGNED_KEY_SERVICE, delegationKey.getSignedService());
+
+        return builder;
     }
 
     /**
@@ -275,11 +307,19 @@ public class SharedAccessSignatureHelper {
      */
     public static String generateSharedAccessSignatureHashForBlobAndFile(final SharedAccessPolicy policy,
             SharedAccessHeaders headers, final String accessPolicyIdentifier, final String resourceName,
-            final IPRange ipRange, final SharedAccessProtocols protocols, final ServiceClient client)
-            throws InvalidKeyException, StorageException {
+            final IPRange ipRange, final SharedAccessProtocols protocols, final ServiceClient client,
+            final String service, final String snapshotId) throws InvalidKeyException, StorageException {
         
         String stringToSign = generateSharedAccessSignatureStringToSign(
                 policy, resourceName, ipRange, protocols, accessPolicyIdentifier);
+
+        if (client instanceof CloudBlobClient) {
+            stringToSign = String.format("%s\n%s\n%s", stringToSign,
+                    service == null ? Constants.EMPTY_STRING : service,
+                    snapshotId == null ? Constants.EMPTY_STRING : snapshotId);
+
+        }
+
 
         String cacheControl = null;
         String contentDisposition = null;
@@ -302,6 +342,82 @@ public class SharedAccessSignatureHelper {
                 contentType == null ? Constants.EMPTY_STRING : contentType);
         
         return generateSharedAccessSignatureHashHelper(stringToSign, client.getCredentials());
+    }
+
+    /**
+     * Get the signature hash embedded inside the user delegation Shared Access Signature for the blob service.
+     *
+     * @param policy
+     *            The shared access policy to hash.
+     * @param headers
+     *            The optional header values to set for a blob or file accessed with this shared access signature.
+     * @param resourceName
+     *            The resource name.
+     * @param ipRange
+     *            The range of IP addresses to hash.
+     * @param protocols
+     *            The Internet protocols to hash.
+     * @param delegationKey
+     *            The key data to sign and the secret to sign with.
+     * @return The signature hash to embed inside the Shared Access Signature.
+     */
+    public static String generateUserDelegationSharedAccessSignatureHashForBlob(final SharedAccessBlobPolicy policy,
+                                                                                SharedAccessBlobHeaders headers, final String resourceName, final IPRange ipRange,
+                                                                                final SharedAccessProtocols protocols, final UserDelegationKey delegationKey) {
+        Utility.assertNotNullOrEmpty("resourceName", resourceName);
+        Utility.assertNotNull("delegationKey", delegationKey);
+        Utility.assertNotNull("delegationKey.SignedOid", delegationKey.getSignedOid());
+        Utility.assertNotNull("delegationKey.SignedTid", delegationKey.getSignedTid());
+        Utility.assertNotNull("delegationKey.SignedStart", delegationKey.getSignedStart());
+        Utility.assertNotNull("delegationKey.SignedExpiry", delegationKey.getSignedExpiry());
+        Utility.assertNotNullOrEmpty("delegationKey.SignedService", delegationKey.getSignedService());
+        Utility.assertNotNullOrEmpty("delegationKey.SignedVersion", delegationKey.getSignedVersion());
+        Utility.assertNotNullOrEmpty("delegationKey.Value", delegationKey.getValue());
+
+        String cacheControl = Constants.EMPTY_STRING;
+        String contentDisposition = Constants.EMPTY_STRING;
+        String contentEncoding = Constants.EMPTY_STRING;
+        String contentLanguage = Constants.EMPTY_STRING;
+        String contentType = Constants.EMPTY_STRING;
+        if (headers != null) {
+            cacheControl = headers.getCacheControl();
+            contentDisposition = headers.getContentDisposition();
+            contentEncoding = headers.getContentEncoding();
+            contentLanguage = headers.getContentLanguage();
+            contentType = headers.getContentType();
+        }
+
+        String stringToSign = String.format(
+                "%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s",
+                policy == null ? Constants.EMPTY_STRING : policy.permissionsToString(),
+                policy == null ? Constants.EMPTY_STRING : Utility.getUTCTimeOrEmpty(policy.getSharedAccessStartTime()),
+                policy == null ? Constants.EMPTY_STRING : Utility.getUTCTimeOrEmpty(policy.getSharedAccessExpiryTime()),
+                resourceName,
+                delegationKey.getSignedOid(),
+                delegationKey.getSignedTid(),
+                Utility.getUTCTimeOrEmpty(delegationKey.getSignedStart()),
+                Utility.getUTCTimeOrEmpty(delegationKey.getSignedExpiry()),
+                delegationKey.getSignedService(),
+                delegationKey.getSignedVersion(),
+                ipRange == null ? Constants.EMPTY_STRING : ipRange.toString(),
+                protocols == null ? Constants.EMPTY_STRING : protocols.toString(),
+                Constants.HeaderConstants.TARGET_STORAGE_VERSION,
+                Constants.QueryConstants.BLOB_RESOURCE,
+                Constants.EMPTY_STRING,
+                cacheControl,
+                contentDisposition,
+                contentEncoding,
+                contentLanguage,
+                contentType
+        );
+
+        try {
+            return Base64.encode(StorageCredentialsHelper.computeHmac256(
+                    stringToSign.getBytes(Constants.UTF8_CHARSET),
+                    Base64.decode(delegationKey.getValue())));
+        } catch (InvalidKeyException | UnsupportedEncodingException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     /**

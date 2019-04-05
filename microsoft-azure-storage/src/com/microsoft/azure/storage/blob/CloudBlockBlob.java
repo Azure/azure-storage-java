@@ -1241,8 +1241,8 @@ public final class CloudBlockBlob extends CloudBlob {
      *           end of the blob.
      * @param md5
      *           A <code>String</code> which represents the MD5 caluclated for the range of bytes of the source.
-     * @param accessCondition
-     *            An {@link AccessCondition} object that represents the access conditions for the blob.
+     * @param sourceAccessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the source blob.
      * @param options
      *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
      *            <code>null</code> will use the default request options from the associated service client (
@@ -1257,7 +1257,7 @@ public final class CloudBlockBlob extends CloudBlob {
      */
     @DoesServiceRequest
     public void createBlockFromURI(final String blockId, final URI copySource, final Long offset, final Long length,
-                                   String md5, final AccessCondition accessCondition, BlobRequestOptions options,
+                                   String md5, final AccessCondition sourceAccessCondition, BlobRequestOptions options,
                                    OperationContext opContext)
             throws StorageException {
 
@@ -1285,7 +1285,7 @@ public final class CloudBlockBlob extends CloudBlob {
         }
 
         this.createBlockFromURIInternal(blockId, copySource, offset, length, md5,
-                accessCondition, options, opContext);
+                sourceAccessCondition, options, opContext);
     }
 
     /**
@@ -1305,8 +1305,8 @@ public final class CloudBlockBlob extends CloudBlob {
      *           end of the blob.
      * @param md5
      *           A <code>String</code> which represents the MD5 caluclated for the range of bytes of the source.
-     * @param accessCondition
-     *            An {@link AccessCondition} object that represents the access conditions for the blob.
+     * @param sourceAccessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the source blob.
      * @param options
      *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
      *            <code>null</code> will use the default request options from the associated service client (
@@ -1320,17 +1320,17 @@ public final class CloudBlockBlob extends CloudBlob {
      *             If a storage service error occurred.
      */
     @DoesServiceRequest
-    private void createBlockFromURIInternal(final String blockId, final URI copySource, final Long offset, final Long length,
-                                            String md5, final AccessCondition accessCondition, BlobRequestOptions options,
-                                            OperationContext opContext) throws StorageException {
+    private void createBlockFromURIInternal(final String blockId, final URI copySource, final Long offset,
+            final Long length, String md5, final AccessCondition sourceAccessCondition, BlobRequestOptions options,
+            OperationContext opContext) throws StorageException {
         ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                createBlockFromURIImpl(blockId, copySource, offset, length, md5, accessCondition, options, opContext),
+                createBlockFromURIImpl(blockId, copySource, offset, length, md5, sourceAccessCondition, options, opContext),
                 options.getRetryPolicyFactory(), opContext);
     }
 
-    private StorageRequest<CloudBlobClient, CloudBlob, Void> createBlockFromURIImpl(final String blockId, final URI copySource, final Long offset, final Long length,
-                                                                                    final String md5, final AccessCondition accessCondition,
-                                                                                    final BlobRequestOptions options, final OperationContext opContext) {
+    private StorageRequest<CloudBlobClient, CloudBlob, Void> createBlockFromURIImpl(final String blockId,
+            final URI copySource, final Long offset, final Long length, final String md5,
+            final AccessCondition sourceAccessCondition, final BlobRequestOptions options, final OperationContext opContext) {
 
         return new StorageRequest<CloudBlobClient, CloudBlob, Void>(
                 options, this.getStorageUri()) {
@@ -1340,7 +1340,7 @@ public final class CloudBlockBlob extends CloudBlob {
                     throws Exception {
                 return BlobRequest.putBlock(blob.getTransformedAddress(opContext).getUri(this.getCurrentLocation()),
                         copySource.toASCIIString(), offset, length,
-                        options, md5, opContext, accessCondition, blockId);
+                        options, md5, opContext, sourceAccessCondition, blockId);
             }
 
             @Override
