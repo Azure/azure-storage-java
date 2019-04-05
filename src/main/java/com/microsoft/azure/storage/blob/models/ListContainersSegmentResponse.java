@@ -31,7 +31,7 @@ public final class ListContainersSegmentResponse {
     /**
      * The prefix property.
      */
-    @JsonProperty(value = "Prefix", required = true)
+    @JsonProperty(value = "Prefix")
     private String prefix;
 
     /**
@@ -43,8 +43,8 @@ public final class ListContainersSegmentResponse {
     /**
      * The maxResults property.
      */
-    @JsonProperty(value = "MaxResults", required = true)
-    private int maxResults;
+    @JsonProperty(value = "MaxResults")
+    private Integer maxResults;
 
     private static final class ContainersWrapper {
         @JacksonXmlProperty(localName = "Container")
@@ -65,7 +65,7 @@ public final class ListContainersSegmentResponse {
     /**
      * The nextMarker property.
      */
-    @JsonProperty(value = "NextMarker", required = true)
+    @JsonProperty(value = "NextMarker")
     private String nextMarker;
 
     /**
@@ -133,7 +133,7 @@ public final class ListContainersSegmentResponse {
      *
      * @return the maxResults value.
      */
-    public int maxResults() {
+    public Integer maxResults() {
         return this.maxResults;
     }
 
@@ -143,7 +143,7 @@ public final class ListContainersSegmentResponse {
      * @param maxResults the maxResults value to set.
      * @return the ListContainersSegmentResponse object itself.
      */
-    public ListContainersSegmentResponse withMaxResults(int maxResults) {
+    public ListContainersSegmentResponse withMaxResults(Integer maxResults) {
         this.maxResults = maxResults;
         return this;
     }

@@ -17,10 +17,10 @@ import com.microsoft.rest.v2.DateTimeRfc1123;
 import java.time.OffsetDateTime;
 
 /**
- * Defines headers for AppendBlock operation.
+ * Defines headers for UploadPagesFromURL operation.
  */
-@JacksonXmlRootElement(localName = "AppendBlob-AppendBlock-Headers")
-public final class AppendBlobAppendBlockHeaders {
+@JacksonXmlRootElement(localName = "PageBlob-UploadPagesFromURL-Headers")
+public final class PageBlobUploadPagesFromURLHeaders {
     /**
      * The ETag contains a value that you can use to perform operations
      * conditionally. If the request version is 2011-08-18 or newer, the ETag
@@ -46,6 +46,12 @@ public final class AppendBlobAppendBlockHeaders {
     private byte[] contentMD5;
 
     /**
+     * The current sequence number for the page blob.
+     */
+    @JsonProperty(value = "x-ms-blob-sequence-number")
+    private Long blobSequenceNumber;
+
+    /**
      * This header uniquely identifies the request that was made and can be
      * used for troubleshooting the request.
      */
@@ -68,20 +74,6 @@ public final class AppendBlobAppendBlockHeaders {
     private DateTimeRfc1123 date;
 
     /**
-     * This response header is returned only for append operations. It returns
-     * the offset at which the block was committed, in bytes.
-     */
-    @JsonProperty(value = "x-ms-blob-append-offset")
-    private String blobAppendOffset;
-
-    /**
-     * The number of committed blocks present in the blob. This header is
-     * returned only for append blobs.
-     */
-    @JsonProperty(value = "x-ms-blob-committed-block-count")
-    private Integer blobCommittedBlockCount;
-
-    /**
      * The value of this header is set to true if the contents of the request
      * are successfully encrypted using the specified algorithm, and false
      * otherwise.
@@ -102,9 +94,9 @@ public final class AppendBlobAppendBlockHeaders {
      * Set the eTag value.
      *
      * @param eTag the eTag value to set.
-     * @return the AppendBlobAppendBlockHeaders object itself.
+     * @return the PageBlobUploadPagesFromURLHeaders object itself.
      */
-    public AppendBlobAppendBlockHeaders withETag(String eTag) {
+    public PageBlobUploadPagesFromURLHeaders withETag(String eTag) {
         this.eTag = eTag;
         return this;
     }
@@ -125,9 +117,9 @@ public final class AppendBlobAppendBlockHeaders {
      * Set the lastModified value.
      *
      * @param lastModified the lastModified value to set.
-     * @return the AppendBlobAppendBlockHeaders object itself.
+     * @return the PageBlobUploadPagesFromURLHeaders object itself.
      */
-    public AppendBlobAppendBlockHeaders withLastModified(OffsetDateTime lastModified) {
+    public PageBlobUploadPagesFromURLHeaders withLastModified(OffsetDateTime lastModified) {
         if (lastModified == null) {
             this.lastModified = null;
         } else {
@@ -149,10 +141,30 @@ public final class AppendBlobAppendBlockHeaders {
      * Set the contentMD5 value.
      *
      * @param contentMD5 the contentMD5 value to set.
-     * @return the AppendBlobAppendBlockHeaders object itself.
+     * @return the PageBlobUploadPagesFromURLHeaders object itself.
      */
-    public AppendBlobAppendBlockHeaders withContentMD5(byte[] contentMD5) {
+    public PageBlobUploadPagesFromURLHeaders withContentMD5(byte[] contentMD5) {
         this.contentMD5 = contentMD5;
+        return this;
+    }
+
+    /**
+     * Get the blobSequenceNumber value.
+     *
+     * @return the blobSequenceNumber value.
+     */
+    public Long blobSequenceNumber() {
+        return this.blobSequenceNumber;
+    }
+
+    /**
+     * Set the blobSequenceNumber value.
+     *
+     * @param blobSequenceNumber the blobSequenceNumber value to set.
+     * @return the PageBlobUploadPagesFromURLHeaders object itself.
+     */
+    public PageBlobUploadPagesFromURLHeaders withBlobSequenceNumber(Long blobSequenceNumber) {
+        this.blobSequenceNumber = blobSequenceNumber;
         return this;
     }
 
@@ -169,9 +181,9 @@ public final class AppendBlobAppendBlockHeaders {
      * Set the requestId value.
      *
      * @param requestId the requestId value to set.
-     * @return the AppendBlobAppendBlockHeaders object itself.
+     * @return the PageBlobUploadPagesFromURLHeaders object itself.
      */
-    public AppendBlobAppendBlockHeaders withRequestId(String requestId) {
+    public PageBlobUploadPagesFromURLHeaders withRequestId(String requestId) {
         this.requestId = requestId;
         return this;
     }
@@ -189,9 +201,9 @@ public final class AppendBlobAppendBlockHeaders {
      * Set the version value.
      *
      * @param version the version value to set.
-     * @return the AppendBlobAppendBlockHeaders object itself.
+     * @return the PageBlobUploadPagesFromURLHeaders object itself.
      */
-    public AppendBlobAppendBlockHeaders withVersion(String version) {
+    public PageBlobUploadPagesFromURLHeaders withVersion(String version) {
         this.version = version;
         return this;
     }
@@ -212,54 +224,14 @@ public final class AppendBlobAppendBlockHeaders {
      * Set the date value.
      *
      * @param date the date value to set.
-     * @return the AppendBlobAppendBlockHeaders object itself.
+     * @return the PageBlobUploadPagesFromURLHeaders object itself.
      */
-    public AppendBlobAppendBlockHeaders withDate(OffsetDateTime date) {
+    public PageBlobUploadPagesFromURLHeaders withDate(OffsetDateTime date) {
         if (date == null) {
             this.date = null;
         } else {
             this.date = new DateTimeRfc1123(date);
         }
-        return this;
-    }
-
-    /**
-     * Get the blobAppendOffset value.
-     *
-     * @return the blobAppendOffset value.
-     */
-    public String blobAppendOffset() {
-        return this.blobAppendOffset;
-    }
-
-    /**
-     * Set the blobAppendOffset value.
-     *
-     * @param blobAppendOffset the blobAppendOffset value to set.
-     * @return the AppendBlobAppendBlockHeaders object itself.
-     */
-    public AppendBlobAppendBlockHeaders withBlobAppendOffset(String blobAppendOffset) {
-        this.blobAppendOffset = blobAppendOffset;
-        return this;
-    }
-
-    /**
-     * Get the blobCommittedBlockCount value.
-     *
-     * @return the blobCommittedBlockCount value.
-     */
-    public Integer blobCommittedBlockCount() {
-        return this.blobCommittedBlockCount;
-    }
-
-    /**
-     * Set the blobCommittedBlockCount value.
-     *
-     * @param blobCommittedBlockCount the blobCommittedBlockCount value to set.
-     * @return the AppendBlobAppendBlockHeaders object itself.
-     */
-    public AppendBlobAppendBlockHeaders withBlobCommittedBlockCount(Integer blobCommittedBlockCount) {
-        this.blobCommittedBlockCount = blobCommittedBlockCount;
         return this;
     }
 
@@ -276,9 +248,9 @@ public final class AppendBlobAppendBlockHeaders {
      * Set the isServerEncrypted value.
      *
      * @param isServerEncrypted the isServerEncrypted value to set.
-     * @return the AppendBlobAppendBlockHeaders object itself.
+     * @return the PageBlobUploadPagesFromURLHeaders object itself.
      */
-    public AppendBlobAppendBlockHeaders withIsServerEncrypted(Boolean isServerEncrypted) {
+    public PageBlobUploadPagesFromURLHeaders withIsServerEncrypted(Boolean isServerEncrypted) {
         this.isServerEncrypted = isServerEncrypted;
         return this;
     }

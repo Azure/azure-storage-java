@@ -23,7 +23,6 @@ import java.util.Map;
  * URL type. Null may be passed to set no metadata.
  */
 public final class Metadata extends HashMap<String, String> {
-    public static final Metadata NONE = new Metadata();
 
     public Metadata() {
         super();

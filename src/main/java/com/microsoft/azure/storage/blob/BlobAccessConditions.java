@@ -25,9 +25,6 @@ import com.microsoft.azure.storage.blob.models.ModifiedAccessConditions;
  */
 public final class BlobAccessConditions {
 
-    public static final BlobAccessConditions NONE =
-            new BlobAccessConditions();
-
     private ModifiedAccessConditions modifiedAccessConditions;
 
     private LeaseAccessConditions leaseAccessConditions;

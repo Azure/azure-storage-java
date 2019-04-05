@@ -22,12 +22,6 @@ import com.microsoft.azure.storage.blob.models.BlobHTTPHeaders;
  */
 public class TransferManagerUploadToBlockBlobOptions {
 
-    /**
-     * An object which represents the default parallel upload options.
-     */
-    public static final TransferManagerUploadToBlockBlobOptions DEFAULT = new TransferManagerUploadToBlockBlobOptions(
-            null, null, null, null, null);
-
     private final IProgressReceiver progressReceiver;
 
     private final BlobHTTPHeaders httpHeaders;
@@ -37,6 +31,10 @@ public class TransferManagerUploadToBlockBlobOptions {
     private final BlobAccessConditions accessConditions;
 
     private final int parallelism;
+
+    public TransferManagerUploadToBlockBlobOptions() {
+        this(null, null, null, null, null);
+    }
 
     /**
      * Creates a new object that configures the parallel upload behavior. Null may be passed to accept the default
@@ -52,23 +50,22 @@ public class TransferManagerUploadToBlockBlobOptions {
      * @param accessConditions
      *         {@link BlobAccessConditions}
      * @param parallelism
-     *         A {@code int} that indicates the maximum number of blocks to upload in parallel. Must be greater than 0.
+     *         Indicates the maximum number of blocks to upload in parallel. Must be greater than 0.
      *         May be null to accept default behavior.
      */
     public TransferManagerUploadToBlockBlobOptions(IProgressReceiver progressReceiver, BlobHTTPHeaders httpHeaders,
             Metadata metadata, BlobAccessConditions accessConditions, Integer parallelism) {
         this.progressReceiver = progressReceiver;
-        if (parallelism == null) {
-            this.parallelism = Constants.TRANSFER_MANAGER_DEFAULT_PARALLELISM;
-        } else if (parallelism <= 0) {
-            throw new IllegalArgumentException("Parallelism must be > 0");
-        } else {
+        if (parallelism != null) {
+            Utility.assertInBounds("parallelism", parallelism, 0, Integer.MAX_VALUE);
             this.parallelism = parallelism;
+        } else {
+            this.parallelism = Constants.TRANSFER_MANAGER_DEFAULT_PARALLELISM;
         }
 
         this.httpHeaders = httpHeaders;
         this.metadata = metadata;
-        this.accessConditions = accessConditions == null ? BlobAccessConditions.NONE : accessConditions;
+        this.accessConditions = accessConditions == null ? new BlobAccessConditions() : accessConditions;
     }
 
     /**
@@ -107,4 +104,5 @@ public class TransferManagerUploadToBlockBlobOptions {
     public int parallelism() {
         return parallelism;
     }
+
 }

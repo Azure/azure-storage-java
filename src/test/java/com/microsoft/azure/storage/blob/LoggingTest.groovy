@@ -89,7 +89,7 @@ class LoggingTest extends APISpec {
 
         def policy = factory.create(mockDownstream, requestPolicyOptions)
         def logDirectorySize = calculateLogsDirectorySize()
-        def slf4jLogger = TestLoggerFactory.getTestLogger("Azure Storage Java SDK")
+        def slf4jLogger = TestLoggerFactory.getTestLogger(LoggingFactory.class.getName())
         slf4jLogger.clearAll()
 
         when:
@@ -145,7 +145,7 @@ class LoggingTest extends APISpec {
 
         def policy = factory.create(mockDownstream, requestPolicyOptions)
         int logDirectorySize = calculateLogsDirectorySize()
-        def slf4jLogger = TestLoggerFactory.getTestLogger("Azure Storage Java SDK")
+        def slf4jLogger = TestLoggerFactory.getTestLogger(LoggingFactory.class.getName())
         slf4jLogger.clearAll()
 
         when:
@@ -182,7 +182,7 @@ class LoggingTest extends APISpec {
 
         def policy = factory.create(mockDownstream, requestPolicyOptions)
         def logDirectorySize = calculateLogsDirectorySize()
-        def slf4jLogger = TestLoggerFactory.getTestLogger("Azure Storage Java SDK")
+        def slf4jLogger = TestLoggerFactory.getTestLogger(LoggingFactory.class.getName())
         slf4jLogger.clearAll()
 
         when:
@@ -221,7 +221,7 @@ class LoggingTest extends APISpec {
 
         def policy = factory.create(mockDownstream, requestPolicyOptions)
         def logDirectorySize = calculateLogsDirectorySize()
-        def slf4jLogger = TestLoggerFactory.getTestLogger("Azure Storage Java SDK")
+        def slf4jLogger = TestLoggerFactory.getTestLogger(LoggingFactory.class.getName())
         slf4jLogger.clearAll()
 
         when:
@@ -265,7 +265,7 @@ class LoggingTest extends APISpec {
 
         def policy = factory.create(mockDownstream, requestPolicyOptions)
         def logDirectorySize = calculateLogsDirectorySize()
-        def slf4jLogger = TestLoggerFactory.getTestLogger("Azure Storage Java SDK")
+        def slf4jLogger = TestLoggerFactory.getTestLogger(LoggingFactory.class.getName())
         slf4jLogger.clearAll()
 
         when:
@@ -405,7 +405,7 @@ class LoggingTest extends APISpec {
         then:
         1 * logger.log(HttpPipelineLogLevel.INFO, _, _) >>
                 { HttpPipelineLogLevel level, String message, Object[] params ->
-                    if (!message.contains("OUTGOING REQUEST")) {
+                    if (!message.contains("OUTGOING REQUEST") || message.contains("urlSignature")) {
                         throw new IllegalArgumentException(message)
                     }
                 }

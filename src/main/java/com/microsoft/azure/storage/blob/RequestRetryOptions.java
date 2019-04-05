@@ -23,12 +23,6 @@ import java.util.concurrent.TimeUnit;
  */
 public final class RequestRetryOptions {
 
-    /**
-     * An object representing default retry values: Exponential backoff, maxTries=4, tryTimeout=30, retryDelayInMs=4000,
-     * maxRetryDelayInMs=120000, secondaryHost=null.
-     */
-    public static final RequestRetryOptions DEFAULT = new RequestRetryOptions(RetryPolicyType.EXPONENTIAL, null,
-            null, null, null, null);
     final private int maxTries;
     final private int tryTimeout;
     final private long retryDelayInMs;
@@ -36,8 +30,17 @@ public final class RequestRetryOptions {
     /**
      * A {@link RetryPolicyType} telling the pipeline what kind of retry policy to use.
      */
-    private RetryPolicyType retryPolicyType = RetryPolicyType.EXPONENTIAL;
+    private RetryPolicyType retryPolicyType;
     private String secondaryHost;
+
+    /**
+     * Constructor with default retry values: Exponential backoff, maxTries=4, tryTimeout=30, retryDelayInMs=4000,
+     * maxRetryDelayInMs=120000, secondaryHost=null.
+     */
+    public RequestRetryOptions() {
+        this(RetryPolicyType.EXPONENTIAL, null,
+                null, null, null, null);
+    }
 
     /**
      * Configures how the {@link com.microsoft.rest.v2.http.HttpPipeline} should retry requests.

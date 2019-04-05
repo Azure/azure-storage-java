@@ -8,7 +8,7 @@
  * regenerated.
  */
 
-package com.microsoft.azure.storage;
+package com.microsoft.azure.storage.blob;
 
 import com.microsoft.azure.storage.blob.implementation.SignedIdentifiersWrapper;
 import com.microsoft.azure.storage.blob.models.ContainerAcquireLeaseResponse;
@@ -210,9 +210,6 @@ public final class GeneratedContainers {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(metadata);
         final String restype = "container";
         return service.create(context, this.client.url(), timeout, metadata, access, this.client.version(), requestId, restype);
@@ -277,9 +274,6 @@ public final class GeneratedContainers {
     public Single<ContainerGetPropertiesResponse> getPropertiesWithRestResponseAsync(Context context, Integer timeout, String requestId, LeaseAccessConditions leaseAccessConditions) {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(leaseAccessConditions);
         final String restype = "container";
@@ -351,9 +345,6 @@ public final class GeneratedContainers {
     public Single<ContainerDeleteResponse> deleteWithRestResponseAsync(Context context, Integer timeout, String requestId, LeaseAccessConditions leaseAccessConditions, ModifiedAccessConditions modifiedAccessConditions) {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(leaseAccessConditions);
         Validator.validate(modifiedAccessConditions);
@@ -447,9 +438,6 @@ public final class GeneratedContainers {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(metadata);
         Validator.validate(leaseAccessConditions);
         Validator.validate(modifiedAccessConditions);
@@ -532,9 +520,6 @@ public final class GeneratedContainers {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(leaseAccessConditions);
         final String restype = "container";
         final String comp = "acl";
@@ -612,9 +597,6 @@ public final class GeneratedContainers {
     public Single<ContainerSetAccessPolicyResponse> setAccessPolicyWithRestResponseAsync(Context context, List<SignedIdentifier> containerAcl, Integer timeout, PublicAccessType access, String requestId, LeaseAccessConditions leaseAccessConditions, ModifiedAccessConditions modifiedAccessConditions) {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(containerAcl);
         Validator.validate(leaseAccessConditions);
@@ -712,9 +694,6 @@ public final class GeneratedContainers {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(modifiedAccessConditions);
         final String comp = "lease";
         final String restype = "container";
@@ -805,9 +784,6 @@ public final class GeneratedContainers {
         if (leaseId == null) {
             throw new IllegalArgumentException("Parameter leaseId is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(modifiedAccessConditions);
         final String comp = "lease";
         final String restype = "container";
@@ -897,9 +873,6 @@ public final class GeneratedContainers {
         if (leaseId == null) {
             throw new IllegalArgumentException("Parameter leaseId is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(modifiedAccessConditions);
         final String comp = "lease";
         final String restype = "container";
@@ -985,9 +958,6 @@ public final class GeneratedContainers {
     public Single<ContainerBreakLeaseResponse> breakLeaseWithRestResponseAsync(Context context, Integer timeout, Integer breakPeriod, String requestId, ModifiedAccessConditions modifiedAccessConditions) {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         Validator.validate(modifiedAccessConditions);
         final String comp = "lease";
@@ -1084,9 +1054,6 @@ public final class GeneratedContainers {
         if (proposedLeaseId == null) {
             throw new IllegalArgumentException("Parameter proposedLeaseId is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(modifiedAccessConditions);
         final String comp = "lease";
         final String restype = "container";
@@ -1181,9 +1148,6 @@ public final class GeneratedContainers {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(include);
         final String restype = "container";
         final String comp = "list";
@@ -1269,9 +1233,6 @@ public final class GeneratedContainers {
         if (delimiter == null) {
             throw new IllegalArgumentException("Parameter delimiter is required and cannot be null.");
         }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
-        }
         Validator.validate(include);
         final String restype = "container";
         final String comp = "list";
@@ -1332,9 +1293,6 @@ public final class GeneratedContainers {
     public Single<ContainerGetAccountInfoResponse> getAccountInfoWithRestResponseAsync(Context context) {
         if (this.client.url() == null) {
             throw new IllegalArgumentException("Parameter this.client.url() is required and cannot be null.");
-        }
-        if (this.client.version() == null) {
-            throw new IllegalArgumentException("Parameter this.client.version() is required and cannot be null.");
         }
         final String restype = "account";
         final String comp = "properties";
