@@ -27,11 +27,6 @@ import com.microsoft.azure.storage.blob.models.SequenceNumberAccessConditions;
  */
 public final class PageBlobAccessConditions {
 
-    /**
-     * An object representing no access conditions.
-     */
-    public static final PageBlobAccessConditions NONE = new PageBlobAccessConditions();
-
     private SequenceNumberAccessConditions sequenceNumberAccessConditions;
 
     private ModifiedAccessConditions modifiedAccessConditions;

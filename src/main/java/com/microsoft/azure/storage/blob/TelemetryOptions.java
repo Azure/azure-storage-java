@@ -19,9 +19,11 @@ package com.microsoft.azure.storage.blob;
  */
 public final class TelemetryOptions {
 
-    public static final TelemetryOptions DEFAULT = new TelemetryOptions(Constants.EMPTY_STRING);
-
     private final String userAgentPrefix;
+
+    public TelemetryOptions() {
+        this(Constants.EMPTY_STRING);
+    }
 
     /**
      * @param userAgentPrefix

@@ -21,33 +21,27 @@ package com.microsoft.azure.storage.blob;
  */
 public final class ListContainersOptions {
 
-    /**
-     * An object representing the default options: no details or prefix and using the service's default for maxResults.
-     */
-    public static final ListContainersOptions DEFAULT =
-            new ListContainersOptions();
-
-    private ContainerListingDetails details;
+    private ContainerListDetails details;
 
     private String prefix;
 
     private Integer maxResults;
 
     public ListContainersOptions() {
-        this.details = ContainerListingDetails.NONE;
+        this.details = new ContainerListDetails();
     }
 
     /**
-     * {@link ContainerListingDetails}
+     * {@link ContainerListDetails}
      */
-    public ContainerListingDetails details() {
+    public ContainerListDetails details() {
         return details;
     }
 
     /**
-     * {@link ContainerListingDetails}
+     * {@link ContainerListDetails}
      */
-    public ListContainersOptions withDetails(ContainerListingDetails details) {
+    public ListContainersOptions withDetails(ContainerListDetails details) {
         this.details = details;
         return this;
     }

@@ -14,7 +14,6 @@
  */
 package com.microsoft.azure.storage.blob;
 
-import com.microsoft.azure.storage.GeneratedStorageClient;
 import com.microsoft.rest.v2.http.HttpPipeline;
 import com.microsoft.rest.v2.http.HttpPipelineOptions;
 import com.microsoft.rest.v2.http.UrlBuilder;
