@@ -51,7 +51,7 @@ class BlobAPITest extends APISpec {
         headers.contentLength() != null
         headers.contentType() != null
         headers.contentRange() == null
-        headers.contentMD5() == null
+        headers.contentMD5() != null
         headers.contentEncoding() == null
         headers.cacheControl() == null
         headers.contentDisposition() == null
@@ -70,7 +70,7 @@ class BlobAPITest extends APISpec {
         headers.acceptRanges() == "bytes"
         headers.blobCommittedBlockCount() == null
         headers.serverEncrypted
-        headers.blobContentMD5() != null
+        headers.blobContentMD5() == null
     }
 
     def "Download empty file"() {

@@ -267,7 +267,8 @@ public final class ServiceURL extends StorageURL {
      *
      * @return Emits the successful response.
      */
-    public Single<ServiceGetUserDelegationKeyResponse> getUserDelegationKey(OffsetDateTime start, OffsetDateTime expiry, Context context) {
+    public Single<ServiceGetUserDelegationKeyResponse> getUserDelegationKey(OffsetDateTime start, OffsetDateTime expiry,
+            Context context) {
         Utility.assertNotNull("expiry", expiry);
         if (start != null && !start.isBefore(expiry)) {
             throw new IllegalArgumentException("`start` must be null or a datetime before `expiry`.");

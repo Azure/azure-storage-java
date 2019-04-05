@@ -53,7 +53,7 @@ class APISpec extends Specification {
     static defaultDataSize = defaultData.remaining()
 
     // If debugging is enabled, recordings cannot run as there can only be one proxy at a time.
-    static boolean enableDebugging = true
+    static boolean enableDebugging = false
 
     // Prefixes for blobs and containers
     static String containerPrefix = "jtc" // java test container
@@ -583,12 +583,12 @@ class APISpec extends Specification {
     }
 
     def getOAuthServiceURL() {
-        def authority = "[LOGIN AUTHORITY HERE]"
-        def credential = new ClientCredential("[AD APP ID]", "[APP SECRET]")
+        def authority = "https://[AUTHORITY]/[TENANT ID]/oauth2/token"
+        def credential = new ClientCredential("[APP ID]", "[APP SECRET]")
         def token = new AuthenticationContext(authority, false, Executors.newFixedThreadPool(1)).acquireToken("https://storage.azure.com", credential, null).get().accessToken
 
         return new ServiceURL(
-                new URL("https://[BLOB ENDPOINT]"),
+                new URL("https://[ACCOUNT NAME].blob.core.windows.net/"),
                 StorageURL.createPipeline(new TokenCredentials(token)))
     }
 }

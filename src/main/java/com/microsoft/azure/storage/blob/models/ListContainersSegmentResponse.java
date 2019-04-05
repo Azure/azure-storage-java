@@ -65,7 +65,7 @@ public final class ListContainersSegmentResponse {
     /**
      * The nextMarker property.
      */
-    @JsonProperty(value = "NextMarker", required = true)
+    @JsonProperty(value = "NextMarker")
     private String nextMarker;
 
     /**

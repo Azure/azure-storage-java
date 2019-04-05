@@ -64,7 +64,7 @@ public final class ListBlobsFlatSegmentResponse {
     /**
      * The nextMarker property.
      */
-    @JsonProperty(value = "NextMarker", required = true)
+    @JsonProperty(value = "NextMarker")
     private String nextMarker;
 
     /**

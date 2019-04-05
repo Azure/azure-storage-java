@@ -64,7 +64,7 @@ public final class ListBlobsHierarchySegmentResponse {
     /**
      * The nextMarker property.
      */
-    @JsonProperty(value = "NextMarker", required = true)
+    @JsonProperty(value = "NextMarker")
     private String nextMarker;
 
     /**

@@ -1,4 +1,5 @@
 2019.03.22 Version 11.0.0
+* Upgraded to version 2.1.0 of the autorest-clientruntime which includes several important fixes to mitigate a commonly-seen "Connection reset by peer" error and other similar bugs.
 * Support for 2018-11-09 REST version. Please see our REST API documentation and blogs for information about the related added features.
 * Added appendBlockFromURL method. A block may be created with another blob as its source.
 * Added uploadPagesFromURL method. Pages may be written to with another blob as their source.

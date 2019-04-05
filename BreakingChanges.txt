@@ -1,4 +1,5 @@
 ﻿XXXX.XX.XX Version XX.X.X
+* Upgraded to version 2.1.0 of the autorest-clientruntime which includes several important fixes to mitigate a commonly-seen "Connection reset by peer" error and other similar bugs.
 * HTTPGetterInfo was made an internal type as it is an internal implementation detail.
 * Added SourceModifiedAccessConditions parameter to StageBlockFromURL
 * Removed DEFAULT and NONE static variables. Empty constructors should be used instead. DEFAULT static values were error prone and unsafe to use because although the field was final, the objects were mutable, so it was possible the value could be changed accidentally and alter the behavior of the program.

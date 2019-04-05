@@ -369,7 +369,7 @@ class ServiceAPITest extends APISpec {
 
         when:
         // No service call is made. Just satisfy the parameters.
-        su.getUserDelegationKey(null, null, defaultContext)
+        su.getUserDelegationKey(null, OffsetDateTime.now(), defaultContext)
 
         then:
         notThrown(RuntimeException)
