@@ -190,9 +190,8 @@ public final class BlobInputStream extends InputStream {
 
         parentBlob.downloadAttributes(accessCondition, this.options, this.opContext);
 
-        Utility.assertInBounds("blobRangeOffset", blobRangeOffset, 0, parentBlob.getProperties().getLength() - 1);
-        if (blobRangeLength != null) {
-            Utility.assertGreaterThanOrEqual("blobRangeLength", blobRangeLength, 0);
+        if (blobRangeOffset < 0 || (blobRangeLength != null && blobRangeLength <= 0)) {
+            throw new IndexOutOfBoundsException();
         }
 
         this.retrievedContentMD5Value = parentBlob.getProperties().getContentMD5();

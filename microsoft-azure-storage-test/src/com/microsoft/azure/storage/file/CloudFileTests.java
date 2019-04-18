@@ -41,6 +41,7 @@ import com.microsoft.azure.storage.core.SR;
 import com.microsoft.azure.storage.core.UriQueryBuilder;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -1706,12 +1707,27 @@ public class CloudFileTests {
         assertNotNull(file.getProperties().getEtag());
         assertNotEquals(file.getProperties().getEtag(), snapshotFile.getProperties().getEtag());
 
+        snapshotFile.listHandles();
+        snapshotFile.closeAllHandlesSegmented();
+
         final UriQueryBuilder uriBuilder = new UriQueryBuilder();
         uriBuilder.add("sharesnapshot", snapshot.snapshotID);
         CloudFile snapshotFile2 = new CloudFile(uriBuilder.addToURI(file.getUri()), this.share.getServiceClient().getCredentials());
         assertEquals(snapshot.snapshotID, snapshotFile2.getShare().snapshotID);
         assertTrue(snapshotFile2.exists());
-        
+
         snapshot.delete();
+    }
+
+    @Test
+    public void testListCloseHandles() throws StorageException, URISyntaxException, InterruptedException {
+        CloudFile file = this.share.getRootDirectoryReference().getFileReference("file1");
+        file.create(1024);
+
+        file.listHandles();
+
+        file.listHandlesSegmented(400, null, null, null);
+
+        file.closeAllHandlesSegmented();
     }
 }

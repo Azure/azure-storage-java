@@ -581,6 +581,11 @@ public final class Constants {
         public static final String POP_RECEIPT_HEADER = PREFIX_FOR_STORAGE_HEADER + "popreceipt";
 
         /**
+         * The header that specifies recursive listing.
+         */
+        public static final String RECURSIVE = PREFIX_FOR_STORAGE_HEADER + "recursive";
+
+        /**
          * The header prefix for metadata.
          */
         public static final String PREFIX_FOR_STORAGE_METADATA = "x-ms-meta-";
@@ -783,9 +788,19 @@ public final class Constants {
         public static final String END_ROW_KEY = "erk";
 
         /**
+         * The query component for force close handles.
+         */
+        public static final String CLOSE_HANDLES = "forceclosehandles";
+
+        /**
          * Query component value for list.
          */
         public static final String LIST = "list";
+
+        /**
+         * Query component for list handles.
+         */
+        public static final String LIST_HANDLES = "listhandles";
 
         /**
          * Query component value for properties.
