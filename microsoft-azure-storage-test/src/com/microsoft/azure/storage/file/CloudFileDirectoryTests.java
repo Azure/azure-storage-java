@@ -533,6 +533,9 @@ public class CloudFileDirectoryTests {
         assertTrue(dir.getMetadata().size() == 1 && dir.getMetadata().get("key2").equals("value2"));
         assertNotNull(dir.getProperties().getEtag());
         assertNotEquals(dir.getProperties().getEtag(), snapshotDir.getProperties().getEtag());
+
+        snapshotDir.listHandles();
+        snapshotDir.closeAllHandlesSegmented();
         
         final UriQueryBuilder uriBuilder = new UriQueryBuilder();
         uriBuilder.add("sharesnapshot", snapshot.snapshotID);
@@ -880,5 +883,17 @@ public class CloudFileDirectoryTests {
 
         directory.create();
         assertFalse(directory.deleteIfExists(null, null, ctx));
+    }
+
+    @Test
+    public void testListCloseHandles() throws StorageException, URISyntaxException, InterruptedException {
+        CloudFileClient client = FileTestHelper.createCloudFileClient();
+        CloudFileDirectory directory = this.share.getRootDirectoryReference();
+
+        directory.listHandles();
+
+        directory.listHandlesSegmented(400, true, null, null, null);
+
+        directory.closeAllHandlesSegmented();
     }
 }

@@ -968,6 +968,353 @@ public final class CloudFileDirectory implements ListFileItem {
     }
 
     /**
+     * Gets the SMB handles open on this file.
+     *
+     * @return An {@code Iterable} of the handles that will lazily request new segments.
+     */
+    @DoesServiceRequest
+    public Iterable<FileHandle> listHandles() {
+        return this.listHandles(false, null, null);
+    }
+
+    /**
+     * Gets the SMB handles open on this file.
+     *
+     * @param recursive
+     *            Specifies if operation should apply to the directory specified in the URI, its files, its
+     *            subdirectories and their files.
+     * @param options
+     *            A {@link FileRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudFileClient}).
+     * @param opContext
+     *            An {@link OperationContext} object which represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @return An {@code Iterable} of the handles that will lazily request new segments.
+     */
+    @DoesServiceRequest
+    public Iterable<FileHandle> listHandles(boolean recursive, FileRequestOptions options, OperationContext opContext) {
+        if (opContext == null) {
+            opContext = new OperationContext();
+        }
+
+        opContext.initialize();
+        options = FileRequestOptions.populateAndApplyDefaults(options, this.fileServiceClient);
+
+        SegmentedStorageRequest segmentedRequest = new SegmentedStorageRequest();
+
+        return new LazySegmentedIterable<CloudFileClient, CloudFileDirectory, FileHandle>(
+                this.listHandlesSegmentedImpl( null /* maxResults */, false, options, segmentedRequest),
+                this.fileServiceClient, this, options.getRetryPolicyFactory(), opContext);
+    }
+
+    /**
+     * Gets the SMB handles open on this file.
+     *
+     * @return A {@link ResultSegment} object that contains a segment of the enumerable collection of
+     *         {@link ListFileItem} objects that represent the files and directories.
+     * @throws StorageException
+     */
+    @DoesServiceRequest
+    public ResultSegment<FileHandle> listHandlesSegmented() throws StorageException {
+        return this.listHandlesSegmented(null, false, null, null, null);
+    }
+
+    /**
+     * Gets the SMB handles open on this file.
+     *
+     * @param maxResults
+     *            The maximum number of results to retrieve.  If <code>null</code> or greater
+     *            than 5000, the server will return up to 5,000 items.  Must be at least 1.
+     * @param recursive
+     *            Specifies if operation should apply to the directory specified in the URI, its files, its
+     *            subdirectories and their files.
+     * @param continuationToken
+     *            A {@link ResultContinuation} object that represents a continuation token
+     *            returned by a previous listing operation.
+     * @param options
+     *            A {@link FileRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudFileClient}).
+     * @param opContext
+     *            An {@link OperationContext} object which represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @return A {@link ResultSegment} object that contains a segment of the enumerable collection of
+     *         {@link ListFileItem} objects that represent the files and directories.
+     * @throws StorageException
+     */
+    @DoesServiceRequest
+    public ResultSegment<FileHandle> listHandlesSegmented(final Integer maxResults, final boolean recursive,
+            final ResultContinuation continuationToken, FileRequestOptions options, OperationContext opContext)
+            throws StorageException {
+        if (opContext == null) {
+            opContext = new OperationContext();
+        }
+
+        opContext.initialize();
+        options = FileRequestOptions.populateAndApplyDefaults(options, this.fileServiceClient);
+
+        Utility.assertContinuationType(continuationToken, ResultContinuationType.HANDLE);
+
+        SegmentedStorageRequest segmentedRequest = new SegmentedStorageRequest();
+        segmentedRequest.setToken(continuationToken);
+
+        return ExecutionEngine.executeWithRetry(this.fileServiceClient, this,
+                this.listHandlesSegmentedImpl(maxResults, recursive, options, segmentedRequest),
+                options.getRetryPolicyFactory(), opContext);
+    }
+
+    private StorageRequest<CloudFileClient, CloudFileDirectory, ResultSegment<FileHandle>> listHandlesSegmentedImpl(
+            final Integer maxResults, final boolean recursive, final FileRequestOptions options,
+            final SegmentedStorageRequest segmentedRequest) {
+        Utility.assertContinuationType(segmentedRequest.getToken(), ResultContinuationType.HANDLE);
+
+        final ListingContext listingContext = new ListingContext(null, maxResults);
+
+        final StorageRequest<CloudFileClient, CloudFileDirectory, ResultSegment<FileHandle>> getRequest =
+                new StorageRequest<CloudFileClient, CloudFileDirectory, ResultSegment<FileHandle>>(
+                        options, this.getStorageUri()) {
+
+                    @Override
+                    public void setRequestLocationMode() {
+                        this.setRequestLocationMode(Utility.getListingLocationMode(segmentedRequest.getToken()));
+                    }
+
+                    @Override
+                    public HttpURLConnection buildRequest(CloudFileClient client, CloudFileDirectory directory,
+                            OperationContext context) throws Exception {
+                        listingContext.setMarker(segmentedRequest.getToken() != null ? segmentedRequest.getToken()
+                                .getNextMarker() : null);
+                        return FileRequest.listHandles(
+                                directory.getTransformedAddress().getUri(this.getCurrentLocation()),
+                                options, context, listingContext, recursive, directory.getShare().snapshotID);
+                    }
+
+                    @Override
+                    public void signRequest(HttpURLConnection connection, CloudFileClient client,
+                            OperationContext context) throws Exception {
+                        StorageRequest.signBlobQueueAndFileRequest(connection, client, -1L, context);
+                    }
+
+                    @Override
+                    public ResultSegment<FileHandle> preProcessResponse(CloudFileDirectory directory,
+                            CloudFileClient client, OperationContext context) throws Exception {
+                        if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_OK) {
+                            this.setNonExceptionedRetryableFailure(true);
+                        }
+
+                        return null;
+                    }
+
+                    @Override
+                    public ResultSegment<FileHandle> postProcessResponse(HttpURLConnection connection,
+                            CloudFileDirectory directory, CloudFileClient client, OperationContext context,
+                            ResultSegment<FileHandle> storageObject) throws Exception {
+                        final ListResponse<FileHandle> response = HandleListHandler.getHandleList(this
+                                .getConnection().getInputStream());
+                        ResultContinuation newToken = null;
+
+                        if (response.getNextMarker() != null) {
+                            newToken = new ResultContinuation();
+                            newToken.setNextMarker(response.getNextMarker());
+                            newToken.setContinuationType(ResultContinuationType.HANDLE);
+                            newToken.setTargetLocation(this.getResult().getTargetLocation());
+                        }
+
+                        final ResultSegment<FileHandle> resSegment =
+                                new ResultSegment<FileHandle>(response.getResults(),
+                                        response.getMaxResults(), newToken);
+
+                        // Important for listFilesAndDirectories because this is required by the lazy iterator between executions.
+                        segmentedRequest.setToken(resSegment.getContinuationToken());
+                        return resSegment;
+                    }
+                };
+
+        return getRequest;
+    }
+
+    /**
+     * Close all SMB handles on this file.
+     *
+     * @return A {@link ResultSegment} which has one element which is the number of handles closed and a
+     *           continuation to follow in case the operation took too long to be completed atomically.
+     * @throws StorageException
+     */
+    public ResultSegment<Integer> closeAllHandlesSegmented() throws StorageException {
+        return this.closeAllHandlesSegmented(null, false, null, null);
+    }
+
+    /**
+     * Close all SMB handles on this file.
+     *
+     * @param continuationToken
+     *            A {@link ResultContinuation} object that represents a continuation token
+     *            returned by a previous listing operation.
+     * @param recursive
+     *            Specifies if operation should apply to the directory specified in the URI, its files, its
+     *            subdirectories and their files.
+     * @param options
+     *            A {@link FileRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudFileClient}).
+     * @param opContext
+     *            An {@link OperationContext} object which represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     *
+     * @return A {@link ResultSegment} which has one element which is the number of handles closed and a
+     *           continuation to follow in case the operation took too long to be completed atomically.
+     * @throws StorageException
+     */
+    public ResultSegment<Integer> closeAllHandlesSegmented(final ResultContinuation continuationToken,
+            boolean recursive, FileRequestOptions options, OperationContext opContext) throws StorageException {
+        if (opContext == null) {
+            opContext = new OperationContext();
+        }
+
+        opContext.initialize();
+        options = FileRequestOptions.populateAndApplyDefaults(options, this.fileServiceClient);
+
+        Utility.assertContinuationType(continuationToken, ResultContinuationType.HANDLE);
+
+        SegmentedStorageRequest segmentedRequest = new SegmentedStorageRequest();
+        segmentedRequest.setToken(continuationToken);
+
+        return ExecutionEngine.executeWithRetry(this.fileServiceClient, this,
+                this.closeHandlesSegmentedImpl(FileConstants.ALL_HANDLES, recursive, options, segmentedRequest),
+                options.getRetryPolicyFactory(), opContext);
+    }
+
+    /**
+     * Close all SMB handles on this file.
+     *
+     * @param handleID
+     *            The handle to close.
+     *
+     * @return A {@link ResultSegment} which has one element which is the number of handles closed and a
+     *           continuation to follow in case the operation took too long to be completed atomically.
+     * @throws StorageException
+     */
+    public ResultSegment<Integer> closeHandleSegmented(String handleID) throws StorageException {
+        return this.closeHandleSegmented(handleID, null, null, null);
+    }
+
+    /**
+     * Close all SMB handles on this file.
+     *
+     * @param handleID
+     *            The handle to close.
+     * @param continuationToken
+     *            A {@link ResultContinuation} object that represents a continuation token
+     *            returned by a previous listing operation.
+     * @param options
+     *            A {@link FileRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudFileClient}).
+     * @param opContext
+     *            An {@link OperationContext} object which represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     *
+     * @return A {@link ResultSegment} which has one element which is the number of handles closed and a
+     *           continuation to follow in case the operation took too long to be completed atomically.
+     * @throws StorageException
+     */
+    public ResultSegment<Integer> closeHandleSegmented(String handleID, ResultContinuation continuationToken,
+            FileRequestOptions options, OperationContext opContext) throws StorageException {
+        Utility.assertNotNull("handleID", handleID);
+
+        if (opContext == null) {
+            opContext = new OperationContext();
+        }
+
+        opContext.initialize();
+        options = FileRequestOptions.populateAndApplyDefaults(options, this.fileServiceClient);
+
+        Utility.assertContinuationType(continuationToken, ResultContinuationType.HANDLE);
+
+        SegmentedStorageRequest segmentedRequest = new SegmentedStorageRequest();
+        segmentedRequest.setToken(continuationToken);
+
+        return ExecutionEngine.executeWithRetry(this.fileServiceClient, this,
+                this.closeHandlesSegmentedImpl(handleID, false, options, segmentedRequest),
+                options.getRetryPolicyFactory(), opContext);
+    }
+
+    private StorageRequest<CloudFileClient, CloudFileDirectory, ResultSegment<Integer>> closeHandlesSegmentedImpl(
+            final String handleID, final boolean recursive, final FileRequestOptions options,
+            final SegmentedStorageRequest segmentedRequest) {
+        Utility.assertContinuationType(segmentedRequest.getToken(), ResultContinuationType.HANDLE);
+
+        final ListingContext listingContext = new ListingContext(null, null);
+
+        final StorageRequest<CloudFileClient, CloudFileDirectory, ResultSegment<Integer>> putRequest =
+                new StorageRequest<CloudFileClient, CloudFileDirectory, ResultSegment<Integer>>(
+                        options, this.getStorageUri()) {
+
+                    @Override
+                    public void setRequestLocationMode() {
+                        this.setRequestLocationMode(Utility.getListingLocationMode(segmentedRequest.getToken()));
+                    }
+
+                    @Override
+                    public HttpURLConnection buildRequest(CloudFileClient client, CloudFileDirectory directory,
+                            OperationContext context) throws Exception {
+                        listingContext.setMarker(segmentedRequest.getToken() != null ? segmentedRequest.getToken()
+                                .getNextMarker() : null);
+                        return FileRequest.closeHandles(
+                                directory.getTransformedAddress().getUri(this.getCurrentLocation()),
+                                options, context, listingContext, handleID, recursive, directory.getShare().snapshotID);
+                    }
+
+                    @Override
+                    public void signRequest(HttpURLConnection connection, CloudFileClient client,
+                            OperationContext context) throws Exception {
+                        StorageRequest.signBlobQueueAndFileRequest(connection, client, -1L, context);
+                    }
+
+                    @Override
+                    public ResultSegment<Integer> preProcessResponse(CloudFileDirectory directory,
+                            CloudFileClient client, OperationContext context) throws Exception {
+                        if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_OK) {
+                            this.setNonExceptionedRetryableFailure(true);
+                        }
+
+                        return null;
+                    }
+
+                    @Override
+                    public ResultSegment<Integer> postProcessResponse(HttpURLConnection connection,
+                            CloudFileDirectory directory, CloudFileClient client, OperationContext context,
+                            ResultSegment<Integer> storageObject) throws Exception {
+                        final ListResponse<Integer> response = new ListResponse<>();
+                        ResultContinuation newToken = null;
+
+                        if (response.getNextMarker() != null) {
+                            newToken = new ResultContinuation();
+                            newToken.setNextMarker(response.getNextMarker());
+                            newToken.setContinuationType(ResultContinuationType.HANDLE_CLOSE);
+                            newToken.setTargetLocation(this.getResult().getTargetLocation());
+                        }
+
+                        final ResultSegment<Integer> resSegment =
+                                new ResultSegment<>(response.getResults(), response.getMaxResults(), newToken);
+
+                        // Important for listFilesAndDirectories because this is required by the lazy iterator between executions.
+                        segmentedRequest.setToken(resSegment.getContinuationToken());
+                        resSegment.getResults().add(Integer.getInteger(
+                                connection.getRequestProperty(FileConstants.NUMBER_OF_HANDLES_CLOSED)));
+                        return resSegment;
+                    }
+                };
+
+        return putRequest;
+    }
+
+    /**
      * Returns a reference to a {@link CloudFile} object that represents a file in this directory.
      * 
      * @param fileName

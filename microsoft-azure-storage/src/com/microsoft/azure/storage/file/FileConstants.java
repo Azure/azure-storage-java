@@ -32,6 +32,11 @@ final class FileConstants {
     public static final String DIRECTORY_ELEMENT = "Directory";
 
     /**
+     * XML element for a handle.
+     */
+    public static final String HANDLE_ELEMENT = "Handle";
+
+    /**
      * XML element for a file range.
      */
     public static final String FILE_RANGE_ELEMENT = "Range";
@@ -57,6 +62,46 @@ final class FileConstants {
     public static final String START_ELEMENT = "Start";
 
     /**
+     * XML element for handle id.
+     */
+    public static final String HANDLE_ID_ELEMENT = "HandleId";
+
+    /**
+     * XML element for path.
+     */
+    public static final String PATH_ELEMENT = "Path";
+
+    /**
+     * XML element for file id.
+     */
+    public static final String FILE_ID_ELEMENT = "FileId";
+
+    /**
+     * XML element for parent id.
+     */
+    public static final String PARENT_ID_ELEMENT = "ParentId";
+
+    /**
+     * XML element for session id.
+     */
+    public static final String SESSION_ID_ELEMENT = "SessionId";
+
+    /**
+     * XML element for client ip.
+     */
+    public static final String CLIENT_IP_ELEMENT = "ClientIp";
+
+    /**
+     * XML element for open time.
+     */
+    public static final String OPEN_TIME_ELEMENT = "OpenTime";
+
+    /**
+     * XML element for handle last reconnect element.
+     */
+    public static final String LAST_RECONNECT_TIME_ELEMENT = "LastReconnectElement";
+
+    /**
      * The number of default concurrent requests for parallel operation.
      */
     public static final int DEFAULT_CONCURRENT_REQUEST_COUNT = 1;
@@ -65,6 +110,11 @@ final class FileConstants {
      * The largest possible share quota in GB.
      */
     public static final int MAX_SHARE_QUOTA = 5120;
+
+    /**
+     * The header that specifies all handles.
+     */
+    public static final String ALL_HANDLES = "*";
 
     /**
      * The header that specifies file cache control.
@@ -115,6 +165,16 @@ final class FileConstants {
      * The header that specifies range write mode.
      */
     public static final String FILE_RANGE_WRITE = Constants.PREFIX_FOR_STORAGE_HEADER + "write";
+
+    /**
+     * The header that specifies the handle id.
+     */
+    public static final String HANDLE_ID = Constants.PREFIX_FOR_STORAGE_HEADER + "handle-id";
+
+    /**
+     * The header that specifies the number of handles closed.
+     */
+    public static final String NUMBER_OF_HANDLES_CLOSED = Constants.PREFIX_FOR_STORAGE_HEADER + "number-of-handles-closed";
 
     /**
      * The header for the share quota.
