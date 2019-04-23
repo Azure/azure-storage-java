@@ -1,4 +1,4 @@
-XXXX.XX.XX Version X.X.X
+2019.04.23 Version 8.3.0
  * Fixed a bug in the range download to InputStream that would throw an exception if the source blob was empty.
  * Added support for List/Close File Handles APIs.
 
