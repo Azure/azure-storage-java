@@ -1262,6 +1262,66 @@ final class FileRequest {
         return request;
     }
 
+    public static HttpURLConnection listHandles(final URI uri, final FileRequestOptions fileOptions,
+            final OperationContext opContext, ListingContext listingContext, Boolean recursive, String snapshotVersion)
+            throws StorageException, IOException, URISyntaxException {
+        final UriQueryBuilder builder = new UriQueryBuilder();
+        addShareSnapshot(builder, snapshotVersion);
+
+        builder.add(Constants.QueryConstants.COMPONENT, Constants.QueryConstants.LIST_HANDLES);
+
+        if (listingContext != null) {
+            if (!Utility.isNullOrEmpty(listingContext.getMarker())) {
+                builder.add(Constants.QueryConstants.MARKER, listingContext.getMarker());
+            }
+
+            if (listingContext.getMaxResults() != null && listingContext.getMaxResults() > 0) {
+                builder.add(Constants.QueryConstants.MAX_RESULTS, listingContext.getMaxResults().toString());
+            }
+        }
+
+        final HttpURLConnection request = BaseRequest.createURLConnection(uri, fileOptions, builder, opContext);
+
+        if (recursive != null && recursive) {
+            request.setRequestProperty(Constants.HeaderConstants.RECURSIVE, Constants.TRUE);
+        }
+
+        request.setRequestMethod(Constants.HTTP_GET);
+
+        return request;
+    }
+
+    public static HttpURLConnection closeHandles(final URI uri, final FileRequestOptions fileOptions,
+            final OperationContext opContext, final ListingContext listingContext,
+            final String handleID, Boolean recursive, final String snapshotVersion)
+            throws StorageException, IOException, URISyntaxException {
+        final UriQueryBuilder builder = new UriQueryBuilder();
+        addShareSnapshot(builder, snapshotVersion);
+
+        builder.add(Constants.QueryConstants.COMPONENT, Constants.QueryConstants.CLOSE_HANDLES);
+
+        if (listingContext != null) {
+            if (!Utility.isNullOrEmpty(listingContext.getMarker())) {
+                builder.add(Constants.QueryConstants.MARKER, listingContext.getMarker());
+            }
+        }
+
+        final HttpURLConnection request = BaseRequest.createURLConnection(uri, fileOptions, builder, opContext);
+
+        if (recursive != null && recursive) {
+            request.setRequestProperty(Constants.HeaderConstants.RECURSIVE, Constants.TRUE);
+        }
+        request.setRequestProperty(FileConstants.HANDLE_ID, handleID);
+
+        request.setDoOutput(true);
+        request.setFixedLengthStreamingMode(0);
+        request.setRequestProperty(Constants.HeaderConstants.CONTENT_LENGTH, "0");
+
+        request.setRequestMethod(Constants.HTTP_PUT);
+
+        return request;
+    }
+
     /**
      * Private Default Ctor
      */

@@ -1992,10 +1992,28 @@ public class CloudBlockBlobTests {
 
     @Test
     @Category({ DevFabricTests.class, DevStoreTests.class })
+    public void testBlobInputStreamWithRangeEmptyBlob() throws URISyntaxException, StorageException, IOException {
+        // setup
+        CloudAppendBlob blob =
+                this.container.getAppendBlobReference(BlobTestHelper.generateRandomBlobNameWithPrefix("emptyAB"));
+        blob.createOrReplace();
+
+        // act
+        BlobInputStream stream = blob.openInputStream(0, null, null, null, null);
+
+        // assert
+        Assert.assertEquals(-1, stream.read());
+
+        // cleanup
+        stream.close();
+    }
+
+    @Test
+    @Category({ DevFabricTests.class, DevStoreTests.class })
     public void testBlobInputStreamWithRange() throws StorageException, IOException, URISyntaxException {
 
         final int blobLength = 4 * Constants.KB;
-        final String blobName = "testBlobInputStreamWithOffset" + UUID.randomUUID();
+        final String blobName = BlobTestHelper.generateRandomBlobNameWithPrefix("testBlobInputStreamWithOffset");
 
         // setup
         final CloudBlockBlob blob = this.container.getBlockBlobReference(blobName);

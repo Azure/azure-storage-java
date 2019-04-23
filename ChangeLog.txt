@@ -1,3 +1,7 @@
+2019.04.23 Version 8.3.0
+ * Fixed a bug in the range download to InputStream that would throw an exception if the source blob was empty.
+ * Added support for List/Close File Handles APIs.
+
 2019.04.05 Version 8.2.0
  * Support for 2018-11-09 REST version. Please see our REST API documentation and blogs for information about the related added features.
  * Added appendBlockFromURL method. A block may be created with another blob as its source.

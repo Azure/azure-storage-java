@@ -52,4 +52,14 @@ public enum ResultContinuationType {
      * Specifies the token is a share listing continuation token.
      */
     SHARE,
+
+    /**
+     * Specifies the token is a handle listing continuation token.
+     */
+    HANDLE,
+
+    /**
+     * Specifies the token is a handle closing continuation token.
+     */
+    HANDLE_CLOSE,
 }
