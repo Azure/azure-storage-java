@@ -1079,6 +1079,11 @@ public final class Constants {
     public static final String ARCHIVE_STATUS = "ArchiveStatus";
 
     /**
+     * Maximum number of requests that can be batched together.
+     */
+    public static final int BATCH_MAX_REQUESTS = 256;
+
+    /**
      * Buffer width used to copy data to output streams.
      */
     public static final int BUFFER_COPY_LENGTH = 8 * KB;

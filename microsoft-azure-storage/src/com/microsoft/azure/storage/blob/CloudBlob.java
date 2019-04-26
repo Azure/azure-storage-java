@@ -1174,7 +1174,7 @@ public abstract class CloudBlob implements ListBlobItem {
         }
     }
 
-    private StorageRequest<CloudBlobClient, CloudBlob, Void> deleteImpl(
+    StorageRequest<CloudBlobClient, CloudBlob, Void> deleteImpl(
             final DeleteSnapshotsOption deleteSnapshotsOption, final AccessCondition accessCondition,
             final BlobRequestOptions options) {
         final StorageRequest<CloudBlobClient, CloudBlob, Void> deleteRequest = new StorageRequest<CloudBlobClient, CloudBlob, Void>(
@@ -2865,7 +2865,8 @@ public abstract class CloudBlob implements ListBlobItem {
         return putRequest;
     }
 
-    protected StorageRequest<CloudBlobClient, CloudBlob, Void> uploadBlobTierImpl(final String rehydratePriority, final String blobTierString, final BlobRequestOptions options) {
+    StorageRequest<CloudBlobClient, CloudBlob, Void> uploadBlobTierImpl(final String blobTierString,
+            final String rehydratePriority, final BlobRequestOptions options) {
         final StorageRequest<CloudBlobClient, CloudBlob, Void> setTierRequest = new StorageRequest<CloudBlobClient, CloudBlob, Void>(
                 options, this.getStorageUri()) {
 
