@@ -300,7 +300,7 @@ public final class CloudAppendBlob extends CloudBlob {
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
                 this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
-                validateCPKHeaders(this, options);
+                validateCPKHeaders(this, options, true);
                 blob.getProperties().setLength(0);
                 return null;
             }
@@ -453,7 +453,7 @@ public final class CloudAppendBlob extends CloudBlob {
 
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
                 this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
-                validateCPKHeaders(this, options);
+                validateCPKHeaders(this, options, true);
 
                 return appendOffset;
             }
@@ -637,7 +637,7 @@ public final class CloudAppendBlob extends CloudBlob {
 
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
                 this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
-                validateCPKHeaders(this, options);
+                validateCPKHeaders(this, options, true);
 
                 return appendOffset;
             }

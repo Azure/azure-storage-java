@@ -573,7 +573,7 @@ public final class CloudPageBlob extends CloudBlob {
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
                 this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
-                validateCPKHeaders(this, options);
+                validateCPKHeaders(this, options, true);
                 blob.getProperties().setLength(length);
 
                 if(EnumUtils.isValidEnum(PremiumPageBlobTier.class, blobTierString)){
@@ -1234,7 +1234,7 @@ public final class CloudPageBlob extends CloudBlob {
                 blob.updateSequenceNumberFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
                 this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
-                validateCPKHeaders(this, options);
+                validateCPKHeaders(this, options, true);
 
                 return null;
             }
@@ -1329,7 +1329,7 @@ public final class CloudPageBlob extends CloudBlob {
                 blob.updateSequenceNumberFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
                 this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
-                validateCPKHeaders(this, options);
+                validateCPKHeaders(this, options, true);
 
                 return null;
             }
