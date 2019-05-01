@@ -1,5 +1,5 @@
 # Microsoft Azure Storage SDK v11 for Java
-## The code for this project is in the process of moving to a different repo. The async blob SDK has already been moved. Async queues and the sync SDK will be moving shortly. Please refer to the links in the table for up to date information on where the code lives. We will continue to respond to issues on this repo until the migration is complete. 
+## The code for this project is in the process of moving to a different repo. The async blob SDK (v11) has already been moved. Async queues (v10) and the sync SDK (v8) will be moving shortly. Please refer to the links in the table for up to date information on where the code lives. We will continue to respond to issues on this repo until the migration is complete. 
 
 | SDK Name      | Version       | Description | Maven/API Reference Links |
 | ------------- | ------------- | ----------- | ----- |
