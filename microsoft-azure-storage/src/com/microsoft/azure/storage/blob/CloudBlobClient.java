@@ -738,11 +738,11 @@ public final class CloudBlobClient extends ServiceClient {
 
     }
 
-    public <T> Iterable<T> executeBatch(BlobBatchOperation<T> batch) throws StorageException {
+    public <P, T> Iterable<T> executeBatch(BlobBatchOperation<P, T> batch) throws StorageException {
         return this.executeBatch(batch, null /* requestOptions */, null /* operationContext */);
     }
 
-    public <T> Iterable<T> executeBatch(BlobBatchOperation<T> batch, BlobRequestOptions requestOptions,
+    public <P, T> Iterable<T> executeBatch(BlobBatchOperation<P, T> batch, BlobRequestOptions requestOptions,
             OperationContext operationContext) throws StorageException {
         requestOptions = BlobRequestOptions.populateAndApplyDefaults(requestOptions, BlobType.PAGE_BLOB, this);
 

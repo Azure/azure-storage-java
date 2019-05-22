@@ -420,6 +420,11 @@ public final class Constants {
         public static final String CONTENT_ENCODING = "Content-Encoding";
 
         /**
+         * The ContentID header.
+         */
+        public static final String CONTENT_ID = "Content-ID";
+
+        /**
          * The ContentLangauge header.
          */
         public static final String CONTENT_LANGUAGE = "Content-Language";
@@ -438,6 +443,11 @@ public final class Constants {
          * The ContentRange header.
          */
         public static final String CONTENT_RANGE = "Content-Range";
+
+        /**
+         * The ContentTransferEncoding header.
+         */
+        public static final String CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding";
 
         /**
          * The ContentType header.

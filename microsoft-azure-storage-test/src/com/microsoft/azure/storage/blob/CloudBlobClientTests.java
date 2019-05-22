@@ -19,6 +19,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.util.*;
 
@@ -383,5 +384,26 @@ public class CloudBlobClientTests {
                 sourceFile.delete();
             }
         }
+    }
+
+    @Test
+    @Category({ DevFabricTests.class, DevStoreTests.class, CloudTests.class })
+    public void testBatchBlobDelete() throws Exception {
+
+        CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
+        container.createIfNotExists();
+
+        List<CloudBlob> blobs = new ArrayList<>();
+        BlobDeleteBatchOperation batch = new BlobDeleteBatchOperation();
+
+        for (int i = 0; i < 3; i++) {
+            CloudBlockBlob blob = container.getBlockBlobReference("testblob_" + UUID.randomUUID());
+            blob.uploadText("content");
+
+            blobs.add(blob);
+            batch.addSubOperation(blob);
+        }
+
+        container.getServiceClient().executeBatch(batch);
     }
 }
