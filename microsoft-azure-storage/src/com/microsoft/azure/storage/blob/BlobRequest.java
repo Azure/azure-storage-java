@@ -301,10 +301,11 @@ final class BlobRequest {
     public static HttpURLConnection copyFrom(final URI uri, final BlobRequestOptions blobOptions,
                                              final OperationContext opContext, final AccessCondition sourceAccessCondition,
                                              final AccessCondition destinationAccessCondition, String source, final String sourceSnapshotID,
-                                             final boolean incrementalCopy, final PremiumPageBlobTier premiumPageBlobTier)
+                                             final boolean incrementalCopy, final PremiumPageBlobTier premiumPageBlobTier,
+                                             final RehydratePriority rehydratePriority)
             throws StorageException, IOException, URISyntaxException {
 
-        return copyFrom(uri, blobOptions, opContext, sourceAccessCondition, destinationAccessCondition, source, sourceSnapshotID, incrementalCopy, false, null, premiumPageBlobTier);
+        return copyFrom(uri, blobOptions, opContext, sourceAccessCondition, destinationAccessCondition, source, sourceSnapshotID, incrementalCopy, false, null, premiumPageBlobTier, rehydratePriority);
     }
 
     /**
@@ -337,6 +338,9 @@ final class BlobRequest {
      *            A boolean to enable synchronous server copy of blobs.
      * @param premiumPageBlobTier
      *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
+     * @param rehydratePriority
+     *            A {@link RehydratePriority} object which represents the rehydrate priority.
+     *
      * @return a HttpURLConnection configured for the operation.
      * @throws StorageException
      *             an exception representing any error which occurred during the operation.
@@ -347,7 +351,8 @@ final class BlobRequest {
     public static HttpURLConnection copyFrom(final URI uri, final BlobRequestOptions blobOptions,
             final OperationContext opContext, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, String source, final String sourceSnapshotID,
-            final boolean incrementalCopy, final boolean syncCopy, final String contentMd5, final PremiumPageBlobTier premiumPageBlobTier)
+            final boolean incrementalCopy, final boolean syncCopy, final String contentMd5,
+            final PremiumPageBlobTier premiumPageBlobTier, final RehydratePriority rehydratePriority)
             throws StorageException, IOException, URISyntaxException {
 
         if (!syncCopy && !Utility.isNullOrEmpty(contentMd5)) {
@@ -376,6 +381,10 @@ final class BlobRequest {
 
         if (premiumPageBlobTier != null) {
             request.setRequestProperty(BlobConstants.ACCESS_TIER_HEADER, String.valueOf(premiumPageBlobTier));
+        }
+
+        if (rehydratePriority != null) {
+            request.setRequestProperty(BlobConstants.REHYDRATE_PRIORITY_HEADER, String.valueOf(rehydratePriority));
         }
 
         if (sourceAccessCondition != null) {
@@ -1546,6 +1555,8 @@ final class BlobRequest {
      *            the operation.
      * @param premiumBlobTier
      *            A {@link PremiumPageBlobTier} object representing the tier to set.
+     * @param rehydratePriority
+     *      *            A {@link RehydratePriority} object representing the rehydrate priority.
      * @return a HttpURLConnection to use to perform the operation.
      * @throws IOException
      *             if there is an error opening the connection
@@ -1556,7 +1567,7 @@ final class BlobRequest {
      * @throws IllegalArgumentException
      */
     public static HttpURLConnection setBlobTier(final URI uri, final BlobRequestOptions blobOptions,
-            final OperationContext opContext, final String premiumBlobTier)
+            final OperationContext opContext, final String premiumBlobTier, final String rehydratePriority)
             throws IOException, URISyntaxException, StorageException {
         final UriQueryBuilder builder = new UriQueryBuilder();
         builder.add(Constants.QueryConstants.COMPONENT, TIER_QUERY_ELEMENT_NAME);
@@ -1568,6 +1579,11 @@ final class BlobRequest {
         request.setFixedLengthStreamingMode(0);
         request.setRequestProperty(Constants.HeaderConstants.CONTENT_LENGTH, "0");
         request.setRequestProperty(BlobConstants.ACCESS_TIER_HEADER, premiumBlobTier);
+
+        if(rehydratePriority!=null){
+            request.setRequestProperty(BlobConstants.REHYDRATE_PRIORITY_HEADER, rehydratePriority);
+        }
+
 
         return request;
     }

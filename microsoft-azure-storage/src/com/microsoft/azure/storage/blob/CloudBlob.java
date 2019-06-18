@@ -736,6 +736,52 @@ public abstract class CloudBlob implements ListBlobItem {
     protected final String startCopy(final URI source, String contentMd5, boolean syncCopy, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException {
+        return startCopy(source, null /* contentMd5 */, false /* syncCopy */, premiumPageBlobTier,
+                null /* rehydratePriority*/, sourceAccessCondition,
+                destinationAccessCondition, options, opContext);
+    }
+
+    /**
+     * Requests the service to start copying a URI's contents, properties, and metadata to a new blob, using the
+     * specified premium page blob tier, rehydrate priority, access conditions, lease ID, request options, and operation context.
+     * <p>
+     * Note: Setting the premiumPageBlobTier is only supported for premium accounts.
+     * </p>
+     * @param source
+     *            A <code>java.net.URI</code> The source URI.  URIs for resources outside of Azure
+     *            may only be copied into block blobs.
+     * @param contentMd5
+     *            An optional hash value used to ensure transactional integrity for the operation. May be
+     *            <code>null</code> or empty.
+     * @param syncCopy
+     *            A <code>boolean</code> which indicates if the copy should be done synchronously on the service.
+     * @param premiumPageBlobTier
+     *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
+     * @param rehydratePriority
+     *            A {@link RehydratePriority} object which represents the rehydrate priority.
+     * @param sourceAccessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the source.
+     * @param destinationAccessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the destination.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request.
+     *            Specifying <code>null</code> will use the default request options from the associated
+     *            service client ({@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation.
+     *            This object is used to track requests to the storage service, and to provide additional
+     *            runtime information about the operation.
+     *
+     * @return A <code>String</code> which represents the copy ID associated with the copy operation.
+     *
+     * @throws StorageException
+     *            If a storage service error occurred.
+     *
+     */
+    @DoesServiceRequest
+    protected final String startCopy(final URI source, String contentMd5, boolean syncCopy, final PremiumPageBlobTier premiumPageBlobTier, final RehydratePriority rehydratePriority, final AccessCondition sourceAccessCondition,
+                                     final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
+            throws StorageException {
         if (opContext == null) {
             opContext = new OperationContext();
         }
@@ -744,12 +790,12 @@ public abstract class CloudBlob implements ListBlobItem {
         options = BlobRequestOptions.populateAndApplyDefaults(options, this.properties.getBlobType(), this.blobServiceClient);
 
         return ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.startCopyImpl(source, contentMd5, syncCopy, false /* incrementalCopy */, premiumPageBlobTier, sourceAccessCondition, destinationAccessCondition, options),
+                this.startCopyImpl(source, contentMd5, syncCopy, false /* incrementalCopy */, premiumPageBlobTier, rehydratePriority /* rehydratePriority */, sourceAccessCondition, destinationAccessCondition, options),
                 options.getRetryPolicyFactory(), opContext);
     }
 
     protected StorageRequest<CloudBlobClient, CloudBlob, String> startCopyImpl(
-            final URI source, final String contentMd5, final boolean syncCopy, final boolean incrementalCopy, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
+            final URI source, final String contentMd5, final boolean syncCopy, final boolean incrementalCopy, final PremiumPageBlobTier premiumPageBlobTier, final RehydratePriority rehydratePriority, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, final BlobRequestOptions options) {
 
         final StorageRequest<CloudBlobClient, CloudBlob, String> putRequest =
@@ -761,7 +807,7 @@ public abstract class CloudBlob implements ListBlobItem {
                 // toASCIIString() must be used in order to appropriately encode the URI
                 return BlobRequest.copyFrom(blob.getTransformedAddress(context).getUri(this.getCurrentLocation()),
                         options, context, sourceAccessCondition, destinationAccessCondition, source.toASCIIString(),
-                        blob.snapshotID, incrementalCopy, syncCopy, contentMd5, premiumPageBlobTier);
+                        blob.snapshotID, incrementalCopy, syncCopy, contentMd5, premiumPageBlobTier, rehydratePriority);
             }
 
             @Override
@@ -2797,14 +2843,14 @@ public abstract class CloudBlob implements ListBlobItem {
         return putRequest;
     }
 
-    protected StorageRequest<CloudBlobClient, CloudBlob, Void> uploadBlobTierImpl(final String blobTierString, final BlobRequestOptions options) {
+    protected StorageRequest<CloudBlobClient, CloudBlob, Void> uploadBlobTierImpl(final String rehydratePriority, final String blobTierString, final BlobRequestOptions options) {
         final StorageRequest<CloudBlobClient, CloudBlob, Void> setTierRequest = new StorageRequest<CloudBlobClient, CloudBlob, Void>(
                 options, this.getStorageUri()) {
 
             @Override
             public HttpURLConnection buildRequest(CloudBlobClient client, CloudBlob blob, OperationContext context)
                     throws Exception {
-                return BlobRequest.setBlobTier(blob.getTransformedAddress(context).getUri(this.getCurrentLocation()), options, context, blobTierString);
+                return BlobRequest.setBlobTier(blob.getTransformedAddress(context).getUri(this.getCurrentLocation()), options, context, blobTierString, rehydratePriority);
             }
 
             @Override

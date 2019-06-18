@@ -84,7 +84,7 @@ public class CloudPageBlobTests {
         CloudPageBlob originalBlob = (CloudPageBlob) BlobTestHelper.uploadNewBlob(
                 this.container, BlobType.PAGE_BLOB, "originalBlob", length, null);
         CloudPageBlob copyBlob = this.container.getPageBlobReference(originalBlob.getName() + "copyed");
-        copyBlob.startCopy(originalBlob);
+        copyBlob.startCopy(originalBlob, null, null, null, null, null, RehydratePriority.STANDARD);
 
         try {
             copyBlob.abortCopy(copyBlob.getProperties().getCopyState().getCopyId());
@@ -1372,7 +1372,7 @@ public class CloudPageBlobTests {
             assertTrue(blob.getProperties().isBlobTierInferred());
             assertEquals(PremiumPageBlobTier.P10, blob.getProperties().getPremiumPageBlobTier());
 
-            blob.uploadPremiumPageBlobTier(PremiumPageBlobTier.P40);
+            blob.uploadPremiumPageBlobTier(PremiumPageBlobTier.P40, RehydratePriority.STANDARD, null, null);
             assertEquals(PremiumPageBlobTier.P40, blob.properties.getPremiumPageBlobTier());
             assertFalse(blob.getProperties().isBlobTierInferred());
             assertNull(blob.getProperties().getStandardBlobTier());

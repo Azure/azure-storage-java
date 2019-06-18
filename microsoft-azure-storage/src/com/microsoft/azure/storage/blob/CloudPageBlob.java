@@ -262,6 +262,53 @@ public final class CloudPageBlob extends CloudBlob {
     }
 
     /**
+     * Requests the service to start copying a blob's contents, properties, and metadata to a new blob, using the
+     * specified blob tier, access conditions, lease ID, request options, operation context, and rehydrate priority.
+     *
+     * @param sourceBlob
+     *            A <code>CloudPageBlob</code> object that represents the source blob to copy.
+     * @param premiumBlobTier
+     *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
+     * @param sourceAccessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the source blob.
+     * @param destinationAccessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the destination blob.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @param rehydratePriority
+     *            An {@link RehydratePriority} object that represents the rehydrate priority.
+     *
+     * @return A <code>String</code> which represents the copy ID associated with the copy operation.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     * @throws URISyntaxException
+     *
+     */
+    @DoesServiceRequest
+    public final String startCopy(final CloudPageBlob sourceBlob, final PremiumPageBlobTier premiumBlobTier, final AccessCondition sourceAccessCondition,
+                                  final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext, RehydratePriority rehydratePriority)
+            throws StorageException, URISyntaxException {
+        Utility.assertNotNull("sourceBlob", sourceBlob);
+
+        URI source = sourceBlob.getSnapshotQualifiedUri();
+        if (sourceBlob.getServiceClient() != null && sourceBlob.getServiceClient().getCredentials() != null)
+        {
+            source = sourceBlob.getServiceClient().getCredentials().transformUri(sourceBlob.getSnapshotQualifiedUri());
+        }
+
+        return this.startCopy(source, null /* contentMd5 */, false,  premiumBlobTier, rehydratePriority, sourceAccessCondition, destinationAccessCondition, options, opContext);
+    }
+
+
+
+    /**
      * Requests the service to start an incremental copy of another page blob's contents, properties, and metadata
      * to this blob.
      *
@@ -377,7 +424,7 @@ public final class CloudPageBlob extends CloudBlob {
         options = BlobRequestOptions.populateAndApplyDefaults(options, this.properties.getBlobType(), this.blobServiceClient);
 
         return ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.startCopyImpl(sourceSnapshot, Constants.EMPTY_STRING,false /* syncCopy */, true /* incrementalCopy */, null /* premiumPageBlobTier */, null /* sourceAccesCondition */,
+                this.startCopyImpl(sourceSnapshot, Constants.EMPTY_STRING,false /* syncCopy */, true /* incrementalCopy */, null /* premiumPageBlobTier */, null /* rehydratePriority */, null /* sourceAccesCondition */,
                         destinationAccessCondition, options),
                 options.getRetryPolicyFactory(), opContext);
     }
@@ -1767,7 +1814,31 @@ public final class CloudPageBlob extends CloudBlob {
     @DoesServiceRequest
     public void uploadPremiumPageBlobTier(final PremiumPageBlobTier premiumBlobTier, BlobRequestOptions options,
             OperationContext opContext) throws StorageException {
+        this.uploadPremiumPageBlobTier(premiumBlobTier, null /* rehydratePriority */, options, opContext);
+    }
+
+    /**
+     * Sets the tier on a page blob on a premium storage account.
+     * @param premiumBlobTier
+     *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
+     * @param rehydratePriority
+     *            A {@link RehydratePriority} object which represents the rehydrate priority.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object which represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @throws StorageException
+     *             If a storage service error occurred.
+     */
+    @DoesServiceRequest
+    public void uploadPremiumPageBlobTier(final PremiumPageBlobTier premiumBlobTier, RehydratePriority rehydratePriority, BlobRequestOptions options,
+                                          OperationContext opContext) throws StorageException {
         assertNoWriteOperationForSnapshot();
+
         Utility.assertNotNull("premiumBlobTier", premiumBlobTier);
 
         if (opContext == null) {
@@ -1777,7 +1848,7 @@ public final class CloudPageBlob extends CloudBlob {
         options = BlobRequestOptions.populateAndApplyDefaults(options, BlobType.PAGE_BLOB, this.blobServiceClient);
 
         ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.uploadBlobTierImpl(premiumBlobTier.toString(), options), options.getRetryPolicyFactory(), opContext);
+                this.uploadBlobTierImpl(rehydratePriority == null? null: rehydratePriority.toString(), premiumBlobTier.toString(), options), options.getRetryPolicyFactory(), opContext);
         this.properties.setPremiumPageBlobTier(premiumBlobTier);
         this.properties.setBlobTierInferred(false);
     }
