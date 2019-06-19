@@ -1303,7 +1303,7 @@ public class CloudBlockBlobTests {
             }
         });
 
-        blob.commitBlockList(blocks.values(), null, null, ctx);
+        blob.commitBlockList(blocks.values(), null, null, ctx, StandardBlobTier.HOT);
 
         BlobRequestOptions opt = new BlobRequestOptions();
         opt.setUseTransactionalContentMD5(true);

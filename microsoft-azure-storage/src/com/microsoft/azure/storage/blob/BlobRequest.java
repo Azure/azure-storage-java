@@ -1603,6 +1603,8 @@ final class BlobRequest {
      *            the operation.
      * @param accessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the blob.
+     * @param blobTierString
+     *            A String that represents the tier of the blob.
      * @return a HttpURLConnection to use to perform the operation.
      * @throws IOException
      *             if there is an error opening the connection
@@ -1613,7 +1615,8 @@ final class BlobRequest {
      * @throws IllegalArgumentException
      */
     public static HttpURLConnection putBlockList(final URI uri, final BlobRequestOptions blobOptions,
-            final OperationContext opContext, final AccessCondition accessCondition, final BlobProperties properties)
+            final OperationContext opContext, final AccessCondition accessCondition, final BlobProperties properties,
+            final String blobTierString)
             throws IOException, URISyntaxException, StorageException {
 
         final UriQueryBuilder builder = new UriQueryBuilder();
@@ -1626,6 +1629,9 @@ final class BlobRequest {
 
         if (accessCondition != null) {
             accessCondition.applyConditionToRequest(request);
+        }
+        if (blobTierString != null) {
+            request.setRequestProperty(BlobConstants.ACCESS_TIER_HEADER, blobTierString);
         }
 
         addProperties(request, properties);

@@ -397,6 +397,34 @@ public final class CloudBlockBlob extends CloudBlob {
     @DoesServiceRequest
     public void commitBlockList(final Iterable<BlockEntry> blockList, final AccessCondition accessCondition,
             BlobRequestOptions options, OperationContext opContext) throws StorageException {
+        this.commitBlockList(blockList, accessCondition, options, opContext, null /* standardBlobTier*/);
+    }
+
+    /**
+     * Commits a block list to the storage service using the specified lease ID, request options, and operation context.
+     * In order to be written as part of a blob, a block must have been successfully written to the server in a prior
+     * uploadBlock operation.
+     *
+     * @param blockList
+     *            An enumerable collection of {@link BlockEntry} objects that represents the list block items being
+     *            committed. The size field is ignored.
+     * @param accessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the blob.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     */
+    @DoesServiceRequest
+    public void commitBlockList(final Iterable<BlockEntry> blockList, final AccessCondition accessCondition,
+                                BlobRequestOptions options, OperationContext opContext, StandardBlobTier standardBlobTier) throws StorageException {
         assertNoWriteOperationForSnapshot();
 
         if (opContext == null) {
@@ -404,14 +432,15 @@ public final class CloudBlockBlob extends CloudBlob {
         }
 
         options = BlobRequestOptions.populateAndApplyDefaults(options, BlobType.BLOCK_BLOB, this.blobServiceClient);
-        
+
         ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.commitBlockListImpl(blockList, accessCondition, options, opContext),
+                this.commitBlockListImpl(blockList, accessCondition, options, opContext, standardBlobTier == null? null: standardBlobTier.toString()),
                 options.getRetryPolicyFactory(), opContext);
     }
 
     private StorageRequest<CloudBlobClient, CloudBlob, Void> commitBlockListImpl(final Iterable<BlockEntry> blockList,
-            final AccessCondition accessCondition, final BlobRequestOptions options, final OperationContext opContext)
+            final AccessCondition accessCondition, final BlobRequestOptions options, final OperationContext opContext,
+            final String blobTierString)
             throws StorageException {
 
         byte[] blockListBytes;
@@ -434,7 +463,7 @@ public final class CloudBlockBlob extends CloudBlob {
                     this.setLength(descriptor.getLength());
                     return BlobRequest.putBlockList(
                             blob.getTransformedAddress(context).getUri(this.getCurrentLocation()), options, context,
-                            accessCondition, blob.properties);
+                            accessCondition, blob.properties, blobTierString);
                 }
 
                 @Override
