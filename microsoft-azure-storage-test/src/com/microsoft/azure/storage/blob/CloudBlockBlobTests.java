@@ -2549,7 +2549,7 @@ public class CloudBlockBlobTests {
         Thread.sleep(30000);
 
         // Start copy and wait for completion
-        String copyId = copyDestination.startCopy(copySource, null, null, null, null);
+        String copyId = copyDestination.startCopy(copySource,null, false, StandardBlobTier.HOT, null, null, null, null, null);
         BlobTestHelper.waitForCopy(copyDestination);
         Calendar calendar = Calendar.getInstance(Utility.UTC_ZONE);
         destination.downloadAttributes();

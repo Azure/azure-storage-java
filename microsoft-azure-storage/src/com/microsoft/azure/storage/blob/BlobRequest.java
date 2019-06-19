@@ -289,8 +289,8 @@ final class BlobRequest {
      *            The snapshot version, if the source blob is a snapshot.
      * @param incrementalCopy
      *            A boolean indicating whether or not this is an incremental copy.
-     * @param premiumPageBlobTier
-     *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
+     * @param blobTierString
+     *            A String which represents the tier of the blob.
      * @return a HttpURLConnection configured for the operation.
      * @throws StorageException
      *             an exception representing any error which occurred during the operation.
@@ -301,11 +301,11 @@ final class BlobRequest {
     public static HttpURLConnection copyFrom(final URI uri, final BlobRequestOptions blobOptions,
                                              final OperationContext opContext, final AccessCondition sourceAccessCondition,
                                              final AccessCondition destinationAccessCondition, String source, final String sourceSnapshotID,
-                                             final boolean incrementalCopy, final PremiumPageBlobTier premiumPageBlobTier,
+                                             final boolean incrementalCopy, final String blobTierString,
                                              final RehydratePriority rehydratePriority)
             throws StorageException, IOException, URISyntaxException {
 
-        return copyFrom(uri, blobOptions, opContext, sourceAccessCondition, destinationAccessCondition, source, sourceSnapshotID, incrementalCopy, false, null, premiumPageBlobTier, rehydratePriority);
+        return copyFrom(uri, blobOptions, opContext, sourceAccessCondition, destinationAccessCondition, source, sourceSnapshotID, incrementalCopy, false, null, blobTierString, rehydratePriority);
     }
 
     /**
@@ -336,8 +336,8 @@ final class BlobRequest {
      *            A boolean indicating whether or not this is an incremental copy.
      * @param syncCopy
      *            A boolean to enable synchronous server copy of blobs.
-     * @param premiumPageBlobTier
-     *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
+     * @param blobTierString
+     *            A String which represents the tier of the blob.
      * @param rehydratePriority
      *            A {@link RehydratePriority} object which represents the rehydrate priority.
      *
@@ -352,7 +352,7 @@ final class BlobRequest {
             final OperationContext opContext, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, String source, final String sourceSnapshotID,
             final boolean incrementalCopy, final boolean syncCopy, final String contentMd5,
-            final PremiumPageBlobTier premiumPageBlobTier, final RehydratePriority rehydratePriority)
+            final String blobTierString, final RehydratePriority rehydratePriority)
             throws StorageException, IOException, URISyntaxException {
 
         if (!syncCopy && !Utility.isNullOrEmpty(contentMd5)) {
@@ -379,8 +379,8 @@ final class BlobRequest {
 
         request.setRequestProperty(Constants.HeaderConstants.COPY_SOURCE_HEADER, source);
 
-        if (premiumPageBlobTier != null) {
-            request.setRequestProperty(BlobConstants.ACCESS_TIER_HEADER, String.valueOf(premiumPageBlobTier));
+        if (blobTierString != null) {
+            request.setRequestProperty(BlobConstants.ACCESS_TIER_HEADER, blobTierString);
         }
 
         if (rehydratePriority != null) {

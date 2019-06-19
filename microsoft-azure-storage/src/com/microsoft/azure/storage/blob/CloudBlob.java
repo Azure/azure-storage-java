@@ -16,6 +16,7 @@ package com.microsoft.azure.storage.blob;
 
 import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.core.*;
+import org.apache.commons.lang3.EnumUtils;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -656,7 +657,7 @@ public abstract class CloudBlob implements ListBlobItem {
     public final String startCopy(final URI source, final AccessCondition sourceAccessCondition,
                                   final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException {
-        return this.startCopy(source,null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(source,null /* blobTierString */, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
@@ -668,8 +669,8 @@ public abstract class CloudBlob implements ListBlobItem {
      * @param source
      *            A <code>java.net.URI</code> The source URI.  URIs for resources outside of Azure
      *            may only be copied into block blobs.
-     * @param premiumPageBlobTier
-     *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
+     * @param blobTierString
+     *            A String which represents the tier of the blob.
      * @param sourceAccessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the source.
      * @param destinationAccessCondition
@@ -690,10 +691,10 @@ public abstract class CloudBlob implements ListBlobItem {
      *
      */
     @DoesServiceRequest
-    protected final String startCopy(final URI source, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
+    protected final String startCopy(final URI source, final String blobTierString, final AccessCondition sourceAccessCondition,
                                      final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException {
-        return startCopy(source, null /* contentMd5 */, false /* syncCopy */, premiumPageBlobTier, sourceAccessCondition,
+        return startCopy(source, null /* contentMd5 */, false /* syncCopy */, blobTierString, sourceAccessCondition,
                 destinationAccessCondition, options, opContext);
     }
 
@@ -711,8 +712,8 @@ public abstract class CloudBlob implements ListBlobItem {
      *            <code>null</code> or empty.
      * @param syncCopy
      *            A <code>boolean</code> which indicates if the copy should be done synchronously on the service.
-     * @param premiumPageBlobTier
-     *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
+     * @param blobTierString
+     *            A String which represents the tier of the blob.
      * @param sourceAccessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the source.
      * @param destinationAccessCondition
@@ -733,10 +734,10 @@ public abstract class CloudBlob implements ListBlobItem {
      *
      */
     @DoesServiceRequest
-    protected final String startCopy(final URI source, String contentMd5, boolean syncCopy, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
+    protected final String startCopy(final URI source, String contentMd5, boolean syncCopy, final String blobTierString, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException {
-        return startCopy(source, null /* contentMd5 */, false /* syncCopy */, premiumPageBlobTier, null /* rehydratePriority*/, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return startCopy(source, null /* contentMd5 */, false /* syncCopy */, blobTierString, null /* rehydratePriority*/, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
@@ -753,8 +754,8 @@ public abstract class CloudBlob implements ListBlobItem {
      *            <code>null</code> or empty.
      * @param syncCopy
      *            A <code>boolean</code> which indicates if the copy should be done synchronously on the service.
-     * @param premiumPageBlobTier
-     *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
+     * @param blobTierString
+     *            A <code>String</code> object which represents the tier of the blob.
      * @param rehydratePriority
      *            A {@link RehydratePriority} object which represents the rehydrate priority.
      * @param sourceAccessCondition
@@ -777,7 +778,7 @@ public abstract class CloudBlob implements ListBlobItem {
      *
      */
     @DoesServiceRequest
-    protected final String startCopy(final URI source, String contentMd5, boolean syncCopy, final PremiumPageBlobTier premiumPageBlobTier, final RehydratePriority rehydratePriority, final AccessCondition sourceAccessCondition,
+    protected final String startCopy(final URI source, String contentMd5, boolean syncCopy, final String blobTierString, final RehydratePriority rehydratePriority, final AccessCondition sourceAccessCondition,
                                      final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException {
         if (opContext == null) {
@@ -788,12 +789,13 @@ public abstract class CloudBlob implements ListBlobItem {
         options = BlobRequestOptions.populateAndApplyDefaults(options, this.properties.getBlobType(), this.blobServiceClient);
 
         return ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.startCopyImpl(source, contentMd5, syncCopy, false /* incrementalCopy */, premiumPageBlobTier, rehydratePriority, sourceAccessCondition, destinationAccessCondition, options),
+                this.startCopyImpl(source, contentMd5, syncCopy, false /* incrementalCopy */, blobTierString, rehydratePriority, sourceAccessCondition, destinationAccessCondition, options),
                 options.getRetryPolicyFactory(), opContext);
     }
 
     protected StorageRequest<CloudBlobClient, CloudBlob, String> startCopyImpl(
-            final URI source, final String contentMd5, final boolean syncCopy, final boolean incrementalCopy, final PremiumPageBlobTier premiumPageBlobTier, final RehydratePriority rehydratePriority, final AccessCondition sourceAccessCondition,
+            final URI source, final String contentMd5, final boolean syncCopy, final boolean incrementalCopy,
+            final String blobTierString, final RehydratePriority rehydratePriority, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, final BlobRequestOptions options) {
 
         final StorageRequest<CloudBlobClient, CloudBlob, String> putRequest =
@@ -805,7 +807,7 @@ public abstract class CloudBlob implements ListBlobItem {
                 // toASCIIString() must be used in order to appropriately encode the URI
                 return BlobRequest.copyFrom(blob.getTransformedAddress(context).getUri(this.getCurrentLocation()),
                         options, context, sourceAccessCondition, destinationAccessCondition, source.toASCIIString(),
-                        blob.snapshotID, incrementalCopy, syncCopy, contentMd5, premiumPageBlobTier, rehydratePriority);
+                        blob.snapshotID, incrementalCopy, syncCopy, contentMd5, blobTierString, rehydratePriority);
             }
 
             @Override
@@ -829,10 +831,14 @@ public abstract class CloudBlob implements ListBlobItem {
 
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 blob.properties.setCopyState(BlobResponse.getCopyState(this.getConnection()));
-                blob.properties.setPremiumPageBlobTier(premiumPageBlobTier);
-                if (premiumPageBlobTier != null) {
-                    blob.properties.setBlobTierInferred(false);
+
+                if(EnumUtils.isValidEnum(PremiumPageBlobTier.class, blobTierString)){
+                    blob.properties.setPremiumPageBlobTier(PremiumPageBlobTier.parse(blobTierString));
+                    if (blobTierString != null) {
+                        blob.properties.setBlobTierInferred(false);
+                    }
                 }
+
 
                 return blob.properties.getCopyState().getCopyId();
             }

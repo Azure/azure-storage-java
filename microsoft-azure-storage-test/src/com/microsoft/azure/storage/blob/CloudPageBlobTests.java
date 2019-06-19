@@ -1439,7 +1439,7 @@ public class CloudPageBlobTests {
 
             // copy to larger disk
             CloudPageBlob copy = container.getPageBlobReference("copy");
-            copy.startCopy(TestHelper.defiddler(source.getUri()), PremiumPageBlobTier.P30, null, null, null, null);
+            copy.startCopy(TestHelper.defiddler(source.getUri()), PremiumPageBlobTier.P30.toString(), null, null, null, null);
             assertEquals(BlobType.PAGE_BLOB, copy.getProperties().getBlobType());
             assertEquals(PremiumPageBlobTier.P30, copy.getProperties().getPremiumPageBlobTier());
             assertEquals(PremiumPageBlobTier.P10, source.getProperties().getPremiumPageBlobTier());
@@ -1461,7 +1461,7 @@ public class CloudPageBlobTests {
             source2.create(1024);
 
             CloudPageBlob copy3 = container.getPageBlobReference("copy3");
-            copy3.startCopy(TestHelper.defiddler(source2.getUri()), PremiumPageBlobTier.P60, null ,null ,null, null);
+            copy3.startCopy(TestHelper.defiddler(source2.getUri()), PremiumPageBlobTier.P60.toString(), null ,null ,null, null);
             assertEquals(BlobType.PAGE_BLOB, copy3.getProperties().getBlobType());
             assertEquals(PremiumPageBlobTier.P60, copy3.getProperties().getPremiumPageBlobTier());
             assertNull(source2.getProperties().getPremiumPageBlobTier());

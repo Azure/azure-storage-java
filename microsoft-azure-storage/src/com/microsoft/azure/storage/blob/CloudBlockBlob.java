@@ -177,7 +177,7 @@ public final class CloudBlockBlob extends CloudBlob {
      */
     @DoesServiceRequest
     public final String startCopy(final CloudBlockBlob sourceBlob) throws StorageException, URISyntaxException {
-        return this.startCopy(sourceBlob, null /* contentMd5 */, false /* syncCopy */, null /* rehydratePriority */, null /* sourceAccessCondition */,
+        return this.startCopy(sourceBlob, null /* contentMd5 */, false /* syncCopy */, null /* standardBlobTier */, null /* rehydratePriority */, null /* sourceAccessCondition */,
                 null /* destinationAccessCondition */, null /* options */, null /* opContext */);
     }
 
@@ -211,7 +211,7 @@ public final class CloudBlockBlob extends CloudBlob {
     public final String startCopy(final CloudBlockBlob sourceBlob, final AccessCondition sourceAccessCondition,
                                   final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException, URISyntaxException {
-        return this.startCopy(sourceBlob, null /* contentMd5 */, false /* syncCopy */, null /* rehydratePriority */, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(sourceBlob, null /* contentMd5 */, false /* syncCopy */, null /* standardBlobTier */, null /* rehydratePriority */, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
@@ -249,12 +249,12 @@ public final class CloudBlockBlob extends CloudBlob {
     public final String startCopy(final CloudBlockBlob sourceBlob, String contentMd5, boolean syncCopy, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException, URISyntaxException {
-        return this.startCopy(sourceBlob, contentMd5, syncCopy, null  /* rehydratePriority */, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(sourceBlob, contentMd5, syncCopy, null /* blobTierString */, null  /* rehydratePriority */, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
      * Requests the service to start copying a block blob's contents, properties, and metadata to a new block blob,
-     * using the specified access conditions, lease ID, request options, operation context, and rehydrate priority.
+     * using the blob tier, rehydrate priority, specified access conditions, lease ID, request options, operation context.
      *
      * @param sourceBlob
      *            A <code>CloudBlockBlob</code> object that represents the source blob to copy.
@@ -265,6 +265,8 @@ public final class CloudBlockBlob extends CloudBlob {
      *            A <code>boolean</code> to enable synchronous server copy of blobs.
      * @param rehydratePriority
      *            An {@link RehydratePriority} object that represents the rehydrate priority.
+     * @param standardBlobTier
+     *            An {@link StandardBlobTier} object that represents the tier of the blob.
      * @param sourceAccessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the source blob.
      * @param destinationAccessCondition
@@ -285,8 +287,9 @@ public final class CloudBlockBlob extends CloudBlob {
      *
      */
     @DoesServiceRequest
-    public final String startCopy(final CloudBlockBlob sourceBlob, String contentMd5, boolean syncCopy, RehydratePriority rehydratePriority, final AccessCondition sourceAccessCondition,
-                                  final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
+    public final String startCopy(final CloudBlockBlob sourceBlob, String contentMd5, boolean syncCopy,
+            final StandardBlobTier standardBlobTier, RehydratePriority rehydratePriority, final AccessCondition sourceAccessCondition,
+            final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException, URISyntaxException {
         Utility.assertNotNull("sourceBlob", sourceBlob);
 
@@ -296,8 +299,7 @@ public final class CloudBlockBlob extends CloudBlob {
             source = sourceBlob.getServiceClient().getCredentials().transformUri(sourceBlob.getSnapshotQualifiedUri());
         }
 
-        return this.startCopy(source, contentMd5, syncCopy, null /* premiumPageBlobTier */, rehydratePriority, sourceAccessCondition,
-                destinationAccessCondition, options, opContext);
+        return this.startCopy(source, contentMd5, syncCopy, standardBlobTier == null? null: standardBlobTier.toString(), rehydratePriority, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
@@ -351,7 +353,7 @@ public final class CloudBlockBlob extends CloudBlob {
        Utility.assertNotNull("sourceFile", sourceFile);
        return this.startCopy(
                sourceFile.getServiceClient().getCredentials().transformUri(sourceFile.getUri()),
-               null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
+               null /* blobTierString */, sourceAccessCondition, destinationAccessCondition, options, opContext);
    }
 
     /**
