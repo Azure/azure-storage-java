@@ -1975,7 +1975,7 @@ public class CloudBlockBlobTests {
         options.setStoreBlobContentMD5(true);
         options.setTimeoutIntervalInMs(90000);
         options.setRetryPolicyFactory(new RetryNoRetry());
-        blobRef.uploadFullBlob(sourceStream, blobLength, null, options, operationContext);
+        blobRef.uploadFullBlob(sourceStream, blobLength, null, options, operationContext, StandardBlobTier.HOT);
 
         BlobInputStream blobStream = blobRef.openInputStream();
 

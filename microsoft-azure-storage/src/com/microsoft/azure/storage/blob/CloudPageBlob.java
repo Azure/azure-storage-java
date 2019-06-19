@@ -40,6 +40,7 @@ import com.microsoft.azure.storage.core.SR;
 import com.microsoft.azure.storage.core.StorageRequest;
 import com.microsoft.azure.storage.core.UriQueryBuilder;
 import com.microsoft.azure.storage.core.Utility;
+import org.apache.commons.lang3.EnumUtils;
 
 /**
  * Represents a Microsoft Azure page blob.
@@ -541,10 +542,10 @@ public final class CloudPageBlob extends CloudBlob {
         options = BlobRequestOptions.populateAndApplyDefaults(options, BlobType.PAGE_BLOB, this.blobServiceClient);
 
         ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.createImpl(length, premiumBlobTier, accessCondition, options), options.getRetryPolicyFactory(), opContext);
+                this.createImpl(length, premiumBlobTier == null? null : premiumBlobTier.toString(), accessCondition, options), options.getRetryPolicyFactory(), opContext);
     }
 
-    private StorageRequest<CloudBlobClient, CloudBlob, Void> createImpl(final long length, final PremiumPageBlobTier premiumBlobTier,
+    private StorageRequest<CloudBlobClient, CloudBlob, Void> createImpl(final long length, final String blobTierString,
             final AccessCondition accessCondition, final BlobRequestOptions options) {
         final StorageRequest<CloudBlobClient, CloudBlob, Void> putRequest = new StorageRequest<CloudBlobClient, CloudBlob, Void>(
                 options, this.getStorageUri()) {
@@ -553,7 +554,7 @@ public final class CloudPageBlob extends CloudBlob {
             public HttpURLConnection buildRequest(CloudBlobClient client, CloudBlob blob, OperationContext context)
                     throws Exception {
                 return BlobRequest.putBlob(blob.getTransformedAddress(context).getUri(this.getCurrentLocation()),
-                        options, context, accessCondition, blob.properties, BlobType.PAGE_BLOB, length, premiumBlobTier);
+                        options, context, accessCondition, blob.properties, BlobType.PAGE_BLOB, length, blobTierString);
             }
 
             @Override
@@ -578,10 +579,14 @@ public final class CloudPageBlob extends CloudBlob {
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
                 blob.getProperties().setLength(length);
-                blob.getProperties().setPremiumPageBlobTier(premiumBlobTier);
-                if (premiumBlobTier != null) {
-                    blob.getProperties().setBlobTierInferred(false);
+
+                if(EnumUtils.isValidEnum(PremiumPageBlobTier.class, blobTierString)){
+                    blob.getProperties().setPremiumPageBlobTier(PremiumPageBlobTier.parse(blobTierString));
+                    if (blobTierString != null) {
+                        blob.getProperties().setBlobTierInferred(false);
+                    }
                 }
+
 
                 return null;
             }

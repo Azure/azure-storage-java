@@ -1350,7 +1350,7 @@ final class BlobRequest {
     public static HttpURLConnection putBlob(final URI uri, final BlobRequestOptions blobOptions,
             final OperationContext opContext, final AccessCondition accessCondition, final BlobProperties properties,
             final BlobType blobType, final long pageBlobSize) throws IOException, URISyntaxException, StorageException {
-        return BlobRequest.putBlob(uri, blobOptions, opContext, accessCondition, properties, blobType, pageBlobSize, null /* premiumPageBlobTier */);
+        return BlobRequest.putBlob(uri, blobOptions, opContext, accessCondition, properties, blobType, pageBlobSize, null /* blobTierString */);
     }
 
     /**
@@ -1374,8 +1374,8 @@ final class BlobRequest {
      *            The type of the blob.
      * @param pageBlobSize
      *            For a page blob, the size of the blob. This parameter is ignored for block blobs.
-     * @param premiumPageBlobTier
-     *            A {@link PremiumPageBlobTier} object representing the tier to set.
+     * @param blobTierString
+     *            A String representing the tier to set.
      * @return a HttpURLConnection to use to perform the operation.
      * @throws IOException
      *             if there is an error opening the connection
@@ -1387,7 +1387,7 @@ final class BlobRequest {
      */
     public static HttpURLConnection putBlob(final URI uri, final BlobRequestOptions blobOptions,
             final OperationContext opContext, final AccessCondition accessCondition, final BlobProperties properties,
-            final BlobType blobType, final long pageBlobSize, final PremiumPageBlobTier premiumPageBlobTier) throws IOException, URISyntaxException, StorageException {
+            final BlobType blobType, final long pageBlobSize, final String blobTierString) throws IOException, URISyntaxException, StorageException {
         if (blobType == BlobType.UNSPECIFIED) {
             throw new IllegalArgumentException(SR.BLOB_TYPE_NOT_DEFINED);
         }
@@ -1407,11 +1407,6 @@ final class BlobRequest {
             request.setRequestProperty(BlobConstants.BLOB_TYPE_HEADER, BlobConstants.PAGE_BLOB);
             request.setRequestProperty(BlobConstants.SIZE, String.valueOf(pageBlobSize));
 
-            if (premiumPageBlobTier != null)
-            {
-                request.setRequestProperty(BlobConstants.ACCESS_TIER_HEADER, String.valueOf(premiumPageBlobTier));
-            }
-
             properties.setLength(pageBlobSize);
         }
         else if (blobType == BlobType.BLOCK_BLOB){
@@ -1422,6 +1417,10 @@ final class BlobRequest {
             request.setRequestProperty(BlobConstants.BLOB_TYPE_HEADER, BlobConstants.APPEND_BLOB);
             request.setRequestProperty(Constants.HeaderConstants.CONTENT_LENGTH, "0");
         }
+        if (blobTierString != null) {
+            request.setRequestProperty(BlobConstants.ACCESS_TIER_HEADER, blobTierString);
+        }
+
 
         if (accessCondition != null) {
             accessCondition.applyConditionToRequest(request);
