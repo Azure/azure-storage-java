@@ -211,15 +211,7 @@ public final class CloudAppendBlob extends CloudBlob {
     public final String startCopy(final CloudAppendBlob sourceBlob, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException, URISyntaxException {
-        Utility.assertNotNull("sourceBlob", sourceBlob);
-
-        URI source = sourceBlob.getSnapshotQualifiedUri();
-        if (sourceBlob.getServiceClient() != null && sourceBlob.getServiceClient().getCredentials() != null)
-        {
-            source = sourceBlob.getServiceClient().getCredentials().transformUri(sourceBlob.getSnapshotQualifiedUri());
-        }
-
-        return this.startCopy(source, null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(sourceBlob, sourceAccessCondition, destinationAccessCondition, options, opContext, null /* rehydratePriority */);
     }
 
     /**
