@@ -211,42 +211,6 @@ public final class CloudAppendBlob extends CloudBlob {
     public final String startCopy(final CloudAppendBlob sourceBlob, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException, URISyntaxException {
-        return this.startCopy(sourceBlob, sourceAccessCondition, destinationAccessCondition, options, opContext, null /* rehydratePriority */);
-    }
-
-    /**
-     * Requests the service to start copying a append blob's contents, properties, and metadata to a new append blob,
-     * using the specified access conditions, lease ID, request options, operation context, and rehydrate priority.
-     *
-     * @param sourceBlob
-     *            A <code>CloudAppendBlob</code> object that represents the source blob to copy.
-     * @param sourceAccessCondition
-     *            An {@link AccessCondition} object that represents the access conditions for the source blob.
-     * @param destinationAccessCondition
-     *            An {@link AccessCondition} object that represents the access conditions for the destination blob.
-     * @param options
-     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
-     *            <code>null</code> will use the default request options from the associated service client (
-     *            {@link CloudBlobClient}).
-     * @param opContext
-     *            An {@link OperationContext} object that represents the context for the current operation. This object
-     *            is used to track requests to the storage service, and to provide additional runtime information about
-     *            the operation.
-     * @param rehydratePriority
-     *            An {@link RehydratePriority} object that represents the rehydrate priority.
-     *
-     * @return A <code>String</code> which represents the copy ID associated with the copy operation.
-     *
-     * @throws StorageException
-     *             If a storage service error occurred.
-     * @throws URISyntaxException
-     *
-     */
-    @DoesServiceRequest
-    public final String startCopy(final CloudAppendBlob sourceBlob, final AccessCondition sourceAccessCondition,
-                                  final AccessCondition destinationAccessCondition, BlobRequestOptions options,
-                                  OperationContext opContext, RehydratePriority rehydratePriority)
-            throws StorageException, URISyntaxException {
         Utility.assertNotNull("sourceBlob", sourceBlob);
 
         URI source = sourceBlob.getSnapshotQualifiedUri();
@@ -255,7 +219,8 @@ public final class CloudAppendBlob extends CloudBlob {
             source = sourceBlob.getServiceClient().getCredentials().transformUri(sourceBlob.getSnapshotQualifiedUri());
         }
 
-        return this.startCopy(source, null /* contentMd5 */, false , null /* premiumPageBlobTier */, rehydratePriority, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(source, null /* contentMd5 */, false , null /* premiumPageBlobTier */, null /* rehydratePriority*/, sourceAccessCondition, destinationAccessCondition, options, opContext);
+
     }
 
     /**

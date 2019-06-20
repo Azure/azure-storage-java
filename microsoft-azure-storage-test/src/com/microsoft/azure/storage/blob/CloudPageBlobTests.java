@@ -84,7 +84,7 @@ public class CloudPageBlobTests {
         CloudPageBlob originalBlob = (CloudPageBlob) BlobTestHelper.uploadNewBlob(
                 this.container, BlobType.PAGE_BLOB, "originalBlob", length, null);
         CloudPageBlob copyBlob = this.container.getPageBlobReference(originalBlob.getName() + "copyed");
-        copyBlob.startCopy(originalBlob, null, null, null, null, null, RehydratePriority.STANDARD);
+        copyBlob.startCopy(originalBlob);
 
         try {
             copyBlob.abortCopy(copyBlob.getProperties().getCopyState().getCopyId());

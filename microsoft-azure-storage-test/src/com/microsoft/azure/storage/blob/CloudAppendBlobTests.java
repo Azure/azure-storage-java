@@ -195,7 +195,7 @@ public class CloudAppendBlobTests {
         CloudAppendBlob originalBlob = (CloudAppendBlob) BlobTestHelper.uploadNewBlob(
                 this.container, BlobType.APPEND_BLOB, "originalBlob", length, null);
         CloudAppendBlob copyBlob = this.container.getAppendBlobReference(originalBlob.getName() + "copyed");
-        copyBlob.startCopy(originalBlob, null, null, null, null, RehydratePriority.HIGH);
+        copyBlob.startCopy(originalBlob);
 
         try {
             copyBlob.abortCopy(copyBlob.getProperties().getCopyState().getCopyId());
