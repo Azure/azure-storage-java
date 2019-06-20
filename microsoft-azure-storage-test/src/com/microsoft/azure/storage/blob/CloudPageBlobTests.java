@@ -1372,7 +1372,7 @@ public class CloudPageBlobTests {
             assertTrue(blob.getProperties().isBlobTierInferred());
             assertEquals(PremiumPageBlobTier.P10, blob.getProperties().getPremiumPageBlobTier());
 
-            blob.uploadPremiumPageBlobTier(PremiumPageBlobTier.P40, RehydratePriority.STANDARD, null, null);
+            blob.uploadPremiumPageBlobTier(PremiumPageBlobTier.P40);
             assertEquals(PremiumPageBlobTier.P40, blob.properties.getPremiumPageBlobTier());
             assertFalse(blob.getProperties().isBlobTierInferred());
             assertNull(blob.getProperties().getStandardBlobTier());
