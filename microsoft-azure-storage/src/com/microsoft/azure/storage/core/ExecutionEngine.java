@@ -122,6 +122,17 @@ public final class ExecutionEngine {
                     currResult.setContentMD5(BaseResponse.getContentMD5(request));
                     currResult.setErrorCode(BaseResponse.getErrorCode(request));
 
+                    // Check if received clientrequestID and user client requestID match
+                    String expectedID = opContext.getClientRequestID();
+                    String receivedID = request.getHeaderField(Constants.HeaderConstants.CLIENT_REQUEST_ID_HEADER);
+
+                    if(receivedID != null) {
+                        if(!expectedID.equals(receivedID)) {
+                            StorageException se = new StorageException(null, "Client ID and Received Client ID do not match", null);
+                            task.getResult().setException(se);
+                        }
+                    }
+
                     // 7. Fire ResponseReceived Event
                     responseReceivedEventTriggered = true;
                     ExecutionEngine.fireResponseReceivedEvent(opContext, request, task.getResult());
