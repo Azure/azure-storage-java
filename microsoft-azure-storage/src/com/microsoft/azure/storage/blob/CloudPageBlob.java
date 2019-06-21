@@ -1767,29 +1767,6 @@ public final class CloudPageBlob extends CloudBlob {
     @DoesServiceRequest
     public void uploadPremiumPageBlobTier(final PremiumPageBlobTier premiumBlobTier, BlobRequestOptions options,
             OperationContext opContext) throws StorageException {
-        this.uploadPremiumPageBlobTier(premiumBlobTier, null /* rehydratePriority */, options, opContext);
-    }
-
-    /**
-     * Sets the tier on a page blob on a premium storage account.
-     * @param premiumBlobTier
-     *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
-     * @param rehydratePriority
-     *            A {@link RehydratePriority} object which represents the rehydrate priority.
-     * @param options
-     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
-     *            <code>null</code> will use the default request options from the associated service client (
-     *            {@link CloudBlobClient}).
-     * @param opContext
-     *            An {@link OperationContext} object which represents the context for the current operation. This object
-     *            is used to track requests to the storage service, and to provide additional runtime information about
-     *            the operation.
-     * @throws StorageException
-     *             If a storage service error occurred.
-     */
-    @DoesServiceRequest
-    public void uploadPremiumPageBlobTier(final PremiumPageBlobTier premiumBlobTier, RehydratePriority rehydratePriority, BlobRequestOptions options,
-                                          OperationContext opContext) throws StorageException {
         assertNoWriteOperationForSnapshot();
 
         Utility.assertNotNull("premiumBlobTier", premiumBlobTier);
@@ -1801,7 +1778,7 @@ public final class CloudPageBlob extends CloudBlob {
         options = BlobRequestOptions.populateAndApplyDefaults(options, BlobType.PAGE_BLOB, this.blobServiceClient);
 
         ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.uploadBlobTierImpl(rehydratePriority == null? null: rehydratePriority.toString(), premiumBlobTier.toString(), options), options.getRetryPolicyFactory(), opContext);
+                this.uploadBlobTierImpl(null /* rehydratePriority */, premiumBlobTier.toString(), options), options.getRetryPolicyFactory(), opContext);
         this.properties.setPremiumPageBlobTier(premiumBlobTier);
         this.properties.setBlobTierInferred(false);
     }

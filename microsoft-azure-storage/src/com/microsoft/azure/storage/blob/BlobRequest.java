@@ -1556,7 +1556,7 @@ final class BlobRequest {
      * @param premiumBlobTier
      *            A {@link PremiumPageBlobTier} object representing the tier to set.
      * @param rehydratePriority
-     *      *            A {@link RehydratePriority} object representing the rehydrate priority.
+     *            A {@link RehydratePriority} object representing the rehydrate priority.
      * @return a HttpURLConnection to use to perform the operation.
      * @throws IOException
      *             if there is an error opening the connection

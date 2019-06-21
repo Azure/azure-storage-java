@@ -790,7 +790,7 @@ public abstract class CloudBlob implements ListBlobItem {
         options = BlobRequestOptions.populateAndApplyDefaults(options, this.properties.getBlobType(), this.blobServiceClient);
 
         return ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.startCopyImpl(source, contentMd5, syncCopy, false /* incrementalCopy */, premiumPageBlobTier, rehydratePriority /* rehydratePriority */, sourceAccessCondition, destinationAccessCondition, options),
+                this.startCopyImpl(source, contentMd5, syncCopy, false /* incrementalCopy */, premiumPageBlobTier, rehydratePriority, sourceAccessCondition, destinationAccessCondition, options),
                 options.getRetryPolicyFactory(), opContext);
     }
 

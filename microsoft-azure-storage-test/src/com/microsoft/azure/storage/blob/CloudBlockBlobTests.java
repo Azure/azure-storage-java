@@ -836,7 +836,7 @@ public class CloudBlockBlobTests {
         CloudBlockBlob originalBlob = (CloudBlockBlob) BlobTestHelper.uploadNewBlob(
                 this.container, BlobType.BLOCK_BLOB, "originalBlob", length, null);
         CloudBlockBlob copyBlob = this.container.getBlockBlobReference(originalBlob.getName() + "copyed");
-        copyBlob.startCopy(originalBlob, null, false, null, null, null, null, RehydratePriority.STANDARD);
+        copyBlob.startCopy(originalBlob);
 
         try {
             copyBlob.abortCopy(copyBlob.getProperties().getCopyState().getCopyId());
@@ -2650,7 +2650,7 @@ public class CloudBlockBlobTests {
         final String blobName2 = BlobTestHelper.generateRandomBlobNameWithPrefix("testBlob2");
         final CloudBlockBlob blob = this.container.getBlockBlobReference(blobName1);
         blob.uploadText("text");
-        blob.uploadStandardBlobTier(StandardBlobTier.ARCHIVE, RehydratePriority.STANDARD, null, null);
+        blob.uploadStandardBlobTier(StandardBlobTier.ARCHIVE);
         final CloudBlockBlob blob2 = this.container.getBlockBlobReference(blobName2);
         blob2.uploadText("text");
         blob2.uploadStandardBlobTier(StandardBlobTier.ARCHIVE);
@@ -2669,7 +2669,7 @@ public class CloudBlockBlobTests {
         assertNotNull(blob.getProperties().getTierChangeTime());
 
         CloudBlockBlob blobRef2 = this.container.getBlockBlobReference(blobName2);
-        blobRef2.uploadStandardBlobTier(StandardBlobTier.HOT);
+        blobRef2.uploadStandardBlobTier(StandardBlobTier.HOT, RehydratePriority.HIGH, null, null);
         assertNull(blobRef2.getProperties().getRehydrationStatus());
         assertEquals(StandardBlobTier.ARCHIVE, blobRef2.getProperties().getStandardBlobTier());
         assertNull(blobRef2.getProperties().getPremiumPageBlobTier());

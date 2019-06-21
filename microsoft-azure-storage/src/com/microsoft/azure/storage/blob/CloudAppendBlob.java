@@ -220,7 +220,6 @@ public final class CloudAppendBlob extends CloudBlob {
         }
 
         return this.startCopy(source, null /* contentMd5 */, false , null /* premiumPageBlobTier */, null /* rehydratePriority*/, sourceAccessCondition, destinationAccessCondition, options, opContext);
-
     }
 
     /**
