@@ -1304,6 +1304,8 @@ public class CloudBlockBlobTests {
         });
 
         blob.commitBlockList(blocks.values(), null, null, ctx, StandardBlobTier.HOT);
+        blob.downloadAttributes();
+        assertEquals(StandardBlobTier.HOT, blob.getProperties().getStandardBlobTier());
 
         BlobRequestOptions opt = new BlobRequestOptions();
         opt.setUseTransactionalContentMD5(true);
@@ -1318,7 +1320,9 @@ public class CloudBlockBlobTests {
             }
         });
 
-        blob.commitBlockList(blocks.values(), null, opt, ctx);
+        blob.commitBlockList(blocks.values(), null, opt, ctx, StandardBlobTier.COOL);
+        blob.downloadAttributes();
+        assertEquals(StandardBlobTier.COOL, blob.getProperties().getStandardBlobTier());
     }
 
     @Test
@@ -1976,6 +1980,8 @@ public class CloudBlockBlobTests {
         options.setTimeoutIntervalInMs(90000);
         options.setRetryPolicyFactory(new RetryNoRetry());
         blobRef.uploadFullBlob(sourceStream, blobLength, null, options, operationContext, StandardBlobTier.HOT);
+        blobRef.downloadAttributes();
+        assertEquals(StandardBlobTier.HOT, blobRef.getProperties().getStandardBlobTier());
 
         BlobInputStream blobStream = blobRef.openInputStream();
 
@@ -2555,6 +2561,7 @@ public class CloudBlockBlobTests {
         destination.downloadAttributes();
 
         // Check original blob references for equality
+        assertEquals(StandardBlobTier.HOT, destination.getProperties().getStandardBlobTier());
         assertEquals(CopyStatus.SUCCESS, destination.getCopyState().getStatus());
         assertEquals(source.getSnapshotQualifiedUri().getPath(), destination.getCopyState().getSource().getPath());
         assertEquals(data.length(), destination.getCopyState().getTotalBytes().intValue());
