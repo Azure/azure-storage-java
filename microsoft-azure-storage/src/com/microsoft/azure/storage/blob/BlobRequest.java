@@ -1421,7 +1421,6 @@ final class BlobRequest {
             request.setRequestProperty(BlobConstants.ACCESS_TIER_HEADER, blobTierString);
         }
 
-
         if (accessCondition != null) {
             accessCondition.applyConditionToRequest(request);
         }
