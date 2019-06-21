@@ -838,8 +838,7 @@ public abstract class CloudBlob implements ListBlobItem {
                         blob.properties.setBlobTierInferred(false);
                     }
                 }
-
-
+                
                 return blob.properties.getCopyState().getCopyId();
             }
         };
