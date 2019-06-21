@@ -177,7 +177,7 @@ public final class CloudBlockBlob extends CloudBlob {
      */
     @DoesServiceRequest
     public final String startCopy(final CloudBlockBlob sourceBlob) throws StorageException, URISyntaxException {
-        return this.startCopy(sourceBlob, null /* contentMd5 */, false /* syncCopy */, null /* rehydratePriority*/, null /* sourceAccessCondition */,
+        return this.startCopy(sourceBlob, null /* contentMd5 */, false /* syncCopy */, null /* rehydratePriority */, null /* sourceAccessCondition */,
                 null /* destinationAccessCondition */, null /* options */, null /* opContext */);
     }
 
@@ -249,7 +249,7 @@ public final class CloudBlockBlob extends CloudBlob {
     public final String startCopy(final CloudBlockBlob sourceBlob, String contentMd5, boolean syncCopy, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException, URISyntaxException {
-        return this.startCopy(sourceBlob, contentMd5, syncCopy, null  /*rehydratePriority*/, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(sourceBlob, contentMd5, syncCopy, null  /* rehydratePriority */, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
