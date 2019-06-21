@@ -397,7 +397,7 @@ public final class CloudBlockBlob extends CloudBlob {
     @DoesServiceRequest
     public void commitBlockList(final Iterable<BlockEntry> blockList, final AccessCondition accessCondition,
             BlobRequestOptions options, OperationContext opContext) throws StorageException {
-        this.commitBlockList(blockList, accessCondition, options, opContext, null /* standardBlobTier*/);
+        this.commitBlockList(blockList, null /* standardBlobTier*/, accessCondition, options, opContext);
     }
 
     /**
@@ -423,8 +423,8 @@ public final class CloudBlockBlob extends CloudBlob {
      *             If a storage service error occurred.
      */
     @DoesServiceRequest
-    public void commitBlockList(final Iterable<BlockEntry> blockList, final AccessCondition accessCondition,
-                                BlobRequestOptions options, OperationContext opContext, StandardBlobTier standardBlobTier) throws StorageException {
+    public void commitBlockList(final Iterable<BlockEntry> blockList, StandardBlobTier standardBlobTier, final AccessCondition accessCondition,
+                                BlobRequestOptions options, OperationContext opContext) throws StorageException {
         assertNoWriteOperationForSnapshot();
 
         if (opContext == null) {
@@ -858,7 +858,7 @@ public final class CloudBlockBlob extends CloudBlob {
 
         // By now, the skipPutBlob is completely correct.
         if (!skipPutBlob) {
-            this.uploadFullBlob(inputDataStream, descriptor.getLength(), accessCondition, options, opContext, standardBlobTier);
+            this.uploadFullBlob(inputDataStream, descriptor.getLength(), standardBlobTier, accessCondition, options, opContext);
         }
         else {
             int totalBlocks = (int) Math.ceil((double) length / (double) this.streamWriteSizeInBytes);
@@ -1001,6 +1001,8 @@ public final class CloudBlockBlob extends CloudBlob {
      *            A <code>InputStream</code> object that represents the source stream to upload.
      * @param length
      *            The length, in bytes, of the stream, or -1 if unknown.
+     * @param standardBlobTier
+     *            An {@link StandardBlobTier} object that represents the tier of the blob.
      * @param accessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the blob.
      * @param options
@@ -1016,8 +1018,7 @@ public final class CloudBlockBlob extends CloudBlob {
      */
     @DoesServiceRequest
     protected final void uploadFullBlob(final InputStream sourceStream, final long length,
-            final AccessCondition accessCondition, final BlobRequestOptions options, final OperationContext opContext,
-            final StandardBlobTier standardBlobTier) throws StorageException {
+                                        final StandardBlobTier standardBlobTier, final AccessCondition accessCondition, final BlobRequestOptions options, final OperationContext opContext) throws StorageException {
         assertNoWriteOperationForSnapshot();
 
         // Mark sourceStream for current position.
@@ -1496,7 +1497,7 @@ public final class CloudBlockBlob extends CloudBlob {
      */
     public void uploadText(final String content, final String charsetName, final AccessCondition accessCondition,
             BlobRequestOptions options, OperationContext opContext) throws StorageException, IOException {
-        this.uploadText(content, charsetName, accessCondition, options, opContext, null /* standardBlobTier */);
+        this.uploadText(content, charsetName, null /* standardBlobTier */, accessCondition, options, opContext);
     }
 
     /**
@@ -1508,6 +1509,8 @@ public final class CloudBlockBlob extends CloudBlob {
      * @param charsetName
      *            A <code>String</code> which represents the name of the charset to use to encode the content.
      *            If null, the platform's default encoding is used.
+     * @param standardBlobTier
+     *           An {@link StandardBlobTier} object that represents the tier of the blob.
      * @param accessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the blob.
      * @param options
@@ -1518,17 +1521,14 @@ public final class CloudBlockBlob extends CloudBlob {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * @param standardBlobTier
-     *           An {@link StandardBlobTier} object that represents the tier of the blob.
-     *
      * @throws StorageException
      *             If a storage service error occurred.
      * @throws IOException
      */
-    public void uploadText(final String content, final String charsetName, final AccessCondition accessCondition,
-                           BlobRequestOptions options, OperationContext opContext, final StandardBlobTier standardBlobTier) throws StorageException, IOException {
+    public void uploadText(final String content, final String charsetName, final StandardBlobTier standardBlobTier, final AccessCondition accessCondition,
+                           BlobRequestOptions options, OperationContext opContext) throws StorageException, IOException {
         byte[] bytes = (charsetName == null) ? content.getBytes() : content.getBytes(charsetName);
-        this.uploadFromByteArray(bytes, 0, bytes.length, accessCondition, options, opContext, standardBlobTier);
+        this.uploadFromByteArray(bytes, 0, bytes.length, standardBlobTier, accessCondition, options, opContext);
     }
 
     /**
@@ -1540,6 +1540,8 @@ public final class CloudBlockBlob extends CloudBlob {
      *            A <code>int</code> which represents the offset of the byte array from which to start the data upload.
      * @param length
      *            An <code>int</code> which represents the number of bytes to upload from the input buffer.
+     * @param standardBlobTier
+     *            An {@link StandardBlobTier} object that represents the tier of the blob.
      * @param accessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the blob.
      * @param options
@@ -1550,15 +1552,12 @@ public final class CloudBlockBlob extends CloudBlob {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * @param standardBlobTier
-     *            An {@link StandardBlobTier} object that represents the tier of the blob.
      * @throws StorageException
      *             If a storage service error occurred.
      * @throws IOException
      */
     public void uploadFromByteArray(final byte[] buffer, final int offset, final int length,
-                                    final AccessCondition accessCondition, BlobRequestOptions options, OperationContext opContext,
-                                    final StandardBlobTier standardBlobTier)
+                                    final StandardBlobTier standardBlobTier, final AccessCondition accessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException, IOException {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(buffer, offset, length);
         this.upload(inputStream, length, standardBlobTier, accessCondition, options, opContext);

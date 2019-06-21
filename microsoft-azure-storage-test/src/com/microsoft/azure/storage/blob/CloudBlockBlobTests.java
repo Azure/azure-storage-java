@@ -1303,7 +1303,7 @@ public class CloudBlockBlobTests {
             }
         });
 
-        blob.commitBlockList(blocks.values(), null, null, ctx, StandardBlobTier.HOT);
+        blob.commitBlockList(blocks.values(), StandardBlobTier.HOT, null, null, ctx);
         blob.downloadAttributes();
         assertEquals(StandardBlobTier.HOT, blob.getProperties().getStandardBlobTier());
 
@@ -1320,7 +1320,7 @@ public class CloudBlockBlobTests {
             }
         });
 
-        blob.commitBlockList(blocks.values(), null, opt, ctx, StandardBlobTier.COOL);
+        blob.commitBlockList(blocks.values(), StandardBlobTier.COOL, null, opt, ctx);
         blob.downloadAttributes();
         assertEquals(StandardBlobTier.COOL, blob.getProperties().getStandardBlobTier());
     }
@@ -1979,7 +1979,7 @@ public class CloudBlockBlobTests {
         options.setStoreBlobContentMD5(true);
         options.setTimeoutIntervalInMs(90000);
         options.setRetryPolicyFactory(new RetryNoRetry());
-        blobRef.uploadFullBlob(sourceStream, blobLength, null, options, operationContext, StandardBlobTier.HOT);
+        blobRef.uploadFullBlob(sourceStream, blobLength, StandardBlobTier.HOT, null, options, operationContext);
         blobRef.downloadAttributes();
         assertEquals(StandardBlobTier.HOT, blobRef.getProperties().getStandardBlobTier());
 
