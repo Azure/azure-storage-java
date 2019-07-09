@@ -693,7 +693,7 @@ public final class Constants {
         public static final String STORAGE_SOURCE_RANGE_HEADER = PREFIX_FOR_STORAGE_HEADER + "source-range";
 
         /**
-         * The header for storage version
+         * The header for storage version.
          */
         public static final String STORAGE_VERSION_HEADER = PREFIX_FOR_STORAGE_HEADER + "version";
 
