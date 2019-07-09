@@ -151,10 +151,13 @@ final class FileRequest {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
+     * @param sourceAccessCondition
+     *            A {@link AccessCondition} that represents the access conditions for the source
+     * @param destinationAccessCondition
+     *            A {@link AccessCondition} that represents the access conditions for the destination
      * @param source
      *            The canonical path to the source file,
      *            in the form /<account-name>/<share-name>/<directory-path>/<file-name>.
-     *
      * @return a HttpURLConnection configured for the operation.
      * @throws StorageException
      *             an exception representing any error which occurred during the operation.
