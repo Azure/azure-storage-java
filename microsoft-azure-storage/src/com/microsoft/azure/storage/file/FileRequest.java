@@ -946,7 +946,7 @@ final class FileRequest {
      *            a {link @FileRangeOperationType} enumeration value representing the file range operation type.
      * @param sourceUri
      *            A <code>java.net.URI</code> object that specifies the source URI.
-     @param sourceRange
+     * @param sourceRange
      *            a {link @FileRange} representing the file range of the source
      * 
      * @return a HttpURLConnection to use to perform the operation.

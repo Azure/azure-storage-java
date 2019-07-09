@@ -564,8 +564,8 @@ public final class CloudFile implements ListFileItem {
 
         final FileRange range = new FileRange(offset, offset + length - 1);
 
-        this.putRangeInternal(range, FileRangeOperationType.CLEAR, null, length, null, null,
-                null, accessCondition, options, opContext);
+        this.putRangeInternal(range, FileRangeOperationType.CLEAR, null /* data */, length, null /* md5 */,
+                null /* sourceUri */, null /* sourceRange */, accessCondition, options, opContext);
     }
 
     /**
@@ -2205,7 +2205,36 @@ public final class CloudFile implements ListFileItem {
                 accessCondition, options, opContext);
     }
 
-
+    /**
+     * Uploads a range from one file to another file using the specified lease ID, request options, and operation context
+     *
+     * @param offset
+     *            A <code>long</code> which represents the offset, in number of bytes, at which to begin writing the
+     *            data.
+     * @param length
+     *            A <code>long</code> which represents the length, in bytes, of the data to write.
+     * @param sourceUri
+     *            A <code>java.net.URI</code> object that specifies the source URI.
+     * @param sourceOffset
+     *            A <code>long</code> which represents the offset, in number of bytes, at which to begin reading the
+     *            data.
+     * @param sourceLength
+     *            A <code>long</code> which represents the length, in bytes, of the data to read.
+     * @param accessCondition
+     *            An {@link AccessCondition} object which represents the access conditions for the file.
+     * @param options
+     *            A {@link FileRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudFileClient}).
+     * @param opContext
+     *            An {@link OperationContext} object which represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     * @throws URISyntaxException
+     */
     @DoesServiceRequest
     public void putRangeThroughURL(final long offset, final long length, final URI sourceUri, final long sourceOffset,
             final long sourceLength, final AccessCondition accessCondition, FileRequestOptions options, OperationContext opContext)

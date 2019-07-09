@@ -651,11 +651,6 @@ public final class Constants {
         public static final String SNAPSHOT_ID_HEADER = PREFIX_FOR_STORAGE_HEADER + "snapshot";
 
         /**
-         * The header that specifies source content CRC64.
-         */
-        public static final String SOURCE_CONTENT_CRC64_HEADER = PREFIX_FOR_STORAGE_HEADER + "source-content-crc64";
-
-        /**
          * The header that specifies source content MD5.
          */
         public static final String SOURCE_CONTENT_MD5_HEADER = PREFIX_FOR_STORAGE_HEADER + "source-content-md5";
@@ -664,11 +659,6 @@ public final class Constants {
          * The header for the If-Match condition.
          */
         public static final String SOURCE_IF_MATCH_HEADER = PREFIX_FOR_STORAGE_HEADER + "source-if-match";
-
-//        /**
-//         * The header for the If-Match condition for CRC64.
-//         */
-//        public static final String SOURCE_IF_MATCH_CRC64_HEADER = PREFIX_FOR_STORAGE_HEADER + "source-if-match-crc64";
 
         /**
          * The header for the If-Modified-Since condition.
@@ -680,11 +670,6 @@ public final class Constants {
          * The header for the If-None-Match condition.
          */
         public static final String SOURCE_IF_NONE_MATCH_HEADER = PREFIX_FOR_STORAGE_HEADER + "source-if-none-match";
-
-//        /**
-//         * The header for the If-Match condition for CRC64.
-//         */
-//        public static final String SOURCE_IF_NONE_MATCH_CRC64_HEADER = PREFIX_FOR_STORAGE_HEADER + "source-if-none-match-crc64";
 
         /**
          * The header for the If-Unmodified-Since condition.
