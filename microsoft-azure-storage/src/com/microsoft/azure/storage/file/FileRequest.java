@@ -15,6 +15,7 @@
 package com.microsoft.azure.storage.file;
 
 import java.io.IOException;
+import java.net.ContentHandler;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -29,6 +30,7 @@ import com.microsoft.azure.storage.core.BaseRequest;
 import com.microsoft.azure.storage.core.ListingContext;
 import com.microsoft.azure.storage.core.UriQueryBuilder;
 import com.microsoft.azure.storage.core.Utility;
+import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 
 /**
  * RESERVED FOR INTERNAL USE. Provides a set of methods for constructing requests for file operations.
@@ -154,10 +156,7 @@ final class FileRequest {
      * @param source
      *            The canonical path to the source file,
      *            in the form /<account-name>/<share-name>/<directory-path>/<file-name>.
-     * @param sourceAccessConditionType
-     *            A type of condition to check on the source file.
-     * @param sourceAccessConditionValue
-     *            The value of the condition to check on the source file
+     *
      * @return a HttpURLConnection configured for the operation.
      * @throws StorageException
      *             an exception representing any error which occurred during the operation.
@@ -945,6 +944,10 @@ final class FileRequest {
      *            a {link @FileRange} representing the file range
      * @param operationType
      *            a {link @FileRangeOperationType} enumeration value representing the file range operation type.
+     * @param sourceUri
+     *            A <code>java.net.URI</code> object that specifies the source URI.
+     @param sourceRange
+     *            a {link @FileRange} representing the file range of the source
      * 
      * @return a HttpURLConnection to use to perform the operation.
      * @throws IOException
@@ -957,7 +960,8 @@ final class FileRequest {
      */
     public static HttpURLConnection putRange(final URI uri, final FileRequestOptions fileOptions,
             final OperationContext opContext, final AccessCondition accessCondition, final FileRange range,
-            FileRangeOperationType operationType) throws IOException, URISyntaxException, StorageException {
+            FileRangeOperationType operationType, final URI sourceUri, final FileRange sourceRange)
+            throws IOException, URISyntaxException, StorageException {
         final UriQueryBuilder builder = new UriQueryBuilder();
         builder.add(Constants.QueryConstants.COMPONENT, RANGE_QUERY_ELEMENT_NAME);
 
@@ -973,6 +977,16 @@ final class FileRequest {
         // Range write is either update or clear; required
         request.setRequestProperty(FileConstants.FILE_RANGE_WRITE, operationType.toString());
         request.setRequestProperty(Constants.HeaderConstants.STORAGE_RANGE_HEADER, range.toString());
+
+        // Put range from Url
+        if (sourceUri != null) {
+            request.setFixedLengthStreamingMode(0);
+            request.setRequestProperty(Constants.HeaderConstants.CONTENT_LENGTH, "0");
+            request.setRequestProperty(Constants.HeaderConstants.COPY_SOURCE, sourceUri.toString());
+        }
+        if (sourceRange != null) {
+            request.setRequestProperty(Constants.HeaderConstants.STORAGE_SOURCE_RANGE_HEADER, sourceRange.toString());
+        }
 
         if (accessCondition != null) {
             accessCondition.applyConditionToRequest(request);

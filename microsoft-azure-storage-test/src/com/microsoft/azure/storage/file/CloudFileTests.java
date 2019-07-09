@@ -1123,7 +1123,98 @@ public class CloudFileTests {
 
         inputStream = new ByteArrayInputStream(buffer);
     }
-    
+
+    /**
+     * Tests put range through URL
+     * @throws URISyntaxException
+     * @throws IOException
+     * @throws InvalidKeyException
+     * @throws StorageException
+     */
+    @Test
+    public void testCloudFilePutRangeThroughURL() throws URISyntaxException, IOException, InvalidKeyException, StorageException {
+        // Create source.
+        final String data = "The quick brown fox jumped over the lazy dog";
+        byte[] src = data.getBytes();
+        int begin = 0;
+        int end = data.length();
+
+        CloudFile source = this.share.getRootDirectoryReference().getFileReference("source");
+        source.getMetadata().put("Test", "value");
+        source.uploadText(data, Constants.UTF8_CHARSET, null, null, null);
+
+        // Source SAS must have read permissions
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        cal.setTime(new Date());
+        cal.add(Calendar.MINUTE, 5);
+        SharedAccessFilePolicy policy = new SharedAccessFilePolicy();
+        policy.setPermissions(EnumSet.of(SharedAccessFilePermissions.READ));
+        policy.setSharedAccessExpiryTime(cal.getTime());
+        String sasToken = source.generateSharedAccessSignature(policy, null, null);
+        StorageCredentialsSharedAccessSignature credentials = new StorageCredentialsSharedAccessSignature(sasToken);
+
+        // Create destination.
+        CloudFile destination = share.getRootDirectoryReference().getFileReference("destination");
+        destination.create(512);
+
+        destination.putRangeThroughURL(begin, end, credentials.transformUri(source.getUri()), begin, end, null, null, null);
+
+        // Compare result to source
+        byte[] result = new byte[512];
+        destination.downloadToByteArray(result, 0);
+
+        for(int i = begin; i < end; i++) {
+            assertEquals(src[i], result[i]);
+        }
+    }
+
+    /**
+     * Tests put range through URL with different ranges
+     * @throws URISyntaxException
+     * @throws IOException
+     * @throws InvalidKeyException
+     * @throws StorageException
+     */
+    @Test(expected = StorageException.class)
+    public void testCloudFilePutRangeThroughURLWithDiffRange() throws URISyntaxException, IOException, InvalidKeyException, StorageException {
+        // Create source.
+        final String data = "The quick brown fox jumped over the lazy dog";
+        byte[] src = data.getBytes();
+        int beginSource = 0;
+        int endSource = 5;
+        int beginDest = 109;
+        int endDest = 123;
+
+        CloudFile source = this.share.getRootDirectoryReference().getFileReference("source");
+        source.getMetadata().put("Test", "value");
+        source.uploadText(data, Constants.UTF8_CHARSET, null, null, null);
+
+        // Source SAS must have read permissions
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        cal.setTime(new Date());
+        cal.add(Calendar.MINUTE, 5);
+        SharedAccessFilePolicy policy = new SharedAccessFilePolicy();
+        policy.setPermissions(EnumSet.of(SharedAccessFilePermissions.READ));
+        policy.setSharedAccessExpiryTime(cal.getTime());
+        String sasToken = source.generateSharedAccessSignature(policy, null, null);
+        StorageCredentialsSharedAccessSignature credentials = new StorageCredentialsSharedAccessSignature(sasToken);
+
+        // Create destination
+        CloudFile destination = share.getRootDirectoryReference().getFileReference("destination");
+        destination.create(512);
+
+        destination.putRangeThroughURL(beginDest, endDest, credentials.transformUri(source.getUri()), beginSource, endSource, null, null, null);
+
+        // Compare result to source
+        byte[] result = new byte[512];
+        destination.downloadToByteArray(result, 0);
+
+        for(int i = 0; i < Math.max(endDest - beginDest, endSource - beginSource); i++) {
+            assertEquals(src[i + beginDest], result[i + beginSource]);
+        }
+    }
+
+
     @Test
     @Category({ DevFabricTests.class, DevStoreTests.class })
     public void testVerifyTransactionalMD5ValidationMissingOverallMD5() throws URISyntaxException, StorageException, IOException {
