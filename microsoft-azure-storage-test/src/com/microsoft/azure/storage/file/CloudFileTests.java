@@ -1139,9 +1139,11 @@ public class CloudFileTests {
         int begin = 0;
         int end = data.length();
 
-        CloudFile source = this.share.getRootDirectoryReference().getFileReference("source");
-        source.getMetadata().put("Test", "value");
-        source.uploadText(data, Constants.UTF8_CHARSET, null, null, null);
+        CloudFileClient client = FileTestHelper.createCloudFileClient();
+        CloudFileShare share = client.getShareReference("sprasa-test");
+        CloudFile source = share.getRootDirectoryReference().getFileReference("source");
+//        source.getMetadata().put("Test", "value");
+//        source.uploadText(data, Constants.UTF8_CHARSET, null, null, null);
 
         // Source SAS must have read permissions
         Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
@@ -1155,7 +1157,7 @@ public class CloudFileTests {
 
         // Create destination.
         CloudFile destination = share.getRootDirectoryReference().getFileReference("destination");
-        destination.create(512);
+//        destination.create(512);
 
         destination.putRangeThroughURL(begin, end, credentials.transformUri(source.getUri()), begin, end, null, null, null);
 
@@ -1175,19 +1177,20 @@ public class CloudFileTests {
      * @throws InvalidKeyException
      * @throws StorageException
      */
-    @Test(expected = StorageException.class)
+    @Test
     public void testCloudFilePutRangeThroughURLWithDiffRange() throws URISyntaxException, IOException, InvalidKeyException, StorageException {
         // Create source.
         final String data = "The quick brown fox jumped over the lazy dog";
         byte[] src = data.getBytes();
         int beginSource = 0;
-        int endSource = 5;
-        int beginDest = 109;
-        int endDest = 123;
+        int length = 5;
+        int beginDest = 0;
 
-        CloudFile source = this.share.getRootDirectoryReference().getFileReference("source");
-        source.getMetadata().put("Test", "value");
-        source.uploadText(data, Constants.UTF8_CHARSET, null, null, null);
+        CloudFileClient client = FileTestHelper.createCloudFileClient();
+        CloudFileShare share = client.getShareReference("sprasa-test");
+        CloudFile source = share.getRootDirectoryReference().getFileReference("source");
+//        source.getMetadata().put("Test", "value");
+//        source.uploadText(data, Constants.UTF8_CHARSET, null, null, null);
 
         // Source SAS must have read permissions
         Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
@@ -1201,16 +1204,16 @@ public class CloudFileTests {
 
         // Create destination
         CloudFile destination = share.getRootDirectoryReference().getFileReference("destination");
-        destination.create(512);
+//        destination.create(512);
 
-        destination.putRangeThroughURL(beginDest, endDest, credentials.transformUri(source.getUri()), beginSource, endSource, null, null, null);
+        destination.putRangeThroughURL(beginDest, length, credentials.transformUri(source.getUri()), beginSource, length, null, null, null);
 
         // Compare result to source
         byte[] result = new byte[512];
         destination.downloadToByteArray(result, 0);
 
-        for(int i = 0; i < Math.max(endDest - beginDest, endSource - beginSource); i++) {
-            assertEquals(src[i + beginDest], result[i + beginSource]);
+        for(int i = 0; i < length; i++) {
+            assertEquals(src[i + beginSource], result[i + beginDest]);
         }
     }
 
