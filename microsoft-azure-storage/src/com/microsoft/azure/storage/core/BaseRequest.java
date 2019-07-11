@@ -14,19 +14,23 @@
  */
 package com.microsoft.azure.storage.core;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
-import com.microsoft.azure.storage.Constants;
-import com.microsoft.azure.storage.OperationContext;
-import com.microsoft.azure.storage.RequestOptions;
-import com.microsoft.azure.storage.StorageException;
+import com.microsoft.azure.storage.*;
+import com.microsoft.azure.storage.blob.BlobBatchOperation;
+import com.microsoft.azure.storage.blob.BlobRequestOptions;
+import com.microsoft.azure.storage.blob.CloudBlobClient;
 
 import static com.microsoft.azure.storage.Constants.QueryConstants.PROPERTIES;
 
@@ -46,6 +50,10 @@ public final class BaseRequest {
     private static final String ACCOUNT = "account";
 
     private static final String USER_DELEGATION_KEY = "userdelegationkey";
+
+    private static final String BATCH_QUERY_ELEMENT_NAME = "batch";
+
+    private static final String HTTP_LINE_ENDING = "\r\n";
 
     /**
      * Stores the user agent to send over the wire to identify the client.
@@ -522,6 +530,114 @@ public final class BaseRequest {
         retConnection.setRequestMethod(Constants.HTTP_POST);
 
         return retConnection;
+    }
+
+    public static HttpURLConnection batch(final URI uri, final RequestOptions options,
+            final OperationContext opContext, final AccessCondition accessCondition)
+            throws IOException, URISyntaxException, StorageException {
+
+        final UriQueryBuilder builder = new UriQueryBuilder();
+        builder.add(Constants.QueryConstants.COMPONENT, BATCH_QUERY_ELEMENT_NAME);
+
+        final HttpURLConnection request = createURLConnection(uri, options, builder, opContext);
+
+
+
+        request.setDoOutput(true);
+        request.setRequestMethod(Constants.HTTP_POST);
+
+        if (accessCondition != null) {
+            accessCondition.applyConditionToRequest(request);
+            accessCondition.applyAppendConditionToRequest(request);
+        }
+
+        return request;
+    }
+
+    public static <C extends ServiceClient, P, R> byte[] buildBatchBody(final C client,
+            final BatchOperation<C, P, R> batch, final OperationContext opContext) throws Exception {
+
+        // prebuilt byte arrays for reuse in writing to stream
+        final byte[] delim = ("--batch_" + batch.getBatchId() + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8);
+        final byte[] contentTypeHeader = ("Content-Type: application/http" + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8);
+        final byte[] newlineBytes = HTTP_LINE_ENDING.getBytes(StandardCharsets.UTF_8);
+
+        final ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        int contentId = 0;
+        for (Map.Entry<com.microsoft.azure.storage.core.StorageRequest<C, P, R>, P> subRequest : batch) {
+            // build request
+            subRequest.getKey().initializeLocation();
+            HttpURLConnection builtRequest = copyRequestForBatch(subRequest.getKey().buildRequest(client, subRequest.getValue(), opContext));
+            subRequest.getKey().setHeaders(builtRequest, subRequest.getValue(), opContext);
+            String authValue =  StorageRequest.signBlobQueueAndFileRequest(builtRequest, client, -1L, opContext);
+
+            stream.write(delim);
+
+            // apply specific headers
+            stream.write(contentTypeHeader);
+            stream.write((Constants.HeaderConstants.CONTENT_ID + ": " + contentId++ + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8));
+            if (builtRequest.getRequestProperties().get(Constants.HeaderConstants.CONTENT_TRANSFER_ENCODING) != null) {
+                stream.write((Constants.HeaderConstants.CONTENT_TRANSFER_ENCODING + ": " +
+                        builtRequest.getRequestProperties().get(Constants.HeaderConstants.CONTENT_TRANSFER_ENCODING)
+                        + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8));
+            }
+
+            stream.write(newlineBytes);
+
+            String requestMethod = builtRequest.getRequestMethod();
+            String path = builtRequest.getURL().getPath();
+            String query = (query = builtRequest.getURL().getQuery()) == null
+                    ? ""
+                    : "?" + query;
+            stream.write((requestMethod + " " + path + query + " HTTP/1.1" +  HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8));
+
+            for (Map.Entry<String, List<String>> header : builtRequest.getRequestProperties().entrySet()) {
+                stream.write((header.getKey() + ": " + header.getValue().get(0) + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8));
+            }
+            stream.write((Constants.HeaderConstants.AUTHORIZATION + ": " + authValue + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8));
+
+            stream.write(newlineBytes);
+
+            // TODO serialize sub-request body
+        }
+
+        stream.write(("--batch_" + batch.getBatchId() + "--" + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8));
+
+
+        return stream.toByteArray();
+    }
+
+    /**
+     * Creates a new HttpURLConnection for batch requests.
+     * Java does not give the ability to remove a header from a URLConnection, and batch requires us to remove the
+     * x-ms-version header, as well as specially treat some others. Also, we cannot just refuse to serialize it in our
+     * manual serialization, as we must apply our signing logic, which operates on the HttpURLConnection, and so would
+     * improperly sign the version header into the signature. Rather than try and prevent them from being set in the
+     * first place, this method copies the HttpURLConnection, and specifically avoids copying over some headers. This
+     * method also does not worry about completely duplicating every aspect of the HttpURLConnection, as we will not
+     * actually use it to send out a request.
+     *
+     * @param connection
+     * @return
+     */
+    private static HttpURLConnection copyRequestForBatch(HttpURLConnection connection) {
+        HttpURLConnection result;
+        try {
+            result = (HttpURLConnection)connection.getURL().openConnection();
+            result.setRequestMethod(connection.getRequestMethod());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        for (Map.Entry<String, List<String>> header : connection.getRequestProperties().entrySet()) {
+            if (!header.getKey().equals(Constants.HeaderConstants.STORAGE_VERSION_HEADER) &&
+                    !header.getKey().equals(Constants.HeaderConstants.CONTENT_TYPE) &&
+                    !header.getKey().equals(Constants.HeaderConstants.CONTENT_TRANSFER_ENCODING)) {
+                result.setRequestProperty(header.getKey(), Utility.stringJoin(",", header.getValue()));
+            }
+        }
+
+        return result;
     }
 
     /**

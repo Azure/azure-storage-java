@@ -1,5 +1,6 @@
 package com.microsoft.azure.storage.blob;
 
+import com.microsoft.azure.storage.BatchSubResponse;
 import com.microsoft.azure.storage.core.Utility;
 
 public final class BlobSetTierBatchOperation extends BlobBatchOperation<CloudBlob, Void> {
@@ -28,5 +29,10 @@ public final class BlobSetTierBatchOperation extends BlobBatchOperation<CloudBlo
         options = BlobRequestOptions.populateAndApplyDefaults(options, BlobType.PAGE_BLOB, pageBlob.blobServiceClient);
 
         super.addSubOperation(pageBlob.uploadBlobTierImpl(tier.toString(), options), pageBlob);
+    }
+
+    @Override
+    protected Void convertResponse(BatchSubResponse response) {
+        return null;
     }
 }

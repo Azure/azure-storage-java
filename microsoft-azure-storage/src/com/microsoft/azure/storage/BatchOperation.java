@@ -1,11 +1,12 @@
 package com.microsoft.azure.storage;
 
-import com.microsoft.azure.storage.blob.BlobBatchOperation;
+import com.microsoft.azure.storage.core.BaseRequest;
 import com.microsoft.azure.storage.core.StorageRequest;
 import com.microsoft.azure.storage.core.Utility;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
@@ -20,11 +21,11 @@ import java.util.*;
  *     The type of the parent object making the REST call.
  * @param <R>
  */
-public abstract class BatchOperation <C extends ServiceClient, P, R> implements Iterable<Map.Entry< StorageRequest<C, P, R>, P>> {
+public abstract class BatchOperation <C extends ServiceClient, P, R> implements Iterable<Map.Entry<StorageRequest<C, P, R>, P>> {
 
     private static String HTTP_LINE_ENDING = "\r\n";
 
-    private final List<Map.Entry<StorageRequest<C, P, R>, P>> subOperations = new ArrayList<>();
+    private final Map<StorageRequest<C, P, R>, P> subOperations = new LinkedHashMap<>(); // maintains iteration order
 
     private final UUID batchId = UUID.randomUUID();
 
@@ -39,26 +40,7 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
      */
     protected final void addSubOperation(final StorageRequest<C, P, R> request, final P parent) {
         Utility.assertInBounds("subOperationCount", this.subOperations.size(), 0, Constants.BATCH_MAX_REQUESTS - 1);
-        subOperations.add(new Map.Entry<StorageRequest<C, P, R>, P>() {
-            final StorageRequest<C, P, R> storageRequest = request;
-            P parentObject = parent;
-
-            @Override
-            public StorageRequest<C, P, R> getKey() {
-                return storageRequest;
-            }
-
-            @Override
-            public P getValue() {
-                return parentObject;
-            }
-
-            @Override
-            public P setValue(P value) {
-                parentObject = value;
-                return parentObject;
-            }
-        });
+        subOperations.put(request, parent);
     }
 
     public UUID getBatchId() {
@@ -87,27 +69,35 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
      * @return
      *      The built request.
      */
-    protected StorageRequest<C, BlobBatchOperation<P, R>, Iterable<R>> batchImpl(
-            C client, RequestOptions requestOptions) {
+    protected StorageRequest<C, BatchOperation<C, P, R>, Iterable<Map.Entry<P, R>>> batchImpl(
+            C client, final RequestOptions requestOptions) {
 
-        return new StorageRequest<C, BlobBatchOperation<P, R>, Iterable<R>>(requestOptions, client.getStorageUri()) {
+        return new StorageRequest<C, BatchOperation<C, P, R>, Iterable<Map.Entry<P, R>>>(requestOptions, client.getStorageUri()) {
             @Override
-            public HttpURLConnection buildRequest(C client, BlobBatchOperation<P, R> parentObject,
+            public HttpURLConnection buildRequest(C client, BatchOperation<C, P, R> parentObject,
                     OperationContext context) throws Exception {
-                //this.setSendStream();
-                //this.setLength();
 
-                return null;
+                byte[] body = BaseRequest.buildBatchBody(client, parentObject, context);
+                this.setSendStream(new ByteArrayInputStream(body));
+                this.setLength((long)body.length);
+
+                return BaseRequest.batch(
+                        client.getEndpoint(), requestOptions, context, null /* accessCondition */);
+            }
+
+            @Override
+            public void setHeaders(HttpURLConnection connection, BatchOperation<C, P, R> parentObject, OperationContext context) {
+                connection.setRequestProperty(Constants.HeaderConstants.CONTENT_TYPE, "multipart/mixed; boundary=batch_" + parentObject.getBatchId());
             }
 
             @Override
             public void signRequest(HttpURLConnection connection, C client, OperationContext context)
                     throws Exception {
-                StorageRequest.signBlobQueueAndFileRequest(connection, client, 0L, context);
+                StorageRequest.signBlobQueueAndFileRequest(connection, client, this.getLength(), context);
             }
 
             @Override
-            public Iterable<R> preProcessResponse(BlobBatchOperation<P, R> parentObject, C client,
+            public Iterable<Map.Entry<P, R>> preProcessResponse(BatchOperation<C, P, R> parentObject, C client,
                     OperationContext context) throws Exception {
                 if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_ACCEPTED) {
                     throw new StorageException(this.getResult().getErrorCode(), this.getResult().getStatusMessage(), null);
@@ -117,8 +107,8 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
             }
 
             @Override
-            public Iterable<R> postProcessResponse(HttpURLConnection connection, BlobBatchOperation<P, R> parentObject,
-                    C client, OperationContext context, Iterable<R> storageObject) throws Exception {
+            public Iterable<Map.Entry<P, R>> postProcessResponse(HttpURLConnection connection, BatchOperation<C, P, R> parentObject,
+                    C client, OperationContext context, Iterable<Map.Entry<P, R>> storageObject) throws Exception {
 
                 ByteArrayOutputStream responseBuffer = new ByteArrayOutputStream();
                 int bytesRead;
@@ -128,13 +118,124 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
                 }
                 responseBuffer.flush();
 
-                Iterable<BatchSubResponse> parsedResponses =
-                        parseBatchBody(responseBuffer.toByteArray(), "batchResponse_" + parentObject.getBatchId());
+                final List<BatchSubResponse> parsedResponses = parseBatchBody(
+                        responseBuffer.toByteArray(),
+                        connection.getHeaderField(Constants.HeaderConstants.CONTENT_TYPE).split("boundary=")[1]);
 
-                return null;
+                assertBatchSuccess(parsedResponses);
+
+                final Map<BatchSubResponse, Object> failedResponses = new HashMap<>();
+                Iterator<BatchSubResponse> it = parsedResponses.iterator();
+                while (it.hasNext()) {
+                    BatchSubResponse response = it.next();
+
+                    if (response.getStatusCode() / 100 != 2) {
+                        failedResponses.put(response, findParent(response));
+                        it.remove();
+                    }
+                }
+
+                return new Iterable<Map.Entry<P, R>>() {
+                    @Override
+                    public Iterator<Map.Entry<P, R>> iterator() {
+                        return new Iterator<Map.Entry<P, R>>() {
+                            final Iterator<BatchSubResponse> baseIterator = parsedResponses.iterator();
+                            final BatchException batchException = failedResponses.isEmpty()
+                                    ? null
+                                    : new BatchException(failedResponses);
+
+                            @Override
+                            public void remove() {
+                                baseIterator.remove();
+                            }
+
+                            @Override
+                            public boolean hasNext() {
+                                boolean hasNext = baseIterator.hasNext();
+
+                                if (!hasNext && batchException != null) {
+                                    throw batchException;
+                                }
+
+                                return hasNext;
+                            }
+
+                            @Override
+                            public Map.Entry<P, R> next() {
+                                final BatchSubResponse subResponse = baseIterator.next();
+
+                                return new Map.Entry<P, R>() {
+
+                                    final P key = findParent(subResponse);
+                                    final R value = convertResponse(subResponse);
+
+                                    @Override
+                                    public P getKey() {
+                                        return key;
+                                    }
+
+                                    @Override
+                                    public R getValue() {
+                                        return value;
+                                    }
+
+                                    @Override
+                                    public R setValue(R value) {
+                                        return value;
+                                    }
+                                };
+                            }
+                        };
+                    }
+                };
             }
         };
     }
+
+    private P findParent(BatchSubResponse subResponse) {
+        //iterate through requests, keeping track of index (Content-ID) and find the parent that matches
+        int i = 0;
+        for (Map.Entry<StorageRequest<C, P, R>, P> op : subOperations.entrySet()) {
+            if (i == Integer.parseInt(subResponse.getHeaders().get(Constants.HeaderConstants.CONTENT_ID))) {
+                return op.getValue();
+            }
+            i++;
+        }
+
+        /*
+         * If parent isn't present, it's because batch returns a success code when the overall batch fails, and creates
+         * a single sub-response that contains the actual failure response of the batch. This failure has already been
+         * checked where we already declare a StorageException. We will not hit this state.
+         */
+        throw new IllegalStateException();
+    }
+
+    private void assertBatchSuccess(List<BatchSubResponse> parsedResponses) throws StorageException {
+
+        if (parsedResponses.size() != 1) {
+            return;
+        }
+
+        BatchSubResponse subResponse = parsedResponses.get(0);
+
+        ByteArrayOutputStream responseBuffer = new ByteArrayOutputStream();
+        try {
+            int bytesRead;
+            byte[] readBuffer = new byte[Constants.KB];
+            while ((bytesRead = subResponse.getBody().read(readBuffer, 0, readBuffer.length)) != -1) {
+                responseBuffer.write(readBuffer, 0, bytesRead);
+            }
+            responseBuffer.flush();
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+        throw new StorageException(subResponse.getStatusMessage(), responseBuffer.toString(), subResponse.getStatusCode(), null, null);
+    }
+
+    ///// Response parsing /////
 
 
     /**
@@ -148,7 +249,7 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
      * @return
      *      The sub-responses.
      */
-    private Iterable<BatchSubResponse> parseBatchBody(byte[] body, String responseDelimiter) {
+    private List<BatchSubResponse> parseBatchBody(byte[] body, String responseDelimiter) {
         List<byte[]> subResponses = Utility.splitOnPattern(
                 body, (HTTP_LINE_ENDING + "--" + responseDelimiter + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8));
 
@@ -196,6 +297,7 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
          */
 
         int parsedStatusCode = 0;
+        String parsedStatusMessage = "";
         final Map<String, String> parsedHeaders = new HashMap<>();
         InputStream body = null;
 
@@ -223,11 +325,21 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
                 numBlankLinesFound++;
             }
             else if (line.startsWith("HTTP")) { // HTTP response
-                parsedStatusCode = Integer.parseInt(line.split(" ")[1]);
+                String[] lineTokens = line.split(" ");
+                parsedStatusCode = Integer.parseInt(lineTokens[1]);
+
+                if (lineTokens.length > 2) {
+                    StringBuilder builder = new StringBuilder();
+                    for (int i = 2; i < lineTokens.length; i++) {
+                        builder.append(lineTokens[i]).append(' ');
+                    }
+                    builder.deleteCharAt(builder.length() - 1);
+                    parsedStatusMessage = builder.toString();
+                }
             }
             else { // a header line; anything else would be against protocol
-                String[] tokens = line.split(": ");
-                parsedHeaders.put(tokens[0], tokens[1]);
+                String[] tokens = line.split(":");
+                parsedHeaders.put(tokens[0], tokens[1].trim());
             }
 
             lineStart = lineEnd + newlinePattern.length;
@@ -241,6 +353,7 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
 
         BatchSubResponse parsedResponse = new BatchSubResponse();
         parsedResponse.setStatusCode(parsedStatusCode);
+        parsedResponse.setStatusMessage(parsedStatusMessage);
         parsedResponse.setHeaders(parsedHeaders);
         parsedResponse.setBody(body);
 
@@ -249,6 +362,24 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
 
     @Override
     public Iterator<Map.Entry<StorageRequest<C, P, R>, P>> iterator() {
-        return this.subOperations.iterator();
+        return new Iterator<Map.Entry<StorageRequest<C, P, R>, P>>() {
+
+            final Iterator<Map.Entry<StorageRequest<C, P, R>, P>> baseIt = subOperations.entrySet().iterator();
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean hasNext() {
+                return baseIt.hasNext();
+            }
+
+            @Override
+            public Map.Entry<StorageRequest<C, P, R>, P> next() {
+                return baseIt.next();
+            }
+        };
     }
 }

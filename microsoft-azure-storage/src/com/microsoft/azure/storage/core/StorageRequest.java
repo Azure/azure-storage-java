@@ -305,9 +305,9 @@ public abstract class StorageRequest<C, P, R> {
         return StorageException.translateException(this, null, opContext);
     }
 
-    public static final void signBlobQueueAndFileRequest(HttpURLConnection request, ServiceClient client,
+    public static final String signBlobQueueAndFileRequest(HttpURLConnection request, ServiceClient client,
             long contentLength, OperationContext context) throws InvalidKeyException, StorageException {
-        StorageCredentialsHelper.signBlobQueueAndFileRequest(client.getCredentials(), request, contentLength, context);
+        return StorageCredentialsHelper.signBlobQueueAndFileRequest(client.getCredentials(), request, contentLength, context);
     }
 
     public static final void signTableRequest(HttpURLConnection request, ServiceClient client, long contentLength,

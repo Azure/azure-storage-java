@@ -39,8 +39,6 @@ final class BlobRequest {
 
     private static final String APPEND_BLOCK_QUERY_ELEMENT_NAME = "appendblock";
 
-    private static final String BATCH_QUERY_ELEMENT_NAME = "batch";
-
     private static final String BLOCK_QUERY_ELEMENT_NAME = "block";
 
     private static final String BLOCK_ID_QUERY_ELEMENT_NAME = "blockid";
@@ -62,8 +60,6 @@ final class BlobRequest {
     private static final String TIER_QUERY_ELEMENT_NAME = "tier";
 
     private static final String UNCOMMITTED_BLOBS_QUERY_ELEMENT_NAME = "uncommittedblobs";
-
-    private static final String HTTP_LINE_ENDING = "\r\n";
 
     /**
      * Generates a web request to abort a copy operation.
@@ -282,71 +278,6 @@ final class BlobRequest {
         //}
 
         return request;
-    }
-
-    public static HttpURLConnection batch(final URI uri, final BlobRequestOptions blobOptions,
-            final OperationContext opContext, final AccessCondition accessCondition)
-            throws IOException, URISyntaxException, StorageException {
-        final UriQueryBuilder builder = new UriQueryBuilder();
-        builder.add(Constants.QueryConstants.COMPONENT, BATCH_QUERY_ELEMENT_NAME);
-        final HttpURLConnection request = createURLConnection(uri, builder, blobOptions, opContext);
-
-        if (accessCondition != null) {
-            accessCondition.applyConditionToRequest(request);
-            accessCondition.applyAppendConditionToRequest(request);
-        }
-
-        return request;
-    }
-
-    public static <P, R> byte[] buildbatchBody(final CloudBlobClient client,
-            final BlobBatchOperation<P, R> batch, final OperationContext opContext) throws Exception {
-
-        // prebuilt byte arrays for reuse in writing to stream
-        final byte[] delim = ("--batch_" + batch.getBatchId() + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8);
-        final byte[] contentTypeHeader = ("Content-Type: application/http" + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8);
-        final byte[] newlineBytes = HTTP_LINE_ENDING.getBytes(StandardCharsets.UTF_8);
-
-        final ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        int contentId = 0;
-        for (Map.Entry<StorageRequest<CloudBlobClient, P, R>, P> subRequest : batch) {
-            subRequest.getKey().initializeLocation();
-            HttpURLConnection builtRequest = subRequest.getKey().buildRequest(client, subRequest.getValue(), opContext);
-
-            stream.write(delim);
-
-            stream.write(contentTypeHeader);
-            stream.write((HeaderConstants.CONTENT_ID + ": " + contentId++ + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8));
-            if (builtRequest.getRequestProperties().get(HeaderConstants.CONTENT_TRANSFER_ENCODING) != null) {
-                stream.write((HeaderConstants.CONTENT_TRANSFER_ENCODING + ": " +
-                        builtRequest.getRequestProperties().get(HeaderConstants.CONTENT_TRANSFER_ENCODING)
-                        + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8));
-            }
-
-            stream.write(newlineBytes);
-
-            String requestMethod = builtRequest.getRequestMethod();
-            String path = builtRequest.getURL().getPath();
-            String query = (query = builtRequest.getURL().getQuery()) == null
-                    ? ""
-                    : query;
-            stream.write((requestMethod + " " + path + query + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8));
-
-            for (Map.Entry<String, List<String>> header : builtRequest.getRequestProperties().entrySet()) {
-                if (!header.getKey().equals("Content-Type") && !header.getKey().equals("Content-Transfer-Encoding")) {
-                    stream.write((header.getKey() + ": " + header.getValue().get(0) + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8));
-                }
-            }
-
-            stream.write(newlineBytes);
-
-            // TODO serialize body
-        }
-
-        stream.write(("--batch_" + batch.getBatchId() + "--" + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8));
-
-
-        return stream.toByteArray();
     }
 
     /**

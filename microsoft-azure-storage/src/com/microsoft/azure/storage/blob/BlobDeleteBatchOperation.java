@@ -4,7 +4,7 @@ import com.microsoft.azure.storage.AccessCondition;
 import com.microsoft.azure.storage.BatchSubResponse;
 import com.microsoft.azure.storage.core.Utility;
 
-public class BlobDeleteBatchOperation extends BlobBatchOperation<CloudBlob, Void> {
+public final class BlobDeleteBatchOperation extends BlobBatchOperation<CloudBlob, Void> {
 
     public void addSubOperation(CloudBlob blob) {
         this.addSubOperation(blob, DeleteSnapshotsOption.NONE, null /* accessCondition */, null /* options */);
@@ -21,7 +21,7 @@ public class BlobDeleteBatchOperation extends BlobBatchOperation<CloudBlob, Void
     }
 
     @Override
-    protected Void convertResponse(BatchSubResponse response) {
+    final protected Void convertResponse(BatchSubResponse response) {
         return null;
     }
 }

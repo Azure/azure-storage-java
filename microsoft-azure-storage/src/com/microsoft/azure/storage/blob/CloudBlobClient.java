@@ -25,6 +25,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Provides a client for accessing the Microsoft Azure Blob service.
@@ -738,11 +739,11 @@ public final class CloudBlobClient extends ServiceClient {
 
     }
 
-    public <P, T> Iterable<T> executeBatch(BlobBatchOperation<P, T> batch) throws StorageException {
+    public <P, T> Iterable<Map.Entry<P, T>> executeBatch(BlobBatchOperation<P, T> batch) throws StorageException {
         return this.executeBatch(batch, null /* requestOptions */, null /* operationContext */);
     }
 
-    public <P, T> Iterable<T> executeBatch(BlobBatchOperation<P, T> batch, BlobRequestOptions requestOptions,
+    public <P, T> Iterable<Map.Entry<P, T>> executeBatch(BlobBatchOperation<P, T> batch, BlobRequestOptions requestOptions,
             OperationContext operationContext) throws StorageException {
         requestOptions = BlobRequestOptions.populateAndApplyDefaults(requestOptions, BlobType.PAGE_BLOB, this);
 

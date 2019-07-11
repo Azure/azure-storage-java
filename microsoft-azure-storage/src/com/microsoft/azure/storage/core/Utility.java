@@ -1519,6 +1519,62 @@ public final class Utility {
         return RequestLocationMode.PRIMARY_OR_SECONDARY;
     }
 
+    /**
+     * Equivalent of String.join() in Java 8.
+     *
+     * @param delimiter  Characters to join strings with.
+     * @param strings    Strings to join.
+     * @return           The joined string.
+     */
+    public static String stringJoin(CharSequence delimiter, final String... strings) {
+        return stringJoin(delimiter, new Iterable<String>() {
+            @Override
+            public Iterator<String> iterator() {
+                return new Iterator<String>() {
+                    private final String[] internalArray = strings;
+                    private int index;
+
+                    @Override
+                    public boolean hasNext() {
+                        return internalArray.length > index;
+                    }
+
+                    @Override
+                    public String next() {
+                        return internalArray[index++];
+                    }
+
+                    @Override
+                    public void remove() {
+                        throw new UnsupportedOperationException();
+                    }
+                };
+            }
+        });
+    }
+
+    /**
+     * Equivalent of String.join() in Java 8.
+     *
+     * @param delimiter  Characters to join strings with.
+     * @param strings    Strings to join.
+     * @return           The joined string.
+     */
+    public static String stringJoin(CharSequence delimiter, Iterable<String> strings) {
+        StringBuilder sb = new StringBuilder();
+        Iterator<String> iterator = strings.iterator();
+
+        if (iterator.hasNext()) {
+            sb.append(iterator.next());
+        }
+        while (iterator.hasNext()) {
+            sb.append(delimiter);
+            sb.append(iterator.next());
+        }
+
+        return sb.toString();
+    }
+
     public static List<byte[]> splitOnPattern(byte[] array, byte[] pattern) {
         List<Integer> sortedPatternIndices = findAllPatternOccurences(array, pattern);
         List<byte[]> tokens = new ArrayList<>(sortedPatternIndices.size() + 1);
