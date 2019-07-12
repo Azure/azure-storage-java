@@ -41,7 +41,6 @@ import com.microsoft.azure.storage.core.SR;
 import com.microsoft.azure.storage.core.UriQueryBuilder;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -1136,14 +1135,14 @@ public class CloudFileTests {
         // Create source.
         final String data = "The quick brown fox jumped over the lazy dog";
         byte[] src = data.getBytes();
-        int begin = 0;
-        int end = data.length();
+        int offset = 0;
+        int length = data.length();
 
         CloudFileClient client = FileTestHelper.createCloudFileClient();
         CloudFileShare share = client.getShareReference("sprasa-test");
         CloudFile source = share.getRootDirectoryReference().getFileReference("source");
-//        source.getMetadata().put("Test", "value");
-//        source.uploadText(data, Constants.UTF8_CHARSET, null, null, null);
+        source.getMetadata().put("Test", "value");
+        source.uploadText(data, Constants.UTF8_CHARSET, null, null, null);
 
         // Source SAS must have read permissions
         Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
@@ -1157,15 +1156,15 @@ public class CloudFileTests {
 
         // Create destination.
         CloudFile destination = share.getRootDirectoryReference().getFileReference("destination");
-//        destination.create(512);
+        destination.create(512);
 
-        destination.putRangeThroughURL(begin, end, credentials.transformUri(source.getUri()), begin, end, null, null, null);
+        destination.putRangeThroughURL(offset, length, credentials.transformUri(source.getUri()), offset, null, null, null);
 
         // Compare result to source
         byte[] result = new byte[512];
         destination.downloadToByteArray(result, 0);
 
-        for(int i = begin; i < end; i++) {
+        for(int i = offset; i < length + offset; i++) {
             assertEquals(src[i], result[i]);
         }
     }
@@ -1178,19 +1177,19 @@ public class CloudFileTests {
      * @throws StorageException
      */
     @Test
-    public void testCloudFilePutRangeThroughURLWithDiffRange() throws URISyntaxException, IOException, InvalidKeyException, StorageException {
+    public void testCloudFilePutRangeThroughURLWithDiffLength() throws URISyntaxException, IOException, InvalidKeyException, StorageException {
         // Create source.
         final String data = "The quick brown fox jumped over the lazy dog";
         byte[] src = data.getBytes();
-        int beginSource = 0;
+        int sourceOffset = 0;
         int length = 5;
-        int beginDest = 0;
+        int destOffset = 0;
 
         CloudFileClient client = FileTestHelper.createCloudFileClient();
         CloudFileShare share = client.getShareReference("sprasa-test");
         CloudFile source = share.getRootDirectoryReference().getFileReference("source");
-//        source.getMetadata().put("Test", "value");
-//        source.uploadText(data, Constants.UTF8_CHARSET, null, null, null);
+        source.getMetadata().put("Test", "value");
+        source.uploadText(data, Constants.UTF8_CHARSET, null, null, null);
 
         // Source SAS must have read permissions
         Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
@@ -1204,16 +1203,16 @@ public class CloudFileTests {
 
         // Create destination
         CloudFile destination = share.getRootDirectoryReference().getFileReference("destination");
-//        destination.create(512);
+        destination.create(512);
 
-        destination.putRangeThroughURL(beginDest, length, credentials.transformUri(source.getUri()), beginSource, length, null, null, null);
+        destination.putRangeThroughURL(destOffset, length, credentials.transformUri(source.getUri()), sourceOffset, null, null, null);
 
         // Compare result to source
         byte[] result = new byte[512];
         destination.downloadToByteArray(result, 0);
 
         for(int i = 0; i < length; i++) {
-            assertEquals(src[i + beginSource], result[i + beginDest]);
+            assertEquals(src[i + sourceOffset], result[i + destOffset]);
         }
     }
 

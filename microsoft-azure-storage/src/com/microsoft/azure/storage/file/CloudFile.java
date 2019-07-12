@@ -2208,18 +2208,16 @@ public final class CloudFile implements ListFileItem {
     /**
      * Uploads a range from one file to another file using the specified lease ID, request options, and operation context
      *
-     * @param offset
+     * @param destOffset
      *            A <code>long</code> which represents the offset, in number of bytes, at which to begin writing the
      *            data.
      * @param length
-     *            A <code>long</code> which represents the length, in bytes, of the data to write.
+     *            A <code>long</code> which represents the length, in bytes, of the data to write and read.
      * @param sourceUri
      *            A <code>java.net.URI</code> object that specifies the source URI.
      * @param sourceOffset
      *            A <code>long</code> which represents the offset, in number of bytes, at which to begin reading the
      *            data.
-     * @param sourceLength
-     *            A <code>long</code> which represents the length, in bytes, of the data to read.
      * @param accessCondition
      *            An {@link AccessCondition} object which represents the access conditions for the file.
      * @param options
@@ -2236,8 +2234,8 @@ public final class CloudFile implements ListFileItem {
      * @throws URISyntaxException
      */
     @DoesServiceRequest
-    public void putRangeThroughURL(final long offset, final long length, final URI sourceUri, final long sourceOffset,
-            final long sourceLength, final AccessCondition accessCondition, FileRequestOptions options, OperationContext opContext)
+    public void putRangeThroughURL(final long destOffset, final long length, final URI sourceUri, final long sourceOffset,
+            final AccessCondition accessCondition, FileRequestOptions options, OperationContext opContext)
             throws StorageException, URISyntaxException {
         if (opContext == null) {
             opContext = new OperationContext();
@@ -2247,8 +2245,8 @@ public final class CloudFile implements ListFileItem {
 
         options = FileRequestOptions.populateAndApplyDefaults(options, this.fileServiceClient);
 
-        final FileRange range = new FileRange(offset, offset + length - 1);
-        final FileRange sourceRange = new FileRange(sourceOffset, sourceOffset + sourceLength - 1);
+        final FileRange range = new FileRange(destOffset, destOffset + length - 1);
+        final FileRange sourceRange = new FileRange(sourceOffset, sourceOffset + length - 1);
 
         this.putRangeInternal(range, FileRangeOperationType.UPDATE, null, 0, null, sourceUri, sourceRange,
                 accessCondition, options, opContext);
@@ -2307,8 +2305,6 @@ public final class CloudFile implements ListFileItem {
                 if (operationType == FileRangeOperationType.UPDATE) {
                     if(data != null){
                         this.setSendStream(new ByteArrayInputStream(data));
-                    }
-                    if(length != 0) {
                         this.setLength(length);
                     }
                 }

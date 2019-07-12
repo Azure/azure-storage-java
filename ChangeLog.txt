@@ -1,7 +1,7 @@
 XXXX.XX.XX Version X.X.X
  * Support for 2019-02-02 REST version. Please see our REST API documentation and blogs for information about the related added features.
  * Added support for setting rehydrate priority for SetBlobTier and CopyBlob APIs
- * Added support for PutRangeFromURL API.
+ * Added support for PutRangeFromURL API to writes bytes from one Azure File endpoint into the specified range of another Azure File endpoint.
  * Support for 2018-11-09 REST version. Please see our REST API documentation and blogs for information about the related added features.
  * Added support for setting access tier for PutBlob/PutBlockList and CopyBlob APIs
 
