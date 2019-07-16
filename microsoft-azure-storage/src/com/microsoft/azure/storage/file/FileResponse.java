@@ -197,6 +197,32 @@ final class FileResponse extends BaseResponse {
         return fileAttributes;
     }
 
+    public static void setSMBProperties(final HttpURLConnection request, FileProperties properties) {
+
+        properties.setFilePermissionKey(request.getHeaderField(Constants.HeaderConstants.FILE_PERMISSION_KEY));
+        // TODO: Make NTFS Attributes to attributes enum be a flagged enum
+//        properties.setNtfsAttributes();
+
+
+        final Calendar calendar = Calendar.getInstance(Utility.LOCALE_US);
+        calendar.setTimeZone(Utility.UTC_ZONE);
+
+        // Creation Time
+        calendar.setTime(new Date(request.getHeaderField(Constants.HeaderConstants.FILE_CREATION_TIME)));
+        properties.setCreationTime(calendar.getTime());
+
+        // Last Write Time
+        calendar.setTime(new Date(request.getHeaderField(Constants.HeaderConstants.FILE_LAST_WRITE_TIME)));
+        properties.setLastWriteTime(calendar.getTime());
+
+        // Change Time
+        calendar.setTime(new Date(request.getHeaderField(Constants.HeaderConstants.FILE_CHANGE_TIME)));
+        properties.setChangeTime(calendar.getTime());
+
+        properties.setFileId(request.getHeaderField(Constants.HeaderConstants.FILE_ID));
+        properties.setParentId(request.getHeaderField(Constants.HeaderConstants.FILE_PARENT_ID));
+    }
+
     /**
      * Parses out the share quota value from a <code>java.net.HttpURLConnection</code>.
      *

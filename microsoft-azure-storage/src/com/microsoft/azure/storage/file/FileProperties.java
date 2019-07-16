@@ -82,6 +82,42 @@ public final class FileProperties {
     private boolean serverEncrypted;
 
     /**
+     * Represents the file's permission key.
+     */
+    private String filePermissionKey;
+
+    /**
+     * Represents the file system attributes for files and directories.
+     * If not set, indicates preservation of existing values.
+     */
+    private NtfsAttributes ntfsAttributes;
+
+    /**
+     * Represents the creation time for the file.
+     */
+    private Date creationTime;
+
+    /**
+     * Represents the last-write time for the file.
+     */
+    private Date lastWriteTime;
+
+    /**
+     * Represents the change time for the file.
+     */
+    private Date changeTime;
+
+    /**
+     * Represents the file's id.
+     */
+    private String fileId;
+
+    /**
+     * Represents the file's parent id.
+     */
+    private String parentId;
+
+    /**
      * Creates an instance of the <code>FileProperties</code> class.
      */
     public FileProperties() {
@@ -106,6 +142,10 @@ public final class FileProperties {
         this.length = other.length;
         this.lastModified = other.lastModified;
         this.serverEncrypted = other.serverEncrypted;
+        this.filePermissionKey = other.filePermissionKey;
+        this.ntfsAttributes = other.ntfsAttributes;
+        this.creationTime = other.creationTime;
+        this.lastWriteTime = other.lastWriteTime;
     }
 
     /**
@@ -215,7 +255,71 @@ public final class FileProperties {
      * @return A <code>boolean</code> which specifies the file's encryption status.
      */
     public boolean isServerEncrypted() {
-        return serverEncrypted;
+        return this.serverEncrypted;
+    }
+
+    /**
+     * Gets the file's permission key.
+     *
+     * @return A <code>String</code> which specifies the file's permission key.
+     */
+    public String getFilePermissionKey() {
+        return this.filePermissionKey;
+    }
+
+    /**
+     * Gets the file system attributes for files and directories.
+     * If not set, indicates preservation of existing values.
+     *
+     * @return A {@link NtfsAttributes} object which represents the file system attributes.
+     */
+    public NtfsAttributes getNtfsAttributes() {
+        return this.ntfsAttributes;
+    }
+
+    /**
+     * Gets the creation time for the file.
+     *
+     * @return A {@link java.util.Date} object which represents the creation time.
+     */
+    public Date getCreationTime() {
+        return this.creationTime;
+    }
+
+    /**
+     * Gets the last write time for the file.
+     *
+     * @return A {@link java.util.Date} object which represents the last write time.
+     */
+    public Date getLastWriteTime() {
+        return this.lastWriteTime;
+    }
+
+    /**
+     * Gets the change time for the file.
+     *
+     * @return A {@link java.util.Date} object which represents the change time.
+     */
+    public Date getChangeTime() {
+        return this.changeTime;
+    }
+
+    /**
+     * Gets the file's id.
+     *
+     * @return A <code>String</code> which specifies the file's id.
+     */
+    public String getFileId() {
+        return this.fileId;
+    }
+
+    /**
+     * Gets the file's parent id.
+     *
+     * @return A <code>String</code> which specifies the file's parent id.
+     */
+    public String getParentId() {
+        return this.parentId;
     }
 
     /**
@@ -328,4 +432,74 @@ public final class FileProperties {
         this.length = length;
     }
 
+    /**
+     * Sets the file's permission key.
+     *
+     * @param filePermissionKey
+     *        A <code>String</code> which specifies the file permission key to set.
+     */
+    public void setFilePermissionKey(String filePermissionKey) {
+        this.filePermissionKey = filePermissionKey;
+    }
+
+    /**
+     * Sets the file system attributes for files and directories.
+     * If not set, indicates preservation of existing values.
+     *
+     * @param ntfsAttributes
+     *        A {@link NtfsAttributes} which specifies the file system attributes to set.
+     */
+    public void setNtfsAttributes(NtfsAttributes ntfsAttributes) {
+        this.ntfsAttributes = ntfsAttributes;
+    }
+
+    /**
+     * Sets the creation time for the file.
+     *
+     * @param creationTime
+     *            A {@link java.util.Date} object which specifies the creation time to set.
+     */
+    public void setCreationTime(Date creationTime) {
+        this.creationTime = creationTime;
+    }
+
+    /**
+     * Sets the last write time for the file.
+     *
+     * @param lastWriteTime
+     *            A {@link java.util.Date} object which specifies the last write time to set.
+     */
+    public void setLastWriteTime(Date lastWriteTime) {
+        this.lastWriteTime = lastWriteTime;
+    }
+
+    /**
+     * Sets the change time for the file.
+     *
+     * @param changeTime
+     *            A {@link java.util.Date} object which specifies the change time to set.
+     */
+    protected void setChangeTime(Date changeTime) {
+        this.changeTime = changeTime;
+    }
+
+    /**
+     * Sets the file's id.
+     *
+     * @param fileId
+     *        A <code>String</code> which specifies the id to set.
+     */
+    protected void setFileId(String fileId) {
+        this.fileId = fileId;
+    }
+
+    /**
+     * Sets the file's parent id.
+     *
+     * @param parentId
+     *        A <code>String</code> which specifies the parent id to set.
+     */
+    protected void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
 }

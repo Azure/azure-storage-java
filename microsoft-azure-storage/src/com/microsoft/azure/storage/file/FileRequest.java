@@ -16,6 +16,7 @@ package com.microsoft.azure.storage.file;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.ProtocolException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.EnumSet;
@@ -1379,5 +1380,40 @@ final class FileRequest {
      */
     private FileRequest() {
         // No op
+    }
+
+    public static HttpURLConnection createFilePermission(final URI uri, final FileRequestOptions fileOptions,
+            final OperationContext opContext) throws StorageException, IOException,
+            URISyntaxException {
+        final UriQueryBuilder builder = new UriQueryBuilder();
+
+        builder.add(Constants.QueryConstants.RESOURCETYPE, "share");
+        builder.add(Constants.QueryConstants.COMPONENT, "filepermission");
+
+        final HttpURLConnection request = BaseRequest.createURLConnection(uri, fileOptions, builder, opContext);
+
+        request.setRequestProperty(Constants.HeaderConstants.CONTENT_TYPE, Constants.HeaderConstants.JSON_TYPE);
+
+        request.setDoOutput(true);
+        request.setRequestMethod(Constants.HTTP_PUT);
+
+        return request;
+    }
+
+    public static HttpURLConnection getFilePermission(final URI uri, final String filePermissionKey, final FileRequestOptions fileOptions,
+            final OperationContext opContext) throws StorageException, IOException, URISyntaxException {
+        final UriQueryBuilder builder = new UriQueryBuilder();
+
+        builder.add(Constants.QueryConstants.RESOURCETYPE, "share");
+        builder.add(Constants.QueryConstants.COMPONENT, "filepermission");
+
+        final HttpURLConnection request = BaseRequest.createURLConnection(uri, fileOptions, builder, opContext);
+
+        request.setRequestProperty(Constants.HeaderConstants.FILE_PERMISSION_KEY, filePermissionKey);
+
+        request.setRequestMethod(Constants.HTTP_GET);
+
+        return request;
+
     }
 }

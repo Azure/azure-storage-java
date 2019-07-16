@@ -15,7 +15,10 @@
 
 package com.microsoft.azure.storage.file;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -28,6 +31,8 @@ import java.util.HashMap;
 
 import javax.xml.stream.XMLStreamException;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.microsoft.azure.storage.AccessCondition;
 import com.microsoft.azure.storage.Constants;
 import com.microsoft.azure.storage.DoesServiceRequest;
@@ -1416,6 +1421,127 @@ public final class CloudFileShare {
             StorageException translatedException = StorageException.translateException(null, e, null);
             throw translatedException;
         }
+    }
+
+    @DoesServiceRequest
+    public String createFilePermission(String permission) throws StorageException {
+        return this.createFilePermission(permission, null /* options */, null /* opContext */);
+    }
+
+    @DoesServiceRequest
+    public String createFilePermission(String permission, FileRequestOptions options, OperationContext opContext)
+            throws StorageException {
+
+        Utility.assertNotNullOrEmpty("permission", permission);
+
+        if (opContext == null) {
+            opContext = new OperationContext();
+        }
+
+        opContext.initialize();
+        options = FileRequestOptions.populateAndApplyDefaults(options, this.fileServiceClient);
+
+        FilePermission fp = new FilePermission(permission);
+
+        return ExecutionEngine.executeWithRetry(this.fileServiceClient, this,
+                createFilePermissionImpl(fp.toJSON(), options), options.getRetryPolicyFactory(),
+                opContext);
+    }
+
+    private StorageRequest<CloudFileClient, CloudFileShare, String> createFilePermissionImpl(
+            final String jsonPermission, final FileRequestOptions options) {
+
+        final StorageRequest<CloudFileClient, CloudFileShare, String> putRequest =
+                new StorageRequest<CloudFileClient, CloudFileShare, String>(options, this.getStorageUri()) {
+
+                    @Override
+                    public HttpURLConnection buildRequest(
+                            CloudFileClient client, CloudFileShare share, OperationContext context) throws Exception {
+
+                        this.setSendStream(new ByteArrayInputStream(jsonPermission.getBytes()));
+                        this.setLength((long) jsonPermission.getBytes().length);
+                        return FileRequest.createFilePermission(
+                                share.getTransformedAddress().getPrimaryUri(), options, context);
+                    }
+
+                    @Override
+                    public void signRequest(HttpURLConnection connection, CloudFileClient client, OperationContext context)
+                            throws Exception {
+                        StorageRequest.signBlobQueueAndFileRequest(connection, client, this.getLength(), context);
+                    }
+
+                    @Override
+                    public String preProcessResponse(CloudFileShare share, CloudFileClient client, OperationContext context) {
+                        if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_CREATED) {
+                            this.setNonExceptionedRetryableFailure(true);
+                        }
+                        return this.getConnection().getHeaderField(Constants.HeaderConstants.FILE_PERMISSION_KEY);
+                    }
+                };
+
+        return putRequest;
+    }
+
+    public String getFilePermission(String filePermissionKey) throws StorageException {
+        return this.getFilePermission(filePermissionKey, null /* options */, null /* opContext */);
+    }
+
+    public String getFilePermission(String filePermissionKey, FileRequestOptions options, OperationContext opContext)
+            throws StorageException {
+        Utility.assertNotNullOrEmpty("filePermissionKey", filePermissionKey);
+
+        if (opContext == null) {
+            opContext = new OperationContext();
+        }
+
+        opContext.initialize();
+        options = FileRequestOptions.populateAndApplyDefaults(options, this.fileServiceClient);
+
+        return ExecutionEngine.executeWithRetry(this.fileServiceClient, this,
+                getFilePermissionImpl(filePermissionKey, options), options.getRetryPolicyFactory(),
+                opContext);
+    }
+
+    private StorageRequest<CloudFileClient, CloudFileShare, String> getFilePermissionImpl(
+            final String filePermissionKey, final FileRequestOptions options) {
+
+        final StorageRequest<CloudFileClient, CloudFileShare, String> putRequest =
+                new StorageRequest<CloudFileClient, CloudFileShare, String>(options, this.getStorageUri()) {
+
+                    @Override
+                    public HttpURLConnection buildRequest(
+                            CloudFileClient client, CloudFileShare share, OperationContext context) throws Exception {
+
+                        return FileRequest.getFilePermission(
+                                share.getTransformedAddress().getPrimaryUri(), filePermissionKey, options, context);
+                    }
+
+                    @Override
+                    public void signRequest(HttpURLConnection connection, CloudFileClient client, OperationContext context)
+                            throws Exception {
+                        StorageRequest.signBlobQueueAndFileRequest(connection, client, -1, context);
+                    }
+
+                    @Override
+                    public String preProcessResponse(CloudFileShare share, CloudFileClient client, OperationContext context)
+                            throws IOException {
+                        if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_OK) {
+                            this.setNonExceptionedRetryableFailure(true);
+                        }
+                        BufferedReader br = new BufferedReader(new InputStreamReader((this.getConnection().getInputStream())));
+                        StringBuilder sb = new StringBuilder();
+                        String output;
+                        while ((output = br.readLine()) != null) {
+                            sb.append(output);
+                        }
+                        FilePermission fp = new FilePermission();
+                        fp.fromJSON(sb.toString());
+
+                        return fp.getPermission();
+                    }
+                };
+
+        return putRequest;
     }
 
     /**

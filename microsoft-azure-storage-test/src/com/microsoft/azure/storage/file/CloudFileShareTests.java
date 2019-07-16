@@ -677,6 +677,18 @@ public class CloudFileShareTests {
         snapshot.delete();
     }
 
+    @Test
+    public void testCreateAndGetFilePermission() throws StorageException {
+        this.share.create();
+
+        String permission = "O:S-1-5-21-2127521184-1604012920-1887927527-21560751G:S-1-5-21-2127521184-1604012920-1887927527-513D:AI(A;;FA;;;SY)(A;;FA;;;BA)(A;;0x1200a9;;;S-1-5-21-397955417-626881126-188441444-3053964)S:NO_ACCESS_CONTROL";
+        String filePermissionKey = this.share.createFilePermission(permission);
+        String returnedPermission = this.share.getFilePermission(filePermissionKey);
+
+        assertEquals(permission, returnedPermission);
+
+    }
+
     private static void assertPermissionsEqual(FileSharePermissions expected, FileSharePermissions actual) {
         HashMap<String, SharedAccessFilePolicy> expectedPolicies = expected.getSharedAccessPolicies();
         HashMap<String, SharedAccessFilePolicy> actualPolicies = actual.getSharedAccessPolicies();

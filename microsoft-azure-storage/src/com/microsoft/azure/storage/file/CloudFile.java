@@ -89,6 +89,11 @@ public final class CloudFile implements ListFileItem {
     private StorageUri storageUri;
 
     /**
+     * Represents the file permission
+     */
+    private String filePermission;
+
+    /**
      * Creates an instance of the <code>CloudFile</code> class using the specified absolute URI.
      *
      * @param fileAbsoluteUri
@@ -174,6 +179,7 @@ public final class CloudFile implements ListFileItem {
         this.name = otherFile.name;
         this.setStreamMinimumReadSizeInBytes(otherFile.getStreamMinimumReadSizeInBytes());
         this.setStreamWriteSizeInBytes(otherFile.getStreamWriteSizeInBytes());
+        this.filePermission = otherFile.filePermission;
     }
 
     /**
@@ -3319,6 +3325,15 @@ public final class CloudFile implements ListFileItem {
     }
 
     /**
+     * Returns the file's file permission.
+     *
+     * @return A <code>String</code> object that represents the file permission of the file.
+     */
+    public final String getFilePermission() {
+        return this.filePermission;
+    }
+
+    /**
      * Returns the URI for this file.
      *
      * @return A <code>java.net.URI</code> object that represents the URI for the file.
@@ -3366,6 +3381,17 @@ public final class CloudFile implements ListFileItem {
      */
     protected void setStorageUri(final StorageUri storageUri) {
         this.storageUri = storageUri;
+    }
+
+
+    /**
+     * Sets the file's file permission
+     * @param filePermission
+     *          A <code>String</code> that represents the file's file permission.
+     */
+    public void setFilePermission(String filePermission) {
+        Utility.assertInBounds("FilePermission", filePermission.getBytes().length, 0, 8*Constants.KB);
+        this.filePermission = filePermission;
     }
 
     /**
@@ -3421,5 +3447,14 @@ public final class CloudFile implements ListFileItem {
     protected final StorageUri getTransformedAddress(final OperationContext opContext)
             throws URISyntaxException, StorageException {
         return this.fileServiceClient.getCredentials().transformUri(this.getStorageUri(), opContext);
+    }
+
+    /**
+     * Verifies that the directory's filePermission and properties.FilePermissionKey are both not set.
+     */
+    protected void assertValidFilePermissionOrKey() {
+        if (this.filePermission != null && this.properties != null && this.properties.getFilePermissionKey() != null) {
+            throw new IllegalArgumentException(SR.FILE_PERMISSION_FILE_PERMISSION_KEY_NOT_SET);
+        }
     }
 }

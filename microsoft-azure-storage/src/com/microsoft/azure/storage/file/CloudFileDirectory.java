@@ -88,6 +88,11 @@ public final class CloudFileDirectory implements ListFileItem {
      * Holds a FileDirectoryProperties object that holds the directory's system properties.
      */
     private FileDirectoryProperties properties = new FileDirectoryProperties();
+
+    /**
+     * Represents the file permission for this directory.
+     */
+    private String filePermission;
     
     /**
      * Creates an instance of the <code>CloudFileDirectory</code> class using an absolute URI to the directory.
@@ -1375,6 +1380,15 @@ public final class CloudFileDirectory implements ListFileItem {
     }
 
     /**
+     * Returns the file's file permission.
+     *
+     * @return A <code>String</code> object that represents the file permission of the file.
+     */
+    public final String getFilePermission() {
+        return this.filePermission;
+    }
+
+    /**
      * Returns the File service client associated with this directory.
      * 
      * @return An {@link CloudFileClient} object that represents the service client associated with the directory.
@@ -1496,6 +1510,16 @@ public final class CloudFileDirectory implements ListFileItem {
     }
 
     /**
+     * Sets the directory's file permission
+     * @param filePermission
+     *          A <code>String</code> that represents the directory's file permission.
+     */
+    public void setFilePermission(String filePermission) {
+        Utility.assertInBounds("filePermission", filePermission.getBytes().length, 0, 8*Constants.KB);
+        this.filePermission = filePermission;
+    }
+
+    /**
      * Verifies the passed in URI. Then parses it and uses its components to populate this resource's properties.
      * 
      * @param completeUri
@@ -1554,5 +1578,14 @@ public final class CloudFileDirectory implements ListFileItem {
      */
     private StorageUri getTransformedAddress() throws URISyntaxException, StorageException {
         return this.fileServiceClient.getCredentials().transformUri(this.storageUri);
+    }
+
+    /**
+     * Verifies that the directory's filePermission and properties.FilePermissionKey are both not set.
+     */
+    protected void assertValidFilePermissionOrKey() {
+        if (this.filePermission != null && this.properties != null && this.properties.getFilePermissionKey() != null) {
+            throw new IllegalArgumentException(SR.FILE_PERMISSION_FILE_PERMISSION_KEY_NOT_SET);
+        }
     }
 }

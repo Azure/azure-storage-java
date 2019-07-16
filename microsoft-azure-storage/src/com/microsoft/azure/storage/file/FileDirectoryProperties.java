@@ -39,6 +39,42 @@ public final class FileDirectoryProperties {
     private boolean serverEncrypted;
 
     /**
+     * Represents the directory's permission key.
+     */
+    private String filePermissionKey;
+
+    /**
+     * Represents the file system attributes for files and directories.
+     * If not set, indicates preservation of existing values.
+     */
+    private NtfsAttributes ntfsAttributes;
+
+    /**
+     * Represents the creation time for the directory.
+     */
+    private Date creationTime;
+
+    /**
+     * Represents the last-write time for the directory.
+     */
+    private Date lastWriteTime;
+
+    /**
+     * Represents the change time for the directory.
+     */
+    private Date changeTime;
+
+    /**
+     * Represents the directory's id.
+     */
+    private String directoryId;
+
+    /**
+     * Represents the directory's parent id.
+     */
+    private String parentId;
+
+    /**
      * Gets the ETag value of the directory.
      * <p>
      * The ETag value is a unique identifier that is updated when a write operation is performed against the directory.
@@ -73,6 +109,70 @@ public final class FileDirectoryProperties {
     }
 
     /**
+     * Gets the directory's permission key.
+     *
+     * @return A <code>String</code> which specifies the directory's permission key.
+     */
+    public String getFilePermissionKey() {
+        return this.filePermissionKey;
+    }
+
+    /**
+     * Gets the file system attributes for files and directories.
+     * If not set, indicates preservation of existing values.
+     *
+     * @return A {@link NtfsAttributes} object which represents the file system attributes.
+     */
+    public NtfsAttributes getNtfsAttributes() {
+        return this.ntfsAttributes;
+    }
+
+    /**
+     * Gets the creation time for the directory.
+     *
+     * @return A {@link java.util.Date} object which represents the creation time.
+     */
+    public Date getCreationTime() {
+        return this.creationTime;
+    }
+
+    /**
+     * Gets the last write time for the directory.
+     *
+     * @return A {@link java.util.Date} object which represents the last write time.
+     */
+    public Date getLastWriteTime() {
+        return this.lastWriteTime;
+    }
+
+    /**
+     * Gets the change time for the directory.
+     *
+     * @return A {@link java.util.Date} object which represents the change time.
+     */
+    public Date getChangeTime() {
+        return this.changeTime;
+    }
+
+    /**
+     * Gets the directory's id.
+     *
+     * @return A <code>String</code> which specifies the directory's id.
+     */
+    public String detDirectoryId() {
+        return this.directoryId;
+    }
+
+    /**
+     * Gets the directory's parent id.
+     *
+     * @return A <code>String</code> which specifies the directory's parent id.
+     */
+    public String getParentId() {
+        return this.parentId;
+    }
+
+    /**
      * Sets the ETag value on the directory.
      * 
      * @param etag
@@ -100,5 +200,76 @@ public final class FileDirectoryProperties {
      */
     protected void setLastModified(final Date lastModified) {
         this.lastModified = lastModified;
+    }
+
+    /**
+     * Sets the directory's permission key.
+     *
+     * @param filePermissionKey
+     *        A <code>String</code> which specifies the directory permission key to set.
+     */
+    public void setFilePermissionKey(String filePermissionKey) {
+        this.filePermissionKey = filePermissionKey;
+    }
+
+    /**
+     * Sets the file system attributes for files and directories.
+     * If not set, indicates preservation of existing values.
+     *
+     * @param ntfsAttributes
+     *        A {@link NtfsAttributes} which specifies the file system attributes to set.
+     */
+    public void setNtfsAttributes(NtfsAttributes ntfsAttributes) {
+        this.ntfsAttributes = ntfsAttributes;
+    }
+
+    /**
+     * Sets the creation time for the directory.
+     *
+     * @param creationTime
+     *            A {@link java.util.Date} object which specifies the creation time to set.
+     */
+    public void setCreationTime(Date creationTime) {
+        this.creationTime = creationTime;
+    }
+
+    /**
+     * Sets the last write time for the directory.
+     *
+     * @param lastWriteTime
+     *            A {@link java.util.Date} object which specifies the last write time to set.
+     */
+    public void setLastWriteTime(Date lastWriteTime) {
+        this.lastWriteTime = lastWriteTime;
+    }
+
+    /**
+     * Sets the change time for the directory.
+     *
+     * @param changeTime
+     *            A {@link java.util.Date} object which specifies the change time to set.
+     */
+    protected void setChangeTime(Date changeTime) {
+        this.changeTime = changeTime;
+    }
+
+    /**
+     * Sets the directory's id.
+     *
+     * @param directoryId
+     *        A <code>String</code> which specifies the id to set.
+     */
+    protected void setDirectoryId(String directoryId) {
+        this.directoryId = directoryId;
+    }
+
+    /**
+     * Sets the directory's parent id.
+     *
+     * @param parentId
+     *        A <code>String</code> which specifies the parent id to set.
+     */
+    protected void setParentId(String parentId) {
+        this.parentId = parentId;
     }
 }
