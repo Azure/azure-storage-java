@@ -903,7 +903,7 @@ final class FileRequest {
      */
     public static HttpURLConnection putFile(final URI uri, final FileRequestOptions fileOptions,
             final OperationContext opContext, final AccessCondition accessCondition, final FileProperties properties,
-            final long fileSize) throws IOException, URISyntaxException, StorageException {
+            final long fileSize, final String permission) throws IOException, URISyntaxException, StorageException {
         final HttpURLConnection request = BaseRequest.createURLConnection(uri, fileOptions, null, opContext);
 
         request.setDoOutput(true);
@@ -919,6 +919,14 @@ final class FileRequest {
         request.setRequestProperty(FileConstants.CONTENT_LENGTH_HEADER, String.valueOf(fileSize));
 
         properties.setLength(fileSize);
+
+        // File SMB properties
+        request.setRequestProperty(Constants.HeaderConstants.FILE_PERMISSION, permission);
+        request.setRequestProperty(Constants.HeaderConstants.FILE_PERMISSION_KEY, properties.getFilePermissionKey());
+        request.setRequestProperty(Constants.HeaderConstants.FILE_ATTRIBUTES, properties.getNtfsAttributes().toString());
+        request.setRequestProperty(Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTime().toString());
+        request.setRequestProperty(Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTime().toString());
+
 
         if (accessCondition != null) {
             accessCondition.applyConditionToRequest(request);
