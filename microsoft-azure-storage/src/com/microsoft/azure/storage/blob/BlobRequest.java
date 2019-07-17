@@ -1584,7 +1584,6 @@ final class BlobRequest {
             request.setRequestProperty(BlobConstants.REHYDRATE_PRIORITY_HEADER, rehydratePriority);
         }
 
-
         return request;
     }
 

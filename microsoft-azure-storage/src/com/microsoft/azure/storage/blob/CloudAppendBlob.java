@@ -177,8 +177,7 @@ public final class CloudAppendBlob extends CloudBlob {
      */
     @DoesServiceRequest
     public final String startCopy(final CloudAppendBlob sourceBlob) throws StorageException, URISyntaxException {
-        return this.startCopy(sourceBlob, null /* sourceAccessCondition */,
-                null /* destinationAccessCondition */, null /* options */, null /* opContext */);
+        return this.startCopy(sourceBlob, null /* sourceAccessCondition */, null /* destinationAccessCondition */, null /* options */, null /* opContext */);
     }
 
     /**
@@ -219,7 +218,7 @@ public final class CloudAppendBlob extends CloudBlob {
             source = sourceBlob.getServiceClient().getCredentials().transformUri(sourceBlob.getSnapshotQualifiedUri());
         }
 
-        return this.startCopy(source, null /* contentMd5 */, false , null /* premiumPageBlobTier */, null /* rehydratePriority*/, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(source, null /* contentMd5 */, false /* syncCopy */, null /* premiumPageBlobTier */, null /* rehydratePriority*/, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**

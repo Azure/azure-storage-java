@@ -736,9 +736,7 @@ public abstract class CloudBlob implements ListBlobItem {
     protected final String startCopy(final URI source, String contentMd5, boolean syncCopy, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException {
-        return startCopy(source, null /* contentMd5 */, false /* syncCopy */, premiumPageBlobTier,
-                null /* rehydratePriority*/, sourceAccessCondition,
-                destinationAccessCondition, options, opContext);
+        return startCopy(source, null /* contentMd5 */, false /* syncCopy */, premiumPageBlobTier, null /* rehydratePriority*/, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
