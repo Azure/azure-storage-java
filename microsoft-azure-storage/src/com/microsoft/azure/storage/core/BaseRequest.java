@@ -425,7 +425,7 @@ public final class BaseRequest {
      */
     public static String getUserAgent() {
         if (userAgent == null) {
-            String userAgentComment = String.format(Utility.LOCALE_US, "(JavaJRE %s; %s %s)",
+                    String userAgentComment = String.format(Utility.LOCALE_US, "(JavaJRE %s; %s %s)",
                     System.getProperty("java.version"), System.getProperty("os.name").replaceAll(" ", ""),
                     System.getProperty("os.version"));
             userAgent = String.format("%s/%s %s", Constants.HeaderConstants.USER_AGENT_PREFIX,
@@ -592,7 +592,7 @@ public final class BaseRequest {
             stream.write((requestMethod + " " + path + query + " HTTP/1.1" +  HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8));
 
             for (Map.Entry<String, List<String>> header : builtRequest.getRequestProperties().entrySet()) {
-                stream.write((header.getKey() + ": " + header.getValue().get(0) + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8));
+                stream.write((header.getKey() + ": " + Utility.stringJoin(",", header.getValue()) + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8));
             }
             stream.write((Constants.HeaderConstants.AUTHORIZATION + ": " + authValue + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8));
 
