@@ -1135,8 +1135,8 @@ public class CloudFileTests {
         // Create source.
         final String data = "The quick brown fox jumped over the lazy dog";
         byte[] src = data.getBytes();
-        int sourceOffset = 0;
-        int length = data.length();
+        int sourceOffset = 5;
+        int length = 5;
         int destOffset = 0;
 
         CloudFileClient client = FileTestHelper.createCloudFileClient();
@@ -1159,7 +1159,7 @@ public class CloudFileTests {
         CloudFile destination = share.getRootDirectoryReference().getFileReference("destination");
         destination.create(512);
 
-        destination.putRangeThroughURL(sourceOffset, length, credentials.transformUri(source.getUri()), destOffset, null, null, null);
+        destination.putRangeThroughURL(destOffset, length, credentials.transformUri(source.getUri()), sourceOffset, null, null, null);
 
         // Compare result to source
         byte[] result = new byte[512];
