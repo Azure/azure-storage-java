@@ -590,7 +590,7 @@ public final class CloudFile implements ListFileItem {
     }
 
     /**
-     * Creates a file using the specified access condition, request options and operation context. If the file already 
+     * Creates a file using the specified access condition, request options and operation context. If the file already
      * exists, this will replace it.
      *
      * @param size
@@ -635,7 +635,7 @@ public final class CloudFile implements ListFileItem {
             public HttpURLConnection buildRequest(CloudFileClient client, CloudFile file, OperationContext context)
                     throws Exception {
                 return FileRequest.putFile(file.getTransformedAddress(context).getUri(this.getCurrentLocation()),
-                        options, context, accessCondition, file.properties, size);
+                        options, context, accessCondition, file.properties, size, file.filePermission);
             }
 
             @Override
@@ -1361,6 +1361,8 @@ public final class CloudFile implements ListFileItem {
                     final FileAttributes retrievedAttributes = FileResponse.getFileAttributes(this.getConnection(),
                             file.getStorageUri());
 
+                    FileResponse.updateSMBProperties(this.getConnection(), retrievedAttributes.getProperties());
+
                     file.properties = retrievedAttributes.getProperties();
                     file.metadata = retrievedAttributes.getMetadata();
 
@@ -1534,6 +1536,7 @@ public final class CloudFile implements ListFileItem {
                 final FileAttributes retrievedAttributes = FileResponse.getFileAttributes(this.getConnection(),
                         file.getStorageUri());
                 file.properties = retrievedAttributes.getProperties();
+                FileResponse.updateSMBProperties(this.getConnection(), file.properties);
                 file.metadata = retrievedAttributes.getMetadata();
 
                 return null;
@@ -2570,7 +2573,7 @@ public final class CloudFile implements ListFileItem {
                     throws Exception {
                 return FileRequest.setFileProperties(
                         file.getTransformedAddress(context).getUri(this.getCurrentLocation()),
-                        options, context, accessCondition, file.properties);
+                        options, context, accessCondition, file.properties, file.filePermission);
             }
 
             @Override

@@ -137,6 +137,66 @@ public class CloudFileTests {
         file.delete();
     }
 
+    /**
+     * Test file creation and deletion.
+     *
+     * @throws URISyntaxException
+     * @throws StorageException
+     */
+    @Test
+    public void testCloudFileDownloadSMBAttributes() throws URISyntaxException, StorageException {
+        CloudFile file = this.share.getRootDirectoryReference().getFileReference("file1");
+        file.create(0);
+
+        file.downloadAttributes();
+
+        assertNotNull(file.getProperties().getFilePermissionKey());
+        assertNotNull(file.getProperties().getNtfsAttributes());
+        assertNotNull(file.getProperties().getCreationTime());
+        assertNotNull(file.getProperties().getLastWriteTime());
+        assertNotNull(file.getProperties().getChangeTime());
+        assertNotNull(file.getProperties().getFileId());
+        assertNotNull(file.getProperties().getParentId());
+        file.delete();
+    }
+
+    @Test
+    public void testCloudFileCreateWithFilePermission() throws URISyntaxException, StorageException {
+        CloudFile file = this.share.getRootDirectoryReference().getFileReference("file1");
+        String permission = "O:S-1-5-21-2127521184-1604012920-1887927527-21560751G:S-1-5-21-2127521184-1604012920-1887927527-513D:AI(A;;FA;;;SY)(A;;FA;;;BA)(A;;0x1200a9;;;S-1-5-21-397955417-626881126-188441444-3053964)S:NO_ACCESS_CONTROL";
+        file.setFilePermission(permission);
+        file.create(0);
+
+        file.downloadAttributes();
+
+        assertNotNull(file.getProperties().getFilePermissionKey());
+        assertNotNull(file.getProperties().getNtfsAttributes());
+        assertNotNull(file.getProperties().getCreationTime());
+        assertNotNull(file.getProperties().getLastWriteTime());
+        assertNotNull(file.getProperties().getChangeTime());
+        assertNotNull(file.getProperties().getFileId());
+        assertNotNull(file.getProperties().getParentId());
+        file.delete();
+    }
+
+    @Test
+    public void testCloudFileLargePermission() throws URISyntaxException, StorageException {
+        CloudFile file = this.share.getRootDirectoryReference().getFileReference("file1");
+        byte[] randomPermission = FileTestHelper.getRandomBuffer(9 * Constants.KB);
+        try {
+            file.setFilePermission(new String(randomPermission));
+        } catch (IllegalArgumentException e) {
+            assertEquals(e.getMessage(), String.format("The value of the parameter 'FilePermission' should be between 0 and %1d.", 8 * Constants.KB));
+        }
+    }
+
+    @Test
+    public void testCloudFileSetSMBAttributes() throws URISyntaxException, StorageException {
+        CloudFile file = this.share.getRootDirectoryReference().getFileReference("file1");
+
+    }
+
+
     @Test
     public void testCloudFileCreate() throws StorageException, URISyntaxException {
         CloudFile file = this.share.getRootDirectoryReference().getFileReference("file1");
@@ -225,7 +285,7 @@ public class CloudFileTests {
         }
         catch (StorageException e) {
             assertEquals(e.getHttpStatusCode(), 400);
-            assertEquals(e.getMessage(), "The value for one of the HTTP headers is not in the correct format.");
+            assertEquals(e.getMessage(), "The file size exceeds the maximum permissible limit.");
         }
 
         try {
@@ -234,7 +294,7 @@ public class CloudFileTests {
         }
         catch (StorageException e) {
             assertEquals(e.getHttpStatusCode(), 400);
-            assertEquals(e.getMessage(), "The value for one of the HTTP headers is not in the correct format.");
+            assertEquals(e.getMessage(), "The file size exceeds the maximum permissible limit.");
         }
     }
 
@@ -1345,6 +1405,90 @@ public class CloudFileTests {
     }
 
     /**
+     * Test SMB properties set and get.
+     *
+     * @throws URISyntaxException
+     * @throws StorageException
+     */
+    @Test
+    public void testCloudFileUploadDownloadSMBFileProperties() throws URISyntaxException, StorageException, IOException {
+        final int length = 512;
+
+        // with explicit upload/download of properties
+        String fileName1 = FileTestHelper.generateRandomFileName();
+        CloudFile fileRef1 = this.share.getRootDirectoryReference().getFileReference(fileName1);
+
+        fileRef1.upload(FileTestHelper.getRandomDataStream(length), length);
+
+        // Get permission key
+        String permission = "O:S-1-5-21-2127521184-1604012920-1887927527-21560751G:S-1-5-21-2127521184-1604012920-1887927527-513D:AI(A;;FA;;;SY)(A;;FA;;;BA)(A;;0x1200a9;;;S-1-5-21-397955417-626881126-188441444-3053964)S:NO_ACCESS_CONTROL";
+        String filePermissionKey = this.share.createFilePermission(permission);
+
+        FileTestHelper.setFileSMBProperties(fileRef1, filePermissionKey);
+        FileProperties props1 = fileRef1.getProperties();
+        fileRef1.uploadProperties();
+
+        fileRef1.downloadAttributes();
+        FileProperties props2 = fileRef1.getProperties();
+
+        FileTestHelper.assertSMBAreEqual(props1, props2, true);
+
+        // by uploading/downloading the file
+        fileName1 = FileTestHelper.generateRandomFileName();
+        fileRef1 = this.share.getRootDirectoryReference().getFileReference(fileName1);
+
+        FileTestHelper.setFileSMBProperties(fileRef1, filePermissionKey);
+        props1 = fileRef1.getProperties();
+
+        fileRef1.upload(FileTestHelper.getRandomDataStream(length), length);
+
+        fileRef1.download(new ByteArrayOutputStream());
+        props2 = fileRef1.getProperties();
+
+        FileTestHelper.assertSMBAreEqual(props1, props2, true);
+    }
+
+    @Test
+    public void testCloudFileSetGetFilePermission() throws URISyntaxException, StorageException, IOException {
+        final int length = 512;
+
+        // with explicit upload/download of properties
+        String fileName1 = FileTestHelper.generateRandomFileName();
+        CloudFile fileRef1 = this.share.getRootDirectoryReference().getFileReference(fileName1);
+
+        fileRef1.upload(FileTestHelper.getRandomDataStream(length), length);
+
+        // Get permission key
+        String permission = "O:S-1-5-21-2127521184-1604012920-1887927527-21560751G:S-1-5-21-2127521184-1604012920-1887927527-513D:AI(A;;FA;;;SY)(A;;FA;;;BA)(A;;0x1200a9;;;S-1-5-21-397955417-626881126-188441444-3053964)S:NO_ACCESS_CONTROL";
+
+        FileTestHelper.setFileSMBProperties(fileRef1, null);
+        fileRef1.setFilePermission(permission);
+
+        FileProperties props1 = fileRef1.getProperties();
+        fileRef1.uploadProperties();
+
+        fileRef1.downloadAttributes();
+        FileProperties props2 = fileRef1.getProperties();
+
+        FileTestHelper.assertSMBAreEqual(props1, props2, false);
+
+        // by uploading/downloading the file
+        fileName1 = FileTestHelper.generateRandomFileName();
+        fileRef1 = this.share.getRootDirectoryReference().getFileReference(fileName1);
+
+        FileTestHelper.setFileSMBProperties(fileRef1, null);
+        props1 = fileRef1.getProperties();
+
+        fileRef1.upload(FileTestHelper.getRandomDataStream(length), length);
+
+        fileRef1.download(new ByteArrayOutputStream());
+        props2 = fileRef1.getProperties();
+
+        FileTestHelper.assertSMBAreEqual(props1, props2, false);
+    }
+
+
+    /**
      * Test FileOutputStream.
      * 
      * @throws URISyntaxException
@@ -1775,4 +1919,25 @@ public class CloudFileTests {
 
         file.closeAllHandlesSegmented();
     }
+
+    @Test
+    public void testNtfsAttributesParserToString() {
+        EnumSet<NtfsAttributes> test = EnumSet.of(NtfsAttributes.TEMPORARY, NtfsAttributes.ARCHIVE, NtfsAttributes.READ_ONLY);
+        String testString = NtfsAttributesParser.toString(test);
+        assertEquals(testString, "ReadOnly|Archive|Temporary");
+    }
+
+    @Test
+    public void testNtfsAttributesParserToAttributes() {
+        String testString = "System|NoScrubData|NotContentIndexed|Archive|Directory";
+        EnumSet<NtfsAttributes> test = NtfsAttributesParser.toAttributes(testString);
+
+        assertTrue(test.contains(NtfsAttributes.SYSTEM));
+        assertTrue(test.contains(NtfsAttributes.NO_SCRUB_DATA));
+        assertTrue(test.contains(NtfsAttributes.NOT_CONTENT_INDEXED));
+        assertTrue(test.contains(NtfsAttributes.ARCHIVE));
+        assertTrue(test.contains(NtfsAttributes.DIRECTORY));
+    }
+
+
 }

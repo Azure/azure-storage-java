@@ -223,7 +223,8 @@ public final class CloudFileDirectory implements ListFileItem {
             public HttpURLConnection buildRequest(CloudFileClient client, CloudFileDirectory directory,
                     OperationContext context) throws Exception {
                 final HttpURLConnection request = FileRequest.createDirectory(
-                        directory.getTransformedAddress().getUri(this.getCurrentLocation()), options, context);
+                        directory.getTransformedAddress().getUri(this.getCurrentLocation()), options, context,
+                        directory.properties, directory.filePermission);
                 return request;
             }
             
@@ -659,6 +660,94 @@ public final class CloudFileDirectory implements ListFileItem {
     }
 
     /**
+     * Updates the directory's properties to the storage service.
+     * <p>
+     * Use {@link CloudFileDirectory#downloadAttributes} to retrieve the latest values for the directory's properties
+     * and metadata from the Microsoft Azure storage service.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     * @throws URISyntaxException
+     */
+    @DoesServiceRequest
+    public final void uploadProperties() throws StorageException, URISyntaxException {
+        this.uploadProperties(null /* accessCondition */, null /* options */, null /*opContext */);
+    }
+
+    /**
+     * Updates the directory's properties using the access condition, request options, and operation context.
+     * <p>
+     * Use {@link CloudFileDirectory#downloadAttributes} to retrieve the latest values for the directory's properties
+     * and metadata from the Microsoft Azure storage service.
+     *
+     * @param accessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the directory.
+     * @param options
+     *            A {@link FileRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudFileClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     * @throws URISyntaxException
+     */
+    @DoesServiceRequest
+    public final void uploadProperties(final AccessCondition accessCondition, FileRequestOptions options,
+            OperationContext opContext) throws StorageException, URISyntaxException {
+        if (opContext == null) {
+            opContext = new OperationContext();
+        }
+
+        this.getShare().assertNoSnapshot();
+
+        opContext.initialize();
+        options = FileRequestOptions.populateAndApplyDefaults(options, this.fileServiceClient);
+
+        ExecutionEngine.executeWithRetry(this.fileServiceClient, this,
+                this.uploadPropertiesImpl(accessCondition, options), options.getRetryPolicyFactory(), opContext);
+    }
+
+    private StorageRequest<CloudFileClient, CloudFileDirectory, Void> uploadPropertiesImpl(
+            final AccessCondition accessCondition, final FileRequestOptions options) {
+        final StorageRequest<CloudFileClient, CloudFileDirectory, Void> putRequest =
+                new StorageRequest<CloudFileClient, CloudFileDirectory, Void>(
+                        options, this.getStorageUri()) {
+
+                    @Override
+                    public HttpURLConnection buildRequest(
+                            CloudFileClient client, CloudFileDirectory directory, OperationContext context) throws Exception {
+                        return FileRequest.setDirectoryProperties(directory.getTransformedAddress().getUri(this.getCurrentLocation()),
+                                options, context, accessCondition, directory.properties, directory.filePermission);
+                    }
+
+                    @Override
+                    public void signRequest(HttpURLConnection connection, CloudFileClient client, OperationContext context)
+                            throws Exception {
+                        StorageRequest.signBlobQueueAndFileRequest(connection, client, 0L, context);
+                    }
+
+                    @Override
+                    public Void preProcessResponse(CloudFileDirectory directory, CloudFileClient client, OperationContext context)
+                            throws Exception {
+                        if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_OK) {
+                            this.setNonExceptionedRetryableFailure(true);
+                            return null;
+                        }
+
+                        this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                        return null;
+                    }
+                };
+
+        return putRequest;
+    }
+
+
+    /**
      * Downloads the directory's properties.
      * 
      * @throws StorageException
@@ -736,6 +825,7 @@ public final class CloudFileDirectory implements ListFileItem {
                 final FileDirectoryAttributes attributes =
                         FileResponse.getFileDirectoryAttributes(this.getConnection(), client.isUsePathStyleUris());
                 directory.setMetadata(attributes.getMetadata());
+                FileResponse.updateDirectorySMBProperties(this.getConnection(), attributes.getProperties());
                 directory.setProperties(attributes.getProperties());
                 return null;
             }

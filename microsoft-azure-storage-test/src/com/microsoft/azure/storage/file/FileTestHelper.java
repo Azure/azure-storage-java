@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.EnumSet;
 import java.util.Random;
 import java.util.UUID;
 
@@ -269,6 +270,38 @@ public class FileTestHelper extends TestHelper {
         }
     }
 
+    public static void assertSMBAreEqual(FileProperties prop1, FileProperties prop2, boolean checkPermissionKey) {
+        if (prop1 == null) {
+            assertNull(prop2);
+        }
+        else {
+            assertNotNull(prop2);
+            if (checkPermissionKey) {
+                assertEquals(prop1.getFilePermissionKey(), prop2.getFilePermissionKey());
+            }
+            assertEquals(prop1.getCreationTime(), prop2.getCreationTime());
+            assertEquals(prop1.getLastWriteTime(), prop2.getLastWriteTime());
+            assertEquals(prop1.getNtfsAttributes(), prop2.getNtfsAttributes());
+
+        }
+    }
+
+    public static void assertSMBAreEqual(FileDirectoryProperties prop1, FileDirectoryProperties prop2, boolean checkPermissionKey) {
+        if (prop1 == null) {
+            assertNull(prop2);
+        }
+        else {
+            assertNotNull(prop2);
+            if (checkPermissionKey) {
+                assertEquals(prop1.getFilePermissionKey(), prop2.getFilePermissionKey());
+            }
+            assertEquals(prop1.getCreationTime(), prop2.getCreationTime());
+            assertEquals(prop1.getLastWriteTime(), prop2.getLastWriteTime());
+            assertEquals(prop1.getNtfsAttributes(), prop2.getNtfsAttributes());
+
+        }
+    }
+
     public static void setFileProperties(CloudFile file) {
         file.getProperties().setCacheControl("no-transform");
         file.getProperties().setContentDisposition("attachment");
@@ -276,5 +309,14 @@ public class FileTestHelper extends TestHelper {
         file.getProperties().setContentLanguage("tr,en");
         file.getProperties().setContentMD5("MDAwMDAwMDA=");
         file.getProperties().setContentType("text/html");
+    }
+
+    public static void setFileSMBProperties(CloudFile file, String permission) {
+        if (permission != null) {
+            file.getProperties().setFilePermissionKey(permission);
+        }
+        file.getProperties().setNtfsAttributes(EnumSet.of(NtfsAttributes.NORMAL));
+        file.getProperties().setCreationTime("2019-07-18T17:37:25.4006072Z");
+        file.getProperties().setLastWriteTime("2019-07-18T17:37:25.4006072Z");
     }
 }

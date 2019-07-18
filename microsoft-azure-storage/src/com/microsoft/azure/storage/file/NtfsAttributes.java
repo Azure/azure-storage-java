@@ -18,14 +18,9 @@
 package com.microsoft.azure.storage.file;
 
 /**
- * Specifies options when calling the delete share operation.
+ * Specifies options for NTFS Attributes.
  */
 public enum NtfsAttributes {
-
-    /**
-     * Clears all flags.
-     */
-    NONE,
 
     /**
      * The file is read-only.
@@ -45,7 +40,6 @@ public enum NtfsAttributes {
 
     /**
      * The file is a standard file that has no special attributes.
-     * This attribute is valid only if it is used alone.
      */
     NORMAL,
 
@@ -84,4 +78,5 @@ public enum NtfsAttributes {
      * that directory are excluded from data integrity.
      */
     NO_SCRUB_DATA
+
 }

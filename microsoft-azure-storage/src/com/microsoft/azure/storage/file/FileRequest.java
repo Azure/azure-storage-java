@@ -30,6 +30,7 @@ import com.microsoft.azure.storage.core.BaseRequest;
 import com.microsoft.azure.storage.core.ListingContext;
 import com.microsoft.azure.storage.core.UriQueryBuilder;
 import com.microsoft.azure.storage.core.Utility;
+import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 
 /**
  * RESERVED FOR INTERNAL USE. Provides a set of methods for constructing requests for file operations.
@@ -122,6 +123,24 @@ final class FileRequest {
         BaseRequest.addOptionalHeader(request, FileConstants.CONTENT_TYPE_HEADER, properties.getContentType());
     }
 
+    private static void addFilePermissionOrFilePermissionKey(final HttpURLConnection request, String filePermissionKey, String filePermission, String defaultFilePermission) {
+        if (filePermission == null && filePermissionKey == null) {
+            request.setRequestProperty(Constants.HeaderConstants.FILE_PERMISSION, defaultFilePermission);
+        } else if (filePermission != null) {
+            request.setRequestProperty(Constants.HeaderConstants.FILE_PERMISSION, filePermission);
+        } else {
+            request.setRequestProperty(Constants.HeaderConstants.FILE_PERMISSION_KEY, filePermissionKey);
+        }
+    }
+
+    private static void setHeaderValueOrDefault(final HttpURLConnection request, String headerKey, String value, String defaultValue) {
+        if (value != null && !value.equals(Constants.EMPTY_STRING)) {
+            request.setRequestProperty(headerKey, value);
+        } else {
+            request.setRequestProperty(headerKey, defaultValue);
+        }
+    }
+
     /**
      * Adds the share snapshot if present.
      * Only for listing files and directories which requires a different query param.
@@ -209,7 +228,7 @@ final class FileRequest {
      * 
      * @param uri
      *            A <code>java.net.URI</code> object that specifies the absolute URI.
-     * @param fileOptions
+     * @param fileOptions"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
      *            A {@link FileRequestOptions} object that specifies execution options such as retry policy and timeout
      *            settings for the operation. Specify <code>null</code> to use the request options specified on the
      *            {@link CloudFileClient}.
@@ -750,14 +769,25 @@ final class FileRequest {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
+     * @param properties
+     * @param filePermission
      * @return a HttpURLConnection configured for the operation.
      * @throws StorageException
      * @throws IllegalArgumentException
      */
     public static HttpURLConnection createDirectory(final URI uri, final FileRequestOptions fileOptions,
-            final OperationContext opContext) throws IOException, URISyntaxException, StorageException {
+            final OperationContext opContext, FileDirectoryProperties properties, String filePermission) throws IOException, URISyntaxException, StorageException {
         final UriQueryBuilder directoryBuilder = getDirectoryUriQueryBuilder();
-        return BaseRequest.create(uri, fileOptions, directoryBuilder, opContext);
+        HttpURLConnection request = BaseRequest.create(uri, fileOptions, directoryBuilder, opContext);
+
+        if (properties != null) {
+            addFilePermissionOrFilePermissionKey(request, properties.getFilePermissionKey(), filePermission, Constants.HeaderConstants.FILE_PERMISSION_INHERIT);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.getNtfsAttributes()), Constants.HeaderConstants.FILE_ATTRIBUTES_NONE);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTime(), Constants.HeaderConstants.FILE_TIME_NOW);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTime(), Constants.HeaderConstants.FILE_TIME_NOW);
+        }
+
+        return request;
     }
 
     /**
@@ -892,6 +922,8 @@ final class FileRequest {
      *            The properties to set for the file.
      * @param fileSize
      *            The size of the file.
+     * @param filePermission
+     *            The file permission to set for the file
      * @return a HttpURLConnection to use to perform the operation.
      * @throws IOException
      *             if there is an error opening the connection
@@ -903,14 +935,20 @@ final class FileRequest {
      */
     public static HttpURLConnection putFile(final URI uri, final FileRequestOptions fileOptions,
             final OperationContext opContext, final AccessCondition accessCondition, final FileProperties properties,
-            final long fileSize, final String permission) throws IOException, URISyntaxException, StorageException {
+            final long fileSize, final String filePermission) throws IOException, URISyntaxException, StorageException {
         final HttpURLConnection request = BaseRequest.createURLConnection(uri, fileOptions, null, opContext);
 
         request.setDoOutput(true);
 
         request.setRequestMethod(Constants.HTTP_PUT);
 
-        addProperties(request, properties);
+        if (properties != null) {
+            addProperties(request, properties);
+            addFilePermissionOrFilePermissionKey(request, properties.getFilePermissionKey(), filePermission, Constants.HeaderConstants.FILE_PERMISSION_INHERIT);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.getNtfsAttributes()), Constants.HeaderConstants.FILE_ATTRIBUTES_NONE);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTime(), Constants.HeaderConstants.FILE_TIME_NOW);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTime(), Constants.HeaderConstants.FILE_TIME_NOW);
+        }
 
         request.setFixedLengthStreamingMode(0);
         request.setRequestProperty(Constants.HeaderConstants.CONTENT_LENGTH, "0");
@@ -919,14 +957,6 @@ final class FileRequest {
         request.setRequestProperty(FileConstants.CONTENT_LENGTH_HEADER, String.valueOf(fileSize));
 
         properties.setLength(fileSize);
-
-        // File SMB properties
-        request.setRequestProperty(Constants.HeaderConstants.FILE_PERMISSION, permission);
-        request.setRequestProperty(Constants.HeaderConstants.FILE_PERMISSION_KEY, properties.getFilePermissionKey());
-        request.setRequestProperty(Constants.HeaderConstants.FILE_ATTRIBUTES, properties.getNtfsAttributes().toString());
-        request.setRequestProperty(Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTime().toString());
-        request.setRequestProperty(Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTime().toString());
-
 
         if (accessCondition != null) {
             accessCondition.applyConditionToRequest(request);
@@ -1120,11 +1150,12 @@ final class FileRequest {
     public static HttpURLConnection resize(final URI uri, final FileRequestOptions fileOptions,
             final OperationContext opContext, final AccessCondition accessCondition, final Long newFileSize)
             throws IOException, URISyntaxException, StorageException {
-        final HttpURLConnection request = setFileProperties(uri, fileOptions, opContext, accessCondition, null);
+        final HttpURLConnection request = setFileProperties(uri, fileOptions, opContext, accessCondition, null, null);
 
         if (newFileSize != null) {
             request.setRequestProperty(FileConstants.CONTENT_LENGTH_HEADER, newFileSize.toString());
         }
+        // TODO: ADd headers here set properties
 
         return request;
     }
@@ -1291,6 +1322,8 @@ final class FileRequest {
      *            An {@link AccessCondition} object that represents the access conditions for the file.
      * @param properties
      *            The properties to upload.
+     * @param filePermission
+     *            The file permission to set.
      * @return a HttpURLConnection to use to perform the operation.
      * @throws IOException
      *             if there is an error opening the connection
@@ -1301,8 +1334,8 @@ final class FileRequest {
      * @throws IllegalArgumentException
      */
     public static HttpURLConnection setFileProperties(final URI uri, final FileRequestOptions fileOptions,
-            final OperationContext opContext, final AccessCondition accessCondition, final FileProperties properties)
-            throws IOException, URISyntaxException, StorageException {
+            final OperationContext opContext, final AccessCondition accessCondition, final FileProperties properties,
+            final String filePermission) throws IOException, URISyntaxException, StorageException {
         final UriQueryBuilder builder = new UriQueryBuilder();
         builder.add(Constants.QueryConstants.COMPONENT, Constants.QueryConstants.PROPERTIES);
 
@@ -1318,6 +1351,15 @@ final class FileRequest {
 
         if (properties != null) {
             addProperties(request, properties);
+            addFilePermissionOrFilePermissionKey(request, properties.getFilePermissionKey(), filePermission, Constants.HeaderConstants.PRESERVE);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.getNtfsAttributes()), Constants.HeaderConstants.PRESERVE);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTime(), Constants.HeaderConstants.PRESERVE);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTime(), Constants.HeaderConstants.PRESERVE);
+        } else {
+            request.setRequestProperty(Constants.HeaderConstants.FILE_PERMISSION, Constants.HeaderConstants.PRESERVE);
+            request.setRequestProperty(Constants.HeaderConstants.FILE_ATTRIBUTES, Constants.HeaderConstants.PRESERVE);
+            request.setRequestProperty(Constants.HeaderConstants.FILE_CREATION_TIME, Constants.HeaderConstants.PRESERVE);
+            request.setRequestProperty(Constants.HeaderConstants.FILE_LAST_WRITE_TIME, Constants.HeaderConstants.PRESERVE);
         }
 
         return request;
@@ -1420,6 +1462,32 @@ final class FileRequest {
         request.setRequestProperty(Constants.HeaderConstants.FILE_PERMISSION_KEY, filePermissionKey);
 
         request.setRequestMethod(Constants.HTTP_GET);
+
+        return request;
+
+    }
+
+    public static HttpURLConnection setDirectoryProperties(URI uri, FileRequestOptions fileOptions, OperationContext opContext, AccessCondition accessCondition, FileDirectoryProperties properties, String filePermission) throws StorageException, IOException, URISyntaxException {
+        final UriQueryBuilder builder = new UriQueryBuilder();
+        builder.add(Constants.QueryConstants.RESOURCETYPE, "directory");
+        builder.add(Constants.QueryConstants.COMPONENT, Constants.QueryConstants.PROPERTIES);
+
+        final HttpURLConnection request = BaseRequest.createURLConnection(uri, fileOptions, builder, opContext);
+
+        request.setFixedLengthStreamingMode(0);
+        request.setDoOutput(true);
+        request.setRequestMethod(Constants.HTTP_PUT);
+
+        if (accessCondition != null) {
+            accessCondition.applyConditionToRequest(request);
+        }
+
+        if (properties != null) {
+            addFilePermissionOrFilePermissionKey(request, properties.getFilePermissionKey(), filePermission, Constants.HeaderConstants.PRESERVE);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.getNtfsAttributes()), Constants.HeaderConstants.PRESERVE);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTime(), Constants.HeaderConstants.PRESERVE);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTime(), Constants.HeaderConstants.PRESERVE);
+        }
 
         return request;
 

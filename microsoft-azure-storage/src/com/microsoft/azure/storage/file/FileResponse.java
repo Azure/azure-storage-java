@@ -131,6 +131,19 @@ final class FileResponse extends BaseResponse {
         return directoryAttributes;
     }
 
+    public static void updateDirectorySMBProperties(final HttpURLConnection request, FileDirectoryProperties properties) {
+
+        properties.setFilePermissionKey(request.getHeaderField(Constants.HeaderConstants.FILE_PERMISSION_KEY));
+        properties.setNtfsAttributes(NtfsAttributesParser.toAttributes(request.getHeaderField(Constants.HeaderConstants.FILE_ATTRIBUTES)));
+
+        properties.setCreationTime(request.getHeaderField(Constants.HeaderConstants.FILE_CREATION_TIME));
+        properties.setLastWriteTime(request.getHeaderField(Constants.HeaderConstants.FILE_LAST_WRITE_TIME));
+        properties.setChangeTime(request.getHeaderField(Constants.HeaderConstants.FILE_CHANGE_TIME));
+
+        properties.setFileId(request.getHeaderField(Constants.HeaderConstants.FILE_ID));
+        properties.setParentId(request.getHeaderField(Constants.HeaderConstants.FILE_PARENT_ID));
+    }
+
     /**
      * Gets the CloudFileAttributes from the given request
      *
@@ -197,27 +210,14 @@ final class FileResponse extends BaseResponse {
         return fileAttributes;
     }
 
-    public static void setSMBProperties(final HttpURLConnection request, FileProperties properties) {
+    public static void updateSMBProperties(final HttpURLConnection request, FileProperties properties) {
 
         properties.setFilePermissionKey(request.getHeaderField(Constants.HeaderConstants.FILE_PERMISSION_KEY));
-        // TODO: Make NTFS Attributes to attributes enum be a flagged enum
-//        properties.setNtfsAttributes();
+        properties.setNtfsAttributes(NtfsAttributesParser.toAttributes(request.getHeaderField(Constants.HeaderConstants.FILE_ATTRIBUTES)));
 
-
-        final Calendar calendar = Calendar.getInstance(Utility.LOCALE_US);
-        calendar.setTimeZone(Utility.UTC_ZONE);
-
-        // Creation Time
-        calendar.setTime(new Date(request.getHeaderField(Constants.HeaderConstants.FILE_CREATION_TIME)));
-        properties.setCreationTime(calendar.getTime());
-
-        // Last Write Time
-        calendar.setTime(new Date(request.getHeaderField(Constants.HeaderConstants.FILE_LAST_WRITE_TIME)));
-        properties.setLastWriteTime(calendar.getTime());
-
-        // Change Time
-        calendar.setTime(new Date(request.getHeaderField(Constants.HeaderConstants.FILE_CHANGE_TIME)));
-        properties.setChangeTime(calendar.getTime());
+        properties.setCreationTime(request.getHeaderField(Constants.HeaderConstants.FILE_CREATION_TIME));
+        properties.setLastWriteTime(request.getHeaderField(Constants.HeaderConstants.FILE_LAST_WRITE_TIME));
+        properties.setChangeTime(request.getHeaderField(Constants.HeaderConstants.FILE_CHANGE_TIME));
 
         properties.setFileId(request.getHeaderField(Constants.HeaderConstants.FILE_ID));
         properties.setParentId(request.getHeaderField(Constants.HeaderConstants.FILE_PARENT_ID));

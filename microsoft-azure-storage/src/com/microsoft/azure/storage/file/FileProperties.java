@@ -15,6 +15,7 @@
 package com.microsoft.azure.storage.file;
 
 import java.util.Date;
+import java.util.EnumSet;
 
 import com.microsoft.azure.storage.AccessCondition;
 
@@ -90,22 +91,22 @@ public final class FileProperties {
      * Represents the file system attributes for files and directories.
      * If not set, indicates preservation of existing values.
      */
-    private NtfsAttributes ntfsAttributes;
+    private EnumSet<NtfsAttributes> ntfsAttributes;
 
     /**
      * Represents the creation time for the file.
      */
-    private Date creationTime;
+    private String creationTime;
 
     /**
      * Represents the last-write time for the file.
      */
-    private Date lastWriteTime;
+    private String lastWriteTime;
 
     /**
      * Represents the change time for the file.
      */
-    private Date changeTime;
+    private String changeTime;
 
     /**
      * Represents the file's id.
@@ -273,34 +274,34 @@ public final class FileProperties {
      *
      * @return A {@link NtfsAttributes} object which represents the file system attributes.
      */
-    public NtfsAttributes getNtfsAttributes() {
+    public EnumSet<NtfsAttributes> getNtfsAttributes() {
         return this.ntfsAttributes;
     }
 
     /**
      * Gets the creation time for the file.
      *
-     * @return A {@link java.util.Date} object which represents the creation time.
+     * @return A <code>String</code> object which represents the creation time.
      */
-    public Date getCreationTime() {
+    public String getCreationTime() {
         return this.creationTime;
     }
 
     /**
      * Gets the last write time for the file.
      *
-     * @return A {@link java.util.Date} object which represents the last write time.
+     * @return A <code>String</code> object which represents the last write time.
      */
-    public Date getLastWriteTime() {
+    public String getLastWriteTime() {
         return this.lastWriteTime;
     }
 
     /**
      * Gets the change time for the file.
      *
-     * @return A {@link java.util.Date} object which represents the change time.
+     * @return A <code>String</code> object which represents the change time.
      */
-    public Date getChangeTime() {
+    public String getChangeTime() {
         return this.changeTime;
     }
 
@@ -449,7 +450,7 @@ public final class FileProperties {
      * @param ntfsAttributes
      *        A {@link NtfsAttributes} which specifies the file system attributes to set.
      */
-    public void setNtfsAttributes(NtfsAttributes ntfsAttributes) {
+    public void setNtfsAttributes(EnumSet<NtfsAttributes> ntfsAttributes) {
         this.ntfsAttributes = ntfsAttributes;
     }
 
@@ -457,9 +458,9 @@ public final class FileProperties {
      * Sets the creation time for the file.
      *
      * @param creationTime
-     *            A {@link java.util.Date} object which specifies the creation time to set.
+     *            A <code>String</code> object which specifies the creation time to set.
      */
-    public void setCreationTime(Date creationTime) {
+    public void setCreationTime(String creationTime) {
         this.creationTime = creationTime;
     }
 
@@ -467,9 +468,9 @@ public final class FileProperties {
      * Sets the last write time for the file.
      *
      * @param lastWriteTime
-     *            A {@link java.util.Date} object which specifies the last write time to set.
+     *            A <code>String</code> object which specifies the last write time to set.
      */
-    public void setLastWriteTime(Date lastWriteTime) {
+    public void setLastWriteTime(String lastWriteTime) {
         this.lastWriteTime = lastWriteTime;
     }
 
@@ -477,9 +478,9 @@ public final class FileProperties {
      * Sets the change time for the file.
      *
      * @param changeTime
-     *            A {@link java.util.Date} object which specifies the change time to set.
+     *            A <code>String</code> object which specifies the change time to set.
      */
-    protected void setChangeTime(Date changeTime) {
+    protected void setChangeTime(String changeTime) {
         this.changeTime = changeTime;
     }
 
