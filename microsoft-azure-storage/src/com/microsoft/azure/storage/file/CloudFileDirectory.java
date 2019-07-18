@@ -746,7 +746,6 @@ public final class CloudFileDirectory implements ListFileItem {
         return putRequest;
     }
 
-
     /**
      * Downloads the directory's properties.
      * 
@@ -1470,9 +1469,9 @@ public final class CloudFileDirectory implements ListFileItem {
     }
 
     /**
-     * Returns the file's file permission.
+     * Returns the directory's file permission.
      *
-     * @return A <code>String</code> object that represents the file permission of the file.
+     * @return A <code>String</code> object that represents the file permission of the directory.
      */
     public final String getFilePermission() {
         return this.filePermission;

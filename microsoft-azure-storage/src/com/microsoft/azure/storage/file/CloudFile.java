@@ -1535,8 +1535,8 @@ public final class CloudFile implements ListFileItem {
                 // Set attributes
                 final FileAttributes retrievedAttributes = FileResponse.getFileAttributes(this.getConnection(),
                         file.getStorageUri());
+                FileResponse.updateSMBProperties(this.getConnection(), retrievedAttributes.getProperties());
                 file.properties = retrievedAttributes.getProperties();
-                FileResponse.updateSMBProperties(this.getConnection(), file.properties);
                 file.metadata = retrievedAttributes.getMetadata();
 
                 return null;
@@ -3385,7 +3385,6 @@ public final class CloudFile implements ListFileItem {
     protected void setStorageUri(final StorageUri storageUri) {
         this.storageUri = storageUri;
     }
-
 
     /**
      * Sets the file's file permission

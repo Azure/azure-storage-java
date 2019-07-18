@@ -228,7 +228,7 @@ final class FileRequest {
      * 
      * @param uri
      *            A <code>java.net.URI</code> object that specifies the absolute URI.
-     * @param fileOptions"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+     * @param fileOptions
      *            A {@link FileRequestOptions} object that specifies execution options such as retry policy and timeout
      *            settings for the operation. Specify <code>null</code> to use the request options specified on the
      *            {@link CloudFileClient}.
@@ -757,7 +757,7 @@ final class FileRequest {
     }
 
     /**
-     * Constructs a web request to create a new directory. Sign with 0 length.
+     * Constructs a web request to create a new directory
      * 
      * @param uri
      *            A <code>java.net.URI</code> object that specifies the absolute URI.
@@ -1155,7 +1155,6 @@ final class FileRequest {
         if (newFileSize != null) {
             request.setRequestProperty(FileConstants.CONTENT_LENGTH_HEADER, newFileSize.toString());
         }
-        // TODO: ADd headers here set properties
 
         return request;
     }
@@ -1356,6 +1355,7 @@ final class FileRequest {
             setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTime(), Constants.HeaderConstants.PRESERVE);
             setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTime(), Constants.HeaderConstants.PRESERVE);
         } else {
+            // Deals with resize API
             request.setRequestProperty(Constants.HeaderConstants.FILE_PERMISSION, Constants.HeaderConstants.PRESERVE);
             request.setRequestProperty(Constants.HeaderConstants.FILE_ATTRIBUTES, Constants.HeaderConstants.PRESERVE);
             request.setRequestProperty(Constants.HeaderConstants.FILE_CREATION_TIME, Constants.HeaderConstants.PRESERVE);
