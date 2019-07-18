@@ -822,6 +822,9 @@ public final class Constants {
          */
         public static final String XML_TYPE = "application/xml";
 
+        /**
+         * Specifies the JSON content type
+         */
         public static final String JSON_TYPE = "application/json";
     }
 
