@@ -946,9 +946,9 @@ final class FileRequest {
      * @param operationType
      *            a {link @FileRangeOperationType} enumeration value representing the file range operation type.
      * @param sourceUri
-     *            An optional <code>java.net.URI</code> object that specifies the source URI.
+     *            An optional <code>java.net.URI</code> object for putRangeFromURL that specifies the source URI.
      * @param sourceRange
-     *            An optional {link @FileRange} representing the file range of the source
+     *            An optional {link @FileRange} for putRangeFromURL representing the file range of the source
      * 
      * @return a HttpURLConnection to use to perform the operation.
      * @throws IOException

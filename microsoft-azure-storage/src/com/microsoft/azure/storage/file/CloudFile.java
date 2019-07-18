@@ -2234,7 +2234,7 @@ public final class CloudFile implements ListFileItem {
      * @throws URISyntaxException
      */
     @DoesServiceRequest
-    public void putRangeThroughURL(final long destOffset, final long length, final URI sourceUri, final long sourceOffset,
+    public void putRangeFromURL(final long destOffset, final long length, final URI sourceUri, final long sourceOffset,
             final AccessCondition accessCondition, FileRequestOptions options, OperationContext opContext)
             throws StorageException, URISyntaxException {
         if (opContext == null) {
@@ -2253,7 +2253,7 @@ public final class CloudFile implements ListFileItem {
     }
 
     /**
-     * Used for both uploadRange and clearRange.
+     * Used for uploadRange, clearRange and putRangeFromURL.
      *
      * @param range
      *            A {@link FileRange} object that specifies the file range.
