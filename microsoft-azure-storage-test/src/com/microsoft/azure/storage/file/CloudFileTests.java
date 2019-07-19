@@ -1158,8 +1158,7 @@ public class CloudFileTests {
         // Create destination.
         CloudFile destination = share.getRootDirectoryReference().getFileReference("destination");
         destination.create(512);
-
-        destination.putRangeThroughURL(destOffset, length, credentials.transformUri(source.getUri()), sourceOffset, null, null, null);
+        destination.putRangeFromURL(destOffset, length, credentials.transformUri(source.getUri()), sourceOffset);
 
         // Compare result to source
         byte[] result = new byte[512];
@@ -1167,53 +1166,6 @@ public class CloudFileTests {
 
         for(int i = 0; i < length; i++) {
             assertEquals(src[sourceOffset + i], result[destOffset + i]);
-        }
-    }
-
-    /**
-     * Tests put range through URL with different ranges
-     * @throws URISyntaxException
-     * @throws IOException
-     * @throws InvalidKeyException
-     * @throws StorageException
-     */
-    @Test
-    public void testCloudFilePutRangeThroughURLWithDiffLength() throws URISyntaxException, IOException, InvalidKeyException, StorageException {
-        // Create source.
-        final String data = "The quick brown fox jumped over the lazy dog";
-        byte[] src = data.getBytes();
-        int sourceOffset = 0;
-        int length = 5;
-        int destOffset = 0;
-
-        CloudFileClient client = FileTestHelper.createCloudFileClient();
-        CloudFileShare share = client.getShareReference("sprasa-test");
-        CloudFile source = share.getRootDirectoryReference().getFileReference("source");
-        source.getMetadata().put("Test", "value");
-        source.uploadText(data, Constants.UTF8_CHARSET, null, null, null);
-
-        // Source SAS must have read permissions
-        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
-        cal.setTime(new Date());
-        cal.add(Calendar.MINUTE, 5);
-        SharedAccessFilePolicy policy = new SharedAccessFilePolicy();
-        policy.setPermissions(EnumSet.of(SharedAccessFilePermissions.READ));
-        policy.setSharedAccessExpiryTime(cal.getTime());
-        String sasToken = source.generateSharedAccessSignature(policy, null, null);
-        StorageCredentialsSharedAccessSignature credentials = new StorageCredentialsSharedAccessSignature(sasToken);
-
-        // Create destination
-        CloudFile destination = share.getRootDirectoryReference().getFileReference("destination");
-        destination.create(512);
-
-        destination.putRangeThroughURL(destOffset, length, credentials.transformUri(source.getUri()), sourceOffset, null, null, null);
-
-        // Compare result to source
-        byte[] result = new byte[512];
-        destination.downloadToByteArray(result, 0);
-
-        for(int i = 0; i < length; i++) {
-            assertEquals(src[i + sourceOffset], result[i + destOffset]);
         }
     }
 

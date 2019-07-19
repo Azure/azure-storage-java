@@ -928,7 +928,62 @@ final class FileRequest {
 
     /**
      * Constructs a HttpURLConnection to upload a file range. Sign with file size for update, or 0 for clear.
-     * 
+     *
+     * @param uri
+     *            A <code>java.net.URI</code> object that specifies the absolute URI.
+     * @param fileOptions
+     *            A {@link FileRequestOptions} object that specifies execution options such as retry policy and timeout
+     *            settings for the operation. Specify <code>null</code> to use the request options specified on the
+     *            {@link CloudFileClient}.
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @param accessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the file.
+     * @param range
+     *            a {link @FileRange} representing the file range
+     * @param operationType
+     *            a {link @FileRangeOperationType} enumeration value representing the file range operation type.
+     *
+     * @return a HttpURLConnection to use to perform the operation.
+     * @throws IOException
+     *             if there is an error opening the connection
+     * @throws URISyntaxException
+     *             if the resource URI is invalid
+     * @throws StorageException
+     *             an exception representing any error which occurred during the operation.
+     * @throws IllegalArgumentException
+     */
+    public static HttpURLConnection putRange(final URI uri, final FileRequestOptions fileOptions,
+            final OperationContext opContext, final AccessCondition accessCondition, final FileRange range,
+            FileRangeOperationType operationType) throws IOException, URISyntaxException, StorageException {
+        final UriQueryBuilder builder = new UriQueryBuilder();
+        builder.add(Constants.QueryConstants.COMPONENT, RANGE_QUERY_ELEMENT_NAME);
+
+        final HttpURLConnection request = BaseRequest.createURLConnection(uri, fileOptions, builder, opContext);
+
+        request.setDoOutput(true);
+        request.setRequestMethod(Constants.HTTP_PUT);
+
+        if (operationType == FileRangeOperationType.CLEAR) {
+            request.setFixedLengthStreamingMode(0);
+        }
+
+        // Range write is either update or clear; required
+        request.setRequestProperty(FileConstants.FILE_RANGE_WRITE, operationType.toString());
+        request.setRequestProperty(Constants.HeaderConstants.STORAGE_RANGE_HEADER, range.toString());
+
+        if (accessCondition != null) {
+            accessCondition.applyConditionToRequest(request);
+        }
+
+        return request;
+    }
+
+    /**
+     * Constructs a HttpURLConnection to upload a file range. Sign with file size for update, or 0 for clear.
+     *
      * @param uri
      *            A <code>java.net.URI</code> object that specifies the absolute URI.
      * @param fileOptions
@@ -949,7 +1004,7 @@ final class FileRequest {
      *            An optional <code>java.net.URI</code> object for putRangeFromURL that specifies the source URI.
      * @param sourceRange
      *            An optional {link @FileRange} for putRangeFromURL representing the file range of the source
-     * 
+     *
      * @return a HttpURLConnection to use to perform the operation.
      * @throws IOException
      *             if there is an error opening the connection
@@ -959,10 +1014,9 @@ final class FileRequest {
      *             an exception representing any error which occurred during the operation.
      * @throws IllegalArgumentException
      */
-    public static HttpURLConnection putRange(final URI uri, final FileRequestOptions fileOptions,
+    public static HttpURLConnection putRangeFromURL(final URI uri, final FileRequestOptions fileOptions,
             final OperationContext opContext, final AccessCondition accessCondition, final FileRange range,
-            FileRangeOperationType operationType, final URI sourceUri, final FileRange sourceRange)
-            throws IOException, URISyntaxException, StorageException {
+            final URI sourceUri, final FileRange sourceRange) throws IOException, URISyntaxException, StorageException {
         final UriQueryBuilder builder = new UriQueryBuilder();
         builder.add(Constants.QueryConstants.COMPONENT, RANGE_QUERY_ELEMENT_NAME);
 
@@ -971,23 +1025,14 @@ final class FileRequest {
         request.setDoOutput(true);
         request.setRequestMethod(Constants.HTTP_PUT);
 
-        if (operationType == FileRangeOperationType.CLEAR) {
-            request.setFixedLengthStreamingMode(0);
-        }
-
-        // Range write is either update or clear; required
-        request.setRequestProperty(FileConstants.FILE_RANGE_WRITE, operationType.toString());
+        request.setRequestProperty(FileConstants.FILE_RANGE_WRITE, FileRangeOperationType.UPDATE.toString());
         request.setRequestProperty(Constants.HeaderConstants.STORAGE_RANGE_HEADER, range.toString());
 
-        // Put range from Url
-        if (sourceUri != null) {
-            request.setFixedLengthStreamingMode(0);
-            request.setRequestProperty(Constants.HeaderConstants.CONTENT_LENGTH, "0");
-            request.setRequestProperty(Constants.HeaderConstants.COPY_SOURCE, sourceUri.toString());
-        }
-        if (sourceRange != null) {
-            request.setRequestProperty(Constants.HeaderConstants.STORAGE_SOURCE_RANGE_HEADER, sourceRange.toString());
-        }
+        request.setFixedLengthStreamingMode(0);
+        request.setRequestProperty(Constants.HeaderConstants.CONTENT_LENGTH, "0");
+        request.setRequestProperty(Constants.HeaderConstants.COPY_SOURCE, sourceUri.toString());
+
+        request.setRequestProperty(Constants.HeaderConstants.STORAGE_SOURCE_RANGE_HEADER, sourceRange.toString());
 
         if (accessCondition != null) {
             accessCondition.applyConditionToRequest(request);

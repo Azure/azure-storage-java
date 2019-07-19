@@ -565,7 +565,7 @@ public final class CloudFile implements ListFileItem {
         final FileRange range = new FileRange(offset, offset + length - 1);
 
         this.putRangeInternal(range, FileRangeOperationType.CLEAR, null /* data */, length, null /* md5 */,
-                null /* sourceUri */, null /* sourceRange */, accessCondition, options, opContext);
+                 accessCondition, options, opContext);
     }
 
     /**
@@ -2201,8 +2201,122 @@ public final class CloudFile implements ListFileItem {
             }
         }
 
-        this.putRangeInternal(range, FileRangeOperationType.UPDATE, data, length, md5, null /* sourceUri */, null /* sourceRange */,
-                accessCondition, options, opContext);
+        this.putRangeInternal(range, FileRangeOperationType.UPDATE, data, length, md5, accessCondition, options, opContext);
+    }
+
+    /**
+     * Used for both uploadRange and clearRange.
+     *
+     * @param range
+     *            A {@link FileRange} object that specifies the file range.
+     * @param operationType
+     *            A {@link FileRangeOperationType} enumeration value that specifies the operation type.
+     * @param data
+     *            A <code>byte</code> array which represents the data to write.
+     * @param length
+     *            A <code>long</code> which represents the number of bytes to write.
+     * @param md5
+     *            A <code>String</code> which represents the MD5 hash for the data.
+     * @param accessCondition
+     *            An {@link AccessCondition} object which represents the access conditions for the file.
+     * @param options
+     *            A {@link FileRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudFileClient}).
+     * @param opContext
+     *            An {@link OperationContext} object which represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     */
+    @DoesServiceRequest
+    private void putRangeInternal(final FileRange range, final FileRangeOperationType operationType, final byte[] data,
+            final long length, final String md5, final AccessCondition accessCondition,
+            final FileRequestOptions options, final OperationContext opContext) throws StorageException {
+        ExecutionEngine.executeWithRetry(this.fileServiceClient, this,
+                putRangeImpl(range, operationType, data, length, md5, accessCondition, options, opContext),
+                options.getRetryPolicyFactory(), opContext);
+    }
+
+    private StorageRequest<CloudFileClient, CloudFile, Void> putRangeImpl(final FileRange range,
+            final FileRangeOperationType operationType, final byte[] data, final long length, final String md5,
+            final AccessCondition accessCondition, final FileRequestOptions options, final OperationContext opContext) {
+        final StorageRequest<CloudFileClient, CloudFile, Void> putRequest =
+                new StorageRequest<CloudFileClient, CloudFile, Void>(options, this.getStorageUri()) {
+
+                    @Override
+                    public HttpURLConnection buildRequest(CloudFileClient client, CloudFile file, OperationContext context)
+                            throws Exception {
+                        if (operationType == FileRangeOperationType.UPDATE) {
+                            this.setSendStream(new ByteArrayInputStream(data));
+                            this.setLength(length);
+                        }
+
+                        return FileRequest.putRange(file.getTransformedAddress(context).getUri(this.getCurrentLocation()),
+                                options, opContext, accessCondition, range, operationType);
+                    }
+
+                    @Override
+                    public void setHeaders(HttpURLConnection connection, CloudFile file, OperationContext context) {
+                        if (operationType == FileRangeOperationType.UPDATE) {
+                            if (options.getUseTransactionalContentMD5()) {
+                                connection.setRequestProperty(Constants.HeaderConstants.CONTENT_MD5, md5);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void signRequest(HttpURLConnection connection, CloudFileClient client, OperationContext context)
+                            throws Exception {
+                        if (operationType == FileRangeOperationType.UPDATE) {
+                            StorageRequest.signBlobQueueAndFileRequest(connection, client, length, context);
+                        }
+                        else {
+                            StorageRequest.signBlobQueueAndFileRequest(connection, client, 0L, context);
+                        }
+                    }
+
+                    @Override
+                    public Void preProcessResponse(CloudFile file, CloudFileClient client, OperationContext context)
+                            throws Exception {
+                        if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_CREATED) {
+                            this.setNonExceptionedRetryableFailure(true);
+                            return null;
+                        }
+
+                        file.updateEtagAndLastModifiedFromResponse(this.getConnection());
+                        this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                        return null;
+                    }
+                };
+
+        return putRequest;
+    }
+
+    /**
+     * Uploads a range from one file to another file.
+     *
+     * @param destOffset
+     *            A <code>long</code> which represents the offset, in number of bytes, at which to begin writing the
+     *            data.
+     * @param length
+     *            A <code>long</code> which represents the length, in bytes, of the data to write and read.
+     * @param sourceUri
+     *            A <code>java.net.URI</code> object that specifies the source URI.
+     * @param sourceOffset
+     *            A <code>long</code> which represents the offset, in number of bytes, at which to begin reading the
+     *            data.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     * @throws URISyntaxException
+     */
+    @DoesServiceRequest
+    public void putRangeFromURL(final long destOffset, final long length, final URI sourceUri, final long sourceOffset)
+            throws StorageException, URISyntaxException {
+        this.putRangeFromURL(destOffset, length, sourceUri, sourceOffset, null, null, null);
     }
 
     /**
@@ -2237,6 +2351,12 @@ public final class CloudFile implements ListFileItem {
     public void putRangeFromURL(final long destOffset, final long length, final URI sourceUri, final long sourceOffset,
             final AccessCondition accessCondition, FileRequestOptions options, OperationContext opContext)
             throws StorageException, URISyntaxException {
+
+        Utility.assertNotNull("sourceUri", sourceUri);
+        Utility.assertInBounds("destOffset", destOffset, 0, Long.MAX_VALUE);
+        Utility.assertInBounds("length", length, 0, 4*Constants.MB);
+        Utility.assertInBounds("sourceOffset", sourceOffset, 0, Long.MAX_VALUE);
+
         if (opContext == null) {
             opContext = new OperationContext();
         }
@@ -2248,104 +2368,43 @@ public final class CloudFile implements ListFileItem {
         final FileRange range = new FileRange(destOffset, destOffset + length - 1);
         final FileRange sourceRange = new FileRange(sourceOffset, sourceOffset + length - 1);
 
-        this.putRangeInternal(range, FileRangeOperationType.UPDATE, null, 0, null, sourceUri, sourceRange,
-                accessCondition, options, opContext);
-    }
-
-    /**
-     * Used for uploadRange, clearRange and putRangeFromURL.
-     *
-     * @param range
-     *            A {@link FileRange} object that specifies the file range.
-     * @param operationType
-     *            A {@link FileRangeOperationType} enumeration value that specifies the operation type.
-     * @param data
-     *            A <code>byte</code> array which represents the data to write.
-     * @param length
-     *            A <code>long</code> which represents the number of bytes to write.
-     * @param md5
-     *            A <code>String</code> which represents the MD5 hash for the data.
-     * @param sourceUri
-     *            A {@link URI} object that specifies the source URI.
-     * @param sourceRange
-     *            A {@link FileRange} object that specifies the source file range.
-     * @param accessCondition
-     *            An {@link AccessCondition} object which represents the access conditions for the file.
-     * @param options
-     *            A {@link FileRequestOptions} object that specifies any additional options for the request. Specifying
-     *            <code>null</code> will use the default request options from the associated service client (
-     *            {@link CloudFileClient}).
-     * @param opContext
-     *            An {@link OperationContext} object which represents the context for the current operation. This object
-     *            is used to track requests to the storage service, and to provide additional runtime information about
-     *            the operation.
-     *
-     * @throws StorageException
-     *             If a storage service error occurred.
-     */
-    @DoesServiceRequest
-    private void putRangeInternal(final FileRange range, final FileRangeOperationType operationType, final byte[] data,
-            final long length, final String md5, final URI sourceUri, final FileRange sourceRange, final AccessCondition accessCondition,
-            final FileRequestOptions options, final OperationContext opContext) throws StorageException {
         ExecutionEngine.executeWithRetry(this.fileServiceClient, this,
-                putRangeImpl(range, operationType, data, length, md5, sourceUri, sourceRange, accessCondition, options,
+                putRangeFromURLImpl(range, sourceUri, sourceRange, accessCondition, options,
                         opContext), options.getRetryPolicyFactory(), opContext);
     }
 
-    private StorageRequest<CloudFileClient, CloudFile, Void> putRangeImpl(final FileRange range,
-            final FileRangeOperationType operationType, final byte[] data, final long length, final String md5,
-            final URI sourceUri, final FileRange sourceRange, final AccessCondition accessCondition,
+    private StorageRequest<CloudFileClient, CloudFile, Void> putRangeFromURLImpl(final FileRange range,
+            final URI sourceURI, final FileRange sourceRange, final AccessCondition accessCondition,
             final FileRequestOptions options, final OperationContext opContext) {
         final StorageRequest<CloudFileClient, CloudFile, Void> putRequest =
                 new StorageRequest<CloudFileClient, CloudFile, Void>(options, this.getStorageUri()) {
 
-            @Override
-            public HttpURLConnection buildRequest(CloudFileClient client, CloudFile file, OperationContext context)
-                    throws Exception {
-                if (operationType == FileRangeOperationType.UPDATE) {
-                    if(data != null){
-                        this.setSendStream(new ByteArrayInputStream(data));
-                        this.setLength(length);
+                    @Override
+                    public HttpURLConnection buildRequest(CloudFileClient client, CloudFile file, OperationContext context)
+                            throws Exception {
+                        return FileRequest.putRangeFromURL(file.getTransformedAddress(context).getUri(this.getCurrentLocation()),
+                                options, opContext, accessCondition, range, sourceURI, sourceRange);
                     }
-                }
 
-                return FileRequest.putRange(file.getTransformedAddress(context).getUri(this.getCurrentLocation()),
-                        options, opContext, accessCondition, range, operationType, sourceUri, sourceRange);
-            }
-
-            @Override
-            public void setHeaders(HttpURLConnection connection, CloudFile file, OperationContext context) {
-                if (operationType == FileRangeOperationType.UPDATE) {
-                    if (options.getUseTransactionalContentMD5()) {
-                        connection.setRequestProperty(Constants.HeaderConstants.CONTENT_MD5, md5);
+                    @Override
+                    public void signRequest(HttpURLConnection connection, CloudFileClient client, OperationContext context)
+                            throws Exception {
+                        StorageRequest.signBlobQueueAndFileRequest(connection, client, 0L, context);
                     }
-                }
-            }
 
-            @Override
-            public void signRequest(HttpURLConnection connection, CloudFileClient client, OperationContext context)
-                    throws Exception {
-                if (operationType == FileRangeOperationType.UPDATE) {
-                    StorageRequest.signBlobQueueAndFileRequest(connection, client, length, context);
-                }
-                else {
-                    StorageRequest.signBlobQueueAndFileRequest(connection, client, 0L, context);
-                }
-            }
+                    @Override
+                    public Void preProcessResponse(CloudFile file, CloudFileClient client, OperationContext context)
+                            throws Exception {
+                        if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_CREATED) {
+                            this.setNonExceptionedRetryableFailure(true);
+                            return null;
+                        }
 
-            @Override
-            public Void preProcessResponse(CloudFile file, CloudFileClient client, OperationContext context)
-                    throws Exception {
-                if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_CREATED) {
-                    this.setNonExceptionedRetryableFailure(true);
-                    return null;
-                }
-
-                file.updateEtagAndLastModifiedFromResponse(this.getConnection());
-                this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
-                return null;
-            }
-        };
+                        file.updateEtagAndLastModifiedFromResponse(this.getConnection());
+                        this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                        return null;
+                    }
+                };
 
         return putRequest;
     }
