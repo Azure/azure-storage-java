@@ -905,11 +905,9 @@ public class CloudFileDirectoryTests {
      * @throws StorageException
      */
     @Test
-    public void testCloudFileDirectoryDownloadSMBAttributes() throws URISyntaxException, StorageException {
+    public void testCloudFileDirectoryCreateSMBAttributes() throws URISyntaxException, StorageException {
         CloudFileDirectory dir = this.share.getRootDirectoryReference().getDirectoryReference("newdir");
         dir.create();
-
-        dir.downloadAttributes();
 
         assertNotNull(dir.getProperties().getFilePermissionKey());
         assertNotNull(dir.getProperties().getNtfsAttributes());
@@ -919,25 +917,11 @@ public class CloudFileDirectoryTests {
         assertNotNull(dir.getProperties().getFileId());
         assertNotNull(dir.getProperties().getParentId());
 
-        dir.delete();
-    }
+        assertNull(dir.getProperties().getFilePermissionKeyToSet());
+        assertNull(dir.getProperties().getNtfsAttributesToSet());
+        assertNull(dir.getProperties().getCreationTimeToSet());
+        assertNull(dir.getProperties().getLastWriteTimeToSet());
 
-    @Test
-    public void testCloudFileDirectoryCreateWithFilePermission() throws URISyntaxException, StorageException {
-        CloudFileDirectory dir = this.share.getRootDirectoryReference().getDirectoryReference("newdir");
-        String permission = "O:S-1-5-21-2127521184-1604012920-1887927527-21560751G:S-1-5-21-2127521184-1604012920-1887927527-513D:AI(A;;FA;;;SY)(A;;FA;;;BA)(A;;0x1200a9;;;S-1-5-21-397955417-626881126-188441444-3053964)S:NO_ACCESS_CONTROL";
-        dir.setFilePermission(permission);
-        dir.create();
-
-        dir.downloadAttributes();
-
-        assertNotNull(dir.getProperties().getFilePermissionKey());
-        assertNotNull(dir.getProperties().getNtfsAttributes());
-        assertNotNull(dir.getProperties().getCreationTime());
-        assertNotNull(dir.getProperties().getLastWriteTime());
-        assertNotNull(dir.getProperties().getChangeTime());
-        assertNotNull(dir.getProperties().getFileId());
-        assertNotNull(dir.getProperties().getParentId());
         dir.delete();
     }
 
@@ -960,10 +944,10 @@ public class CloudFileDirectoryTests {
         String filePermissionKey = this.share.createFilePermission(permission);
 
         // set SMB properties
-        dir.getProperties().setFilePermissionKey(filePermissionKey);
-        dir.getProperties().setNtfsAttributes(EnumSet.of(NtfsAttributes.DIRECTORY));
-        dir.getProperties().setCreationTime("2019-07-18T17:37:25.4006072Z");
-        dir.getProperties().setLastWriteTime("2019-07-18T17:37:25.4006072Z");
+        dir.getProperties().setFilePermissionKeyToSet(filePermissionKey);
+        dir.getProperties().setNtfsAttributesToSet(EnumSet.of(NtfsAttributes.DIRECTORY));
+        dir.getProperties().setCreationTimeToSet("2019-07-18T17:37:25.4006072Z");
+        dir.getProperties().setLastWriteTimeToSet("2019-07-18T17:37:25.4006072Z");
 
         FileDirectoryProperties props1 = dir.getProperties();
         dir.uploadProperties();
@@ -985,10 +969,10 @@ public class CloudFileDirectoryTests {
         String permission = "O:S-1-5-21-2127521184-1604012920-1887927527-21560751G:S-1-5-21-2127521184-1604012920-1887927527-513D:AI(A;;FA;;;SY)(A;;FA;;;BA)(A;;0x1200a9;;;S-1-5-21-397955417-626881126-188441444-3053964)S:NO_ACCESS_CONTROL";
 
         // set SMB properties
-        dir.setFilePermission(permission);
-        dir.getProperties().setNtfsAttributes(EnumSet.of(NtfsAttributes.DIRECTORY));
-        dir.getProperties().setCreationTime("2019-07-18T17:37:25.4006072Z");
-        dir.getProperties().setLastWriteTime("2019-07-18T17:37:25.4006072Z");
+        dir.setFilePermissionToSet(permission);
+        dir.getProperties().setNtfsAttributesToSet(EnumSet.of(NtfsAttributes.DIRECTORY));
+        dir.getProperties().setCreationTimeToSet("2019-07-18T17:37:25.4006072Z");
+        dir.getProperties().setLastWriteTimeToSet("2019-07-18T17:37:25.4006072Z");
 
         FileDirectoryProperties props1 = dir.getProperties();
         dir.uploadProperties();

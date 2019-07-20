@@ -678,7 +678,7 @@ public class CloudFileShareTests {
     }
 
     @Test
-    public void testCreateAndGetFilePermission() throws StorageException {
+    public void testCreateAndGetFilePermission() throws StorageException, IOException {
         this.share.create();
 
         try {

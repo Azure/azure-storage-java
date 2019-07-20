@@ -781,10 +781,10 @@ final class FileRequest {
         HttpURLConnection request = BaseRequest.create(uri, fileOptions, directoryBuilder, opContext);
 
         if (properties != null) {
-            addFilePermissionOrFilePermissionKey(request, properties.getFilePermissionKey(), filePermission, Constants.HeaderConstants.FILE_PERMISSION_INHERIT);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.getNtfsAttributes()), Constants.HeaderConstants.FILE_ATTRIBUTES_NONE);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTime(), Constants.HeaderConstants.FILE_TIME_NOW);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTime(), Constants.HeaderConstants.FILE_TIME_NOW);
+            addFilePermissionOrFilePermissionKey(request, properties.getFilePermissionKeyToSet(), filePermission, Constants.HeaderConstants.FILE_PERMISSION_INHERIT);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.getNtfsAttributesToSet()), Constants.HeaderConstants.FILE_ATTRIBUTES_NONE);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTimeToSet(), Constants.HeaderConstants.FILE_TIME_NOW);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTimeToSet(), Constants.HeaderConstants.FILE_TIME_NOW);
         }
 
         return request;
@@ -944,10 +944,10 @@ final class FileRequest {
 
         if (properties != null) {
             addProperties(request, properties);
-            addFilePermissionOrFilePermissionKey(request, properties.getFilePermissionKey(), filePermission, Constants.HeaderConstants.FILE_PERMISSION_INHERIT);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.getNtfsAttributes()), Constants.HeaderConstants.FILE_ATTRIBUTES_NONE);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTime(), Constants.HeaderConstants.FILE_TIME_NOW);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTime(), Constants.HeaderConstants.FILE_TIME_NOW);
+            addFilePermissionOrFilePermissionKey(request, properties.getFilePermissionKeyToSet(), filePermission, Constants.HeaderConstants.FILE_PERMISSION_INHERIT);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.getNtfsAttributesToSet()), Constants.HeaderConstants.FILE_ATTRIBUTES_NONE);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTimeToSet(), Constants.HeaderConstants.FILE_TIME_NOW);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTimeToSet(), Constants.HeaderConstants.FILE_TIME_NOW);
         }
 
         request.setFixedLengthStreamingMode(0);
@@ -1350,10 +1350,10 @@ final class FileRequest {
 
         if (properties != null) {
             addProperties(request, properties);
-            addFilePermissionOrFilePermissionKey(request, properties.getFilePermissionKey(), filePermission, Constants.HeaderConstants.PRESERVE);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.getNtfsAttributes()), Constants.HeaderConstants.PRESERVE);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTime(), Constants.HeaderConstants.PRESERVE);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTime(), Constants.HeaderConstants.PRESERVE);
+            addFilePermissionOrFilePermissionKey(request, properties.getFilePermissionKeyToSet(), filePermission, Constants.HeaderConstants.PRESERVE);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.getNtfsAttributesToSet()), Constants.HeaderConstants.PRESERVE);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTimeToSet(), Constants.HeaderConstants.PRESERVE);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTimeToSet(), Constants.HeaderConstants.PRESERVE);
         } else {
             // Deals with resize API
             request.setRequestProperty(Constants.HeaderConstants.FILE_PERMISSION, Constants.HeaderConstants.PRESERVE);
@@ -1483,10 +1483,10 @@ final class FileRequest {
         }
 
         if (properties != null) {
-            addFilePermissionOrFilePermissionKey(request, properties.getFilePermissionKey(), filePermission, Constants.HeaderConstants.PRESERVE);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.getNtfsAttributes()), Constants.HeaderConstants.PRESERVE);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTime(), Constants.HeaderConstants.PRESERVE);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTime(), Constants.HeaderConstants.PRESERVE);
+            addFilePermissionOrFilePermissionKey(request, properties.getFilePermissionKeyToSet(), filePermission, Constants.HeaderConstants.PRESERVE);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.getNtfsAttributesToSet()), Constants.HeaderConstants.PRESERVE);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTimeToSet(), Constants.HeaderConstants.PRESERVE);
+            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTimeToSet(), Constants.HeaderConstants.PRESERVE);
         }
 
         return request;

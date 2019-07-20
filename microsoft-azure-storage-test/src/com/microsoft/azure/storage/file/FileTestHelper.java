@@ -298,7 +298,18 @@ public class FileTestHelper extends TestHelper {
             assertEquals(prop1.getCreationTime(), prop2.getCreationTime());
             assertEquals(prop1.getLastWriteTime(), prop2.getLastWriteTime());
             assertEquals(prop1.getNtfsAttributes(), prop2.getNtfsAttributes());
-
+        }
+        if (prop1 != null) {
+            assertNull(prop1.getFilePermissionKeyToSet());
+            assertNull(prop1.getNtfsAttributesToSet());
+            assertNull(prop1.getCreationTimeToSet());
+            assertNull(prop1.getLastWriteTimeToSet());
+        }
+        if (prop2 != null) {
+            assertNull(prop2.getFilePermissionKeyToSet());
+            assertNull(prop2.getNtfsAttributesToSet());
+            assertNull(prop2.getCreationTimeToSet());
+            assertNull(prop2.getLastWriteTimeToSet());
         }
     }
 
@@ -313,10 +324,10 @@ public class FileTestHelper extends TestHelper {
 
     public static void setFileSMBProperties(CloudFile file, String permission) {
         if (permission != null) {
-            file.getProperties().setFilePermissionKey(permission);
+            file.getProperties().setFilePermissionKeyToSet(permission);
         }
-        file.getProperties().setNtfsAttributes(EnumSet.of(NtfsAttributes.NORMAL));
-        file.getProperties().setCreationTime("2019-07-18T17:37:25.4006072Z");
-        file.getProperties().setLastWriteTime("2019-07-18T17:37:25.4006072Z");
+        file.getProperties().setNtfsAttributesToSet(EnumSet.of(NtfsAttributes.NORMAL));
+        file.getProperties().setCreationTimeToSet("2019-07-18T17:37:25.4006072Z");
+        file.getProperties().setLastWriteTimeToSet("2019-07-18T17:37:25.4006072Z");
     }
 }

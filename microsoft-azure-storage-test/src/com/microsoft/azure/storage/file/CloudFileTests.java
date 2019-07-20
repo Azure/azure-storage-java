@@ -157,6 +157,12 @@ public class CloudFileTests {
         assertNotNull(file.getProperties().getChangeTime());
         assertNotNull(file.getProperties().getFileId());
         assertNotNull(file.getProperties().getParentId());
+
+        assertNull(file.getProperties().getFilePermissionKeyToSet());
+        assertNull(file.getProperties().getNtfsAttributesToSet());
+        assertNull(file.getProperties().getCreationTimeToSet());
+        assertNull(file.getProperties().getLastWriteTimeToSet());
+
         file.delete();
     }
 
@@ -164,7 +170,7 @@ public class CloudFileTests {
     public void testCloudFileCreateWithFilePermission() throws URISyntaxException, StorageException {
         CloudFile file = this.share.getRootDirectoryReference().getFileReference("file1");
         String permission = "O:S-1-5-21-2127521184-1604012920-1887927527-21560751G:S-1-5-21-2127521184-1604012920-1887927527-513D:AI(A;;FA;;;SY)(A;;FA;;;BA)(A;;0x1200a9;;;S-1-5-21-397955417-626881126-188441444-3053964)S:NO_ACCESS_CONTROL";
-        file.setFilePermission(permission);
+        file.setFilePermissionToSet(permission);
         file.create(0);
 
         file.downloadAttributes();
@@ -176,6 +182,12 @@ public class CloudFileTests {
         assertNotNull(file.getProperties().getChangeTime());
         assertNotNull(file.getProperties().getFileId());
         assertNotNull(file.getProperties().getParentId());
+
+        assertNull(file.getProperties().getFilePermissionKeyToSet());
+        assertNull(file.getProperties().getNtfsAttributesToSet());
+        assertNull(file.getProperties().getCreationTimeToSet());
+        assertNull(file.getProperties().getLastWriteTimeToSet());
+
         file.delete();
     }
 
@@ -184,18 +196,11 @@ public class CloudFileTests {
         CloudFile file = this.share.getRootDirectoryReference().getFileReference("file1");
         byte[] randomPermission = FileTestHelper.getRandomBuffer(9 * Constants.KB);
         try {
-            file.setFilePermission(new String(randomPermission));
+            file.setFilePermissionToSet(new String(randomPermission));
         } catch (IllegalArgumentException e) {
-            assertEquals(e.getMessage(), String.format("The value of the parameter 'FilePermission' should be between 0 and %1d.", 8 * Constants.KB));
+            assertEquals(e.getMessage(), String.format("The value of the parameter 'filePermissionToSet' should be between 0 and %1d.", 8 * Constants.KB));
         }
     }
-
-    @Test
-    public void testCloudFileSetSMBAttributes() throws URISyntaxException, StorageException {
-        CloudFile file = this.share.getRootDirectoryReference().getFileReference("file1");
-
-    }
-
 
     @Test
     public void testCloudFileCreate() throws StorageException, URISyntaxException {
@@ -1455,14 +1460,13 @@ public class CloudFileTests {
         // with explicit upload/download of properties
         String fileName1 = FileTestHelper.generateRandomFileName();
         CloudFile fileRef1 = this.share.getRootDirectoryReference().getFileReference(fileName1);
-
-        fileRef1.upload(FileTestHelper.getRandomDataStream(length), length);
+        fileRef1.create(512);
 
         // Get permission key
         String permission = "O:S-1-5-21-2127521184-1604012920-1887927527-21560751G:S-1-5-21-2127521184-1604012920-1887927527-513D:AI(A;;FA;;;SY)(A;;FA;;;BA)(A;;0x1200a9;;;S-1-5-21-397955417-626881126-188441444-3053964)S:NO_ACCESS_CONTROL";
 
         FileTestHelper.setFileSMBProperties(fileRef1, null);
-        fileRef1.setFilePermission(permission);
+        fileRef1.setFilePermissionToSet(permission);
 
         FileProperties props1 = fileRef1.getProperties();
         fileRef1.uploadProperties();
@@ -1486,7 +1490,6 @@ public class CloudFileTests {
 
         FileTestHelper.assertSMBAreEqual(props1, props2, false);
     }
-
 
     /**
      * Test FileOutputStream.
@@ -1938,6 +1941,4 @@ public class CloudFileTests {
         assertTrue(test.contains(NtfsAttributes.ARCHIVE));
         assertTrue(test.contains(NtfsAttributes.DIRECTORY));
     }
-
-
 }

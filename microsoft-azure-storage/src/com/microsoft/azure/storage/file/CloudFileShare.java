@@ -1424,13 +1424,13 @@ public final class CloudFileShare {
     }
 
     @DoesServiceRequest
-    public String createFilePermission(String permission) throws StorageException {
+    public String createFilePermission(String permission) throws StorageException, IOException {
         return this.createFilePermission(permission, null /* options */, null /* opContext */);
     }
 
     @DoesServiceRequest
     public String createFilePermission(String permission, FileRequestOptions options, OperationContext opContext)
-            throws StorageException {
+            throws StorageException, IOException {
 
         Utility.assertNotNullOrEmpty("permission", permission);
 

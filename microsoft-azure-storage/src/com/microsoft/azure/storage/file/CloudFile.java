@@ -91,7 +91,7 @@ public final class CloudFile implements ListFileItem {
     /**
      * Represents the file permission
      */
-    private String filePermission;
+    private String filePermissionToSet;
 
     /**
      * Creates an instance of the <code>CloudFile</code> class using the specified absolute URI.
@@ -179,7 +179,7 @@ public final class CloudFile implements ListFileItem {
         this.name = otherFile.name;
         this.setStreamMinimumReadSizeInBytes(otherFile.getStreamMinimumReadSizeInBytes());
         this.setStreamWriteSizeInBytes(otherFile.getStreamWriteSizeInBytes());
-        this.filePermission = otherFile.filePermission;
+        this.filePermissionToSet = otherFile.filePermissionToSet;
     }
 
     /**
@@ -619,6 +619,7 @@ public final class CloudFile implements ListFileItem {
         }
 
         this.getShare().assertNoSnapshot();
+        this.assertValidFilePermissionOrKey();
 
         options = FileRequestOptions.populateAndApplyDefaults(options, this.fileServiceClient);
 
@@ -635,7 +636,7 @@ public final class CloudFile implements ListFileItem {
             public HttpURLConnection buildRequest(CloudFileClient client, CloudFile file, OperationContext context)
                     throws Exception {
                 return FileRequest.putFile(file.getTransformedAddress(context).getUri(this.getCurrentLocation()),
-                        options, context, accessCondition, file.properties, size, file.filePermission);
+                        options, context, accessCondition, file.properties, size, file.filePermissionToSet);
             }
 
             @Override
@@ -656,7 +657,7 @@ public final class CloudFile implements ListFileItem {
                     this.setNonExceptionedRetryableFailure(true);
                     return null;
                 }
-
+                FileResponse.updateFileSMBProperties(this.getConnection(), file.properties);
                 file.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
                 return null;
@@ -1361,7 +1362,7 @@ public final class CloudFile implements ListFileItem {
                     final FileAttributes retrievedAttributes = FileResponse.getFileAttributes(this.getConnection(),
                             file.getStorageUri());
 
-                    FileResponse.updateSMBProperties(this.getConnection(), retrievedAttributes.getProperties());
+                    FileResponse.updateFileSMBProperties(this.getConnection(), retrievedAttributes.getProperties());
 
                     file.properties = retrievedAttributes.getProperties();
                     file.metadata = retrievedAttributes.getMetadata();
@@ -1535,7 +1536,7 @@ public final class CloudFile implements ListFileItem {
                 // Set attributes
                 final FileAttributes retrievedAttributes = FileResponse.getFileAttributes(this.getConnection(),
                         file.getStorageUri());
-                FileResponse.updateSMBProperties(this.getConnection(), retrievedAttributes.getProperties());
+                FileResponse.updateFileSMBProperties(this.getConnection(), retrievedAttributes.getProperties());
                 file.properties = retrievedAttributes.getProperties();
                 file.metadata = retrievedAttributes.getMetadata();
 
@@ -2555,6 +2556,7 @@ public final class CloudFile implements ListFileItem {
         }
 
         this.getShare().assertNoSnapshot();
+        this.assertValidFilePermissionOrKey();
 
         opContext.initialize();
         options = FileRequestOptions.populateAndApplyDefaults(options, this.fileServiceClient);
@@ -2573,7 +2575,7 @@ public final class CloudFile implements ListFileItem {
                     throws Exception {
                 return FileRequest.setFileProperties(
                         file.getTransformedAddress(context).getUri(this.getCurrentLocation()),
-                        options, context, accessCondition, file.properties, file.filePermission);
+                        options, context, accessCondition, file.properties, file.filePermissionToSet);
             }
 
             @Override
@@ -2590,7 +2592,7 @@ public final class CloudFile implements ListFileItem {
                     this.setNonExceptionedRetryableFailure(true);
                     return null;
                 }
-
+                FileResponse.updateFileSMBProperties(this.getConnection(), file.properties);
                 file.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
                 return null;
@@ -3332,8 +3334,8 @@ public final class CloudFile implements ListFileItem {
      *
      * @return A <code>String</code> object that represents the file permission of the file.
      */
-    public final String getFilePermission() {
-        return this.filePermission;
+    public final String getFilePermissionToSet() {
+        return this.filePermissionToSet;
     }
 
     /**
@@ -3387,13 +3389,13 @@ public final class CloudFile implements ListFileItem {
     }
 
     /**
-     * Sets the file's file permission
-     * @param filePermission
-     *          A <code>String</code> that represents the file's file permission.
+     * Sets the file's file permission to set
+     * @param filePermissionToSet
+     *          A <code>String</code> that represents the file's file permission to set.
      */
-    public void setFilePermission(String filePermission) {
-        Utility.assertInBounds("FilePermission", filePermission.getBytes().length, 0, 8*Constants.KB);
-        this.filePermission = filePermission;
+    public void setFilePermissionToSet(String filePermissionToSet) {
+        Utility.assertInBounds("filePermissionToSet", filePermissionToSet.getBytes().length, 0, 8*Constants.KB);
+        this.filePermissionToSet = filePermissionToSet;
     }
 
     /**
@@ -3452,10 +3454,10 @@ public final class CloudFile implements ListFileItem {
     }
 
     /**
-     * Verifies that the directory's filePermission and properties.FilePermissionKey are both not set.
+     * Verifies that the directory's filePermissionToSet and properties.FilePermissionKey are both not set.
      */
     protected void assertValidFilePermissionOrKey() {
-        if (this.filePermission != null && this.properties != null && this.properties.getFilePermissionKey() != null) {
+        if (this.getFilePermissionToSet() != null && this.properties != null && this.properties.getFilePermissionKeyToSet() != null) {
             throw new IllegalArgumentException(SR.FILE_PERMISSION_FILE_PERMISSION_KEY_NOT_SET);
         }
     }
