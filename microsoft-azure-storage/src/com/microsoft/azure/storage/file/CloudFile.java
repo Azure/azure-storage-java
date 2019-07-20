@@ -1361,9 +1361,7 @@ public final class CloudFile implements ListFileItem {
                 if (!this.getArePropertiesPopulated()) {
                     final FileAttributes retrievedAttributes = FileResponse.getFileAttributes(this.getConnection(),
                             file.getStorageUri());
-
                     FileResponse.updateFileSMBProperties(this.getConnection(), retrievedAttributes.getProperties());
-
                     file.properties = retrievedAttributes.getProperties();
                     file.metadata = retrievedAttributes.getMetadata();
 
