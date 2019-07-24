@@ -83,6 +83,17 @@ public final class FileProperties {
     private boolean serverEncrypted;
 
     /**
+     * The following package private properties are set-able file SMB properties. This is by design.
+     * There are two variables - one normal variable and one toSet variable  to account for the statefulness of our
+     * objects and the fact that the service requires each SMB property header.
+     *
+     * When a user wants to set a new SMB property, they call the setter method, which sets the toSet variable.
+     * Upon calling the File.Create or File.SetProperties methods, the toSet variable is checked and set if it has been set to a value.
+     * The service then returns the properties, that are then populated in the normal variable when updating SMB properties
+     * and each of the toSet variables are set back to null.
+     */
+
+    /**
      * Represents the file's permission key.
      */
     String filePermissionKey;

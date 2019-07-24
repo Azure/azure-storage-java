@@ -659,6 +659,11 @@ public final class CloudFile implements ListFileItem {
                 }
                 // Update the file SMB properties (including the file permission) to be the file SMB properties returned in the HTTP response
                 FileResponse.updateFileSMBProperties(this.getConnection(), file.properties);
+                /**
+                 * This is by design.  The service doesn't return filePermission in the File.Create, File.SetProperties, File.Get, or File.GetProperties responses.
+                 * Also, the service sometimes modifies the filePermission server-side, so this field may be inaccurate if we maintained it's value.
+                 * To retrieve a filePermission, call share.GetFilePermission(filePermissionId).
+                 */
                 file.filePermission = null;
                 file.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
@@ -2596,6 +2601,11 @@ public final class CloudFile implements ListFileItem {
                 }
                 // Update the file SMB properties (including the file permission) to be the file SMB properties returned in the HTTP response
                 FileResponse.updateFileSMBProperties(this.getConnection(), file.properties);
+                /**
+                 * This is by design.  The service doesn't return filePermission in the File.Create, File.SetProperties, File.Get, or File.GetProperties responses.
+                 * Also, the service sometimes modifies the filePermission server-side, so this field may be inaccurate if we maintained it's value.
+                 * To retrieve a filePermission, call share.GetFilePermission(filePermissionId).
+                 */
                 file.filePermission = null;
                 file.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
