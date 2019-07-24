@@ -1,6 +1,7 @@
 XXXX.XX.XX Version X.X.X
  * Support for 2019-02-02 REST version. Please see our REST API documentation and blogs for information about the related added features.
  * Added support for setting rehydrate priority for SetBlobTier and CopyBlob APIs
+ * Support for 2018-11-09 REST version. Please see our REST API documentation and blogs for information about the related added features.
  * Added support for setting access tier for PutBlob/PutBlockList and CopyBlob APIs
 
 2019.04.23 Version 8.3.0
