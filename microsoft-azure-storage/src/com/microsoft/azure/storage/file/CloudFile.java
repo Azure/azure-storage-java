@@ -2316,7 +2316,7 @@ public final class CloudFile implements ListFileItem {
     @DoesServiceRequest
     public void putRangeFromURL(final long destOffset, final long length, final URI sourceUri, final long sourceOffset)
             throws StorageException, URISyntaxException {
-        this.putRangeFromURL(destOffset, length, sourceUri, sourceOffset, null, null, null);
+        this.putRangeFromURL(destOffset, length, sourceUri, sourceOffset, null /* options */, null /* opContext */);
     }
 
     /**
@@ -2332,8 +2332,6 @@ public final class CloudFile implements ListFileItem {
      * @param sourceOffset
      *            A <code>long</code> which represents the offset, in number of bytes, at which to begin reading the
      *            data.
-     * @param accessCondition
-     *            An {@link AccessCondition} object which represents the access conditions for the file.
      * @param options
      *            A {@link FileRequestOptions} object that specifies any additional options for the request. Specifying
      *            <code>null</code> will use the default request options from the associated service client (
@@ -2349,7 +2347,7 @@ public final class CloudFile implements ListFileItem {
      */
     @DoesServiceRequest
     public void putRangeFromURL(final long destOffset, final long length, final URI sourceUri, final long sourceOffset,
-            final AccessCondition accessCondition, FileRequestOptions options, OperationContext opContext)
+            FileRequestOptions options, OperationContext opContext)
             throws StorageException, URISyntaxException {
 
         Utility.assertNotNull("sourceUri", sourceUri);
@@ -2369,13 +2367,13 @@ public final class CloudFile implements ListFileItem {
         final FileRange sourceRange = new FileRange(sourceOffset, sourceOffset + length - 1);
 
         ExecutionEngine.executeWithRetry(this.fileServiceClient, this,
-                putRangeFromURLImpl(range, sourceUri, sourceRange, accessCondition, options,
+                putRangeFromURLImpl(range, sourceUri, sourceRange, options,
                         opContext), options.getRetryPolicyFactory(), opContext);
     }
 
     private StorageRequest<CloudFileClient, CloudFile, Void> putRangeFromURLImpl(final FileRange range,
-            final URI sourceURI, final FileRange sourceRange, final AccessCondition accessCondition,
-            final FileRequestOptions options, final OperationContext opContext) {
+            final URI sourceURI, final FileRange sourceRange, final FileRequestOptions options,
+            final OperationContext opContext) {
         final StorageRequest<CloudFileClient, CloudFile, Void> putRequest =
                 new StorageRequest<CloudFileClient, CloudFile, Void>(options, this.getStorageUri()) {
 
@@ -2383,7 +2381,7 @@ public final class CloudFile implements ListFileItem {
                     public HttpURLConnection buildRequest(CloudFileClient client, CloudFile file, OperationContext context)
                             throws Exception {
                         return FileRequest.putRangeFromURL(file.getTransformedAddress(context).getUri(this.getCurrentLocation()),
-                                options, opContext, accessCondition, range, sourceURI, sourceRange);
+                                options, opContext, range, sourceURI, sourceRange);
                     }
 
                     @Override

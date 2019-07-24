@@ -994,12 +994,8 @@ final class FileRequest {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * @param accessCondition
-     *            An {@link AccessCondition} object that represents the access conditions for the file.
      * @param range
      *            a {link @FileRange} representing the file range
-     * @param operationType
-     *            a {link @FileRangeOperationType} enumeration value representing the file range operation type.
      * @param sourceUri
      *            An optional <code>java.net.URI</code> object for putRangeFromURL that specifies the source URI.
      * @param sourceRange
@@ -1015,8 +1011,8 @@ final class FileRequest {
      * @throws IllegalArgumentException
      */
     public static HttpURLConnection putRangeFromURL(final URI uri, final FileRequestOptions fileOptions,
-            final OperationContext opContext, final AccessCondition accessCondition, final FileRange range,
-            final URI sourceUri, final FileRange sourceRange) throws IOException, URISyntaxException, StorageException {
+            final OperationContext opContext, final FileRange range, final URI sourceUri, final FileRange sourceRange)
+            throws IOException, URISyntaxException, StorageException {
         final UriQueryBuilder builder = new UriQueryBuilder();
         builder.add(Constants.QueryConstants.COMPONENT, RANGE_QUERY_ELEMENT_NAME);
 
@@ -1033,10 +1029,6 @@ final class FileRequest {
         request.setRequestProperty(Constants.HeaderConstants.COPY_SOURCE, sourceUri.toString());
 
         request.setRequestProperty(Constants.HeaderConstants.STORAGE_SOURCE_RANGE_HEADER, sourceRange.toString());
-
-        if (accessCondition != null) {
-            accessCondition.applyConditionToRequest(request);
-        }
 
         return request;
     }
