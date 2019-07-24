@@ -92,7 +92,7 @@ public final class CloudFileDirectory implements ListFileItem {
     /**
      * Represents the file permission for this directory.
      */
-    private String filePermissionToSet;
+    private String filePermission;
     
     /**
      * Creates an instance of the <code>CloudFileDirectory</code> class using an absolute URI to the directory.
@@ -225,7 +225,7 @@ public final class CloudFileDirectory implements ListFileItem {
                     OperationContext context) throws Exception {
                 final HttpURLConnection request = FileRequest.createDirectory(
                         directory.getTransformedAddress().getUri(this.getCurrentLocation()), options, context,
-                        directory.properties, directory.filePermissionToSet);
+                        directory.properties, directory.filePermission);
                 return request;
             }
             
@@ -251,7 +251,9 @@ public final class CloudFileDirectory implements ListFileItem {
                 // Set attributes
                 final FileDirectoryAttributes attributes = FileResponse
                         .getFileDirectoryAttributes(this.getConnection(), client.isUsePathStyleUris());
+                // Update the file SMB properties to be the file SMB properties returned in the HTTP response
                 FileResponse.updateDirectorySMBProperties(this.getConnection(), attributes.getProperties());
+                directory.filePermission = null;
                 directory.setProperties(attributes.getProperties());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
                 return null;
@@ -724,7 +726,7 @@ public final class CloudFileDirectory implements ListFileItem {
                     public HttpURLConnection buildRequest(
                             CloudFileClient client, CloudFileDirectory directory, OperationContext context) throws Exception {
                         return FileRequest.setDirectoryProperties(directory.getTransformedAddress().getUri(this.getCurrentLocation()),
-                                options, context, accessCondition, directory.properties, directory.filePermissionToSet);
+                                options, context, accessCondition, directory.properties, directory.filePermission);
                     }
 
                     @Override
@@ -740,7 +742,9 @@ public final class CloudFileDirectory implements ListFileItem {
                             this.setNonExceptionedRetryableFailure(true);
                             return null;
                         }
+                        // Update the file SMB properties to be the file SMB properties returned in the HTTP response
                         FileResponse.updateDirectorySMBProperties(this.getConnection(), directory.properties);
+                        directory.filePermission = null;
                         this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
                         return null;
                     }
@@ -827,6 +831,7 @@ public final class CloudFileDirectory implements ListFileItem {
                 final FileDirectoryAttributes attributes =
                         FileResponse.getFileDirectoryAttributes(this.getConnection(), client.isUsePathStyleUris());
                 directory.setMetadata(attributes.getMetadata());
+                // Update the file SMB properties to be the file SMB properties returned in the HTTP response
                 FileResponse.updateDirectorySMBProperties(this.getConnection(), attributes.getProperties());
                 directory.setProperties(attributes.getProperties());
                 return null;
@@ -1476,8 +1481,8 @@ public final class CloudFileDirectory implements ListFileItem {
      *
      * @return A <code>String</code> object that represents the file permission of the directory.
      */
-    public final String getFilePermissionToSet() {
-        return this.filePermissionToSet;
+    public final String getFilePermission() {
+        return this.filePermission;
     }
 
     /**
@@ -1603,12 +1608,12 @@ public final class CloudFileDirectory implements ListFileItem {
 
     /**
      * Sets the directory's file permission
-     * @param filePermissionToSet
+     * @param filePermission
      *          A <code>String</code> that represents the directory's file permission.
      */
-    public void setFilePermissionToSet(String filePermissionToSet) {
-        Utility.assertInBounds("filePermissionToSet", filePermissionToSet.getBytes().length, 0, 8*Constants.KB);
-        this.filePermissionToSet = filePermissionToSet;
+    public void setFilePermission(String filePermission) {
+        Utility.assertInBounds("filePermission", filePermission.getBytes().length, 0, 8*Constants.KB);
+        this.filePermission = filePermission;
     }
 
     /**
@@ -1673,11 +1678,11 @@ public final class CloudFileDirectory implements ListFileItem {
     }
 
     /**
-     * Verifies that the directory's filePermissionToSet and properties.FilePermissionKey are both not set.
+     * Verifies that the directory's filePermission and properties.filePermissionKey are both not set.
      */
     protected void assertValidFilePermissionOrKey() {
-        if (this.getFilePermissionToSet() != null && this.properties != null && this.properties.getFilePermissionKeyToSet() != null) {
-            throw new IllegalArgumentException(SR.FILE_PERMISSION_FILE_PERMISSION_KEY_NOT_SET);
+        if (this.getFilePermission() != null && this.properties != null && this.properties.filePermissionKeyToSet != null) {
+            throw new IllegalArgumentException(SR.FILE_PERMISSION_FILE_PERMISSION_KEY_INVALID);
         }
     }
 }

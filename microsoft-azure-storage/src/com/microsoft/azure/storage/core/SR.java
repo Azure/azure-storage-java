@@ -81,7 +81,7 @@ public class SR {
     public static final String FILE_ENDPOINT_NOT_CONFIGURED = "No file endpoint configured.";
     public static final String FILE_HASH_MISMATCH = "File hash mismatch (integrity check failed), Expected value is %s, retrieved %s.";
     public static final String FILE_MD5_NOT_POSSIBLE = "MD5 cannot be calculated for an existing file because it would require reading the existing data. Please disable StoreFileContentMD5.";
-    public static final String FILE_PERMISSION_FILE_PERMISSION_KEY_NOT_SET = "File permission and file permission key cannot both be set";
+    public static final String FILE_PERMISSION_FILE_PERMISSION_KEY_INVALID = "File permission and file permission key cannot both be set";
     public static final String INCORRECT_STREAM_LENGTH = "An incorrect stream length was specified, resulting in an authentication failure. Please specify correct length, or -1.";
     public static final String INPUT_STREAM_SHOULD_BE_MARKABLE = "Input stream must be markable.";
     public static final String INVALID_ACCOUNT_NAME = "Invalid account name.";

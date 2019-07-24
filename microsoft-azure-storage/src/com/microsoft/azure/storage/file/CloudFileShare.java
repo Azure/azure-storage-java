@@ -28,6 +28,8 @@ import java.security.InvalidKeyException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -1423,11 +1425,41 @@ public final class CloudFileShare {
         }
     }
 
+    /**
+     * Creates a file permission.
+     *
+     * @param permission
+     *            A <code>String</code> object that represents the file permission to create.
+     * @return
+     *      The <code>String</code> representing the file permission key associated with the file permission created.
+     *
+     * @throws StorageException
+     * @throws IOException
+     */
     @DoesServiceRequest
     public String createFilePermission(String permission) throws StorageException, IOException {
         return this.createFilePermission(permission, null /* options */, null /* opContext */);
     }
 
+    /**
+     * Creates a file permission.
+     *
+     * @param permission
+     *            A <code>String</code> object that represents the file permission to create.
+     * @param options
+     *            A {@link FileRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudFileClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @return
+     *      The <code>String</code> representing the file permission key associated with the file permission created.
+     *
+     * @throws StorageException
+     * @throws IOException
+     */
     @DoesServiceRequest
     public String createFilePermission(String permission, FileRequestOptions options, OperationContext opContext)
             throws StorageException, IOException {
@@ -1441,10 +1473,11 @@ public final class CloudFileShare {
         opContext.initialize();
         options = FileRequestOptions.populateAndApplyDefaults(options, this.fileServiceClient);
 
-        FilePermission fp = new FilePermission(permission);
+        StringBuilder jsonPermission = new StringBuilder();
+        jsonPermission.append("{\"permission\": \"").append(permission).append("\"}");
 
         return ExecutionEngine.executeWithRetry(this.fileServiceClient, this,
-                createFilePermissionImpl(fp.toJSON(), options), options.getRetryPolicyFactory(),
+                createFilePermissionImpl(jsonPermission.toString(), options), options.getRetryPolicyFactory(),
                 opContext);
     }
 
@@ -1475,17 +1508,45 @@ public final class CloudFileShare {
                         if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_CREATED) {
                             this.setNonExceptionedRetryableFailure(true);
                         }
-                        return this.getConnection().getHeaderField(Constants.HeaderConstants.FILE_PERMISSION_KEY);
+                        return this.getConnection().getHeaderField(FileConstants.FILE_PERMISSION_KEY);
                     }
                 };
 
         return putRequest;
     }
 
+    /**
+     * Gets the file permission associated with a file permission key.
+     *
+     * @param filePermissionKey
+     *            A <code>String</code> object that represents the file permission key.
+     * @return
+     *      The <code>String</code> representing the file permission associated with the file permission key.
+     *
+     * @throws StorageException
+     */
     public String getFilePermission(String filePermissionKey) throws StorageException {
         return this.getFilePermission(filePermissionKey, null /* options */, null /* opContext */);
     }
 
+    /**
+     * Gets the file permission associated with a file permission key.
+     *
+     * @param filePermissionKey
+     *            A <code>String</code> object that represents the file permission key.
+     * @param options
+     *            A {@link FileRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudFileClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @return
+     *      The <code>String</code> representing the file permission associated with the file permission key.
+     *
+     * @throws StorageException
+     */
     public String getFilePermission(String filePermissionKey, FileRequestOptions options, OperationContext opContext)
             throws StorageException {
         Utility.assertNotNullOrEmpty("filePermissionKey", filePermissionKey);
@@ -1534,10 +1595,17 @@ public final class CloudFileShare {
                         while ((output = br.readLine()) != null) {
                             sb.append(output);
                         }
-                        FilePermission fp = new FilePermission();
-                        fp.fromJSON(sb.toString());
-
-                        return fp.getPermission();
+                        // Find permission json component
+                        Pattern p = Pattern.compile("(?:\"permission\":\")(.*?)(?:\")");
+                        Matcher m = p.matcher(sb.toString());
+                        String permission = null;
+                        if (m.find()) {
+                            // Extract value from key-value pair
+                            String[] extractedData = m.group().split("\"permission\":");
+                            // Shave off quotation marks from json formatted String
+                            permission = extractedData[1].substring(1, extractedData[1].length()-1);
+                        }
+                        return permission;
                     }
                 };
 

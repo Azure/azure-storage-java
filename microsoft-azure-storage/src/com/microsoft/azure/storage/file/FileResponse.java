@@ -132,25 +132,20 @@ final class FileResponse extends BaseResponse {
     }
 
     public static void updateDirectorySMBProperties(final HttpURLConnection request, FileDirectoryProperties properties) {
-
         // Set all SMB properties that come back from the service
-        properties.setFilePermissionKey(request.getHeaderField(Constants.HeaderConstants.FILE_PERMISSION_KEY));
-        properties.setNtfsAttributes(NtfsAttributesParser.toAttributes(request.getHeaderField(Constants.HeaderConstants.FILE_ATTRIBUTES)));
-        properties.setCreationTime(request.getHeaderField(Constants.HeaderConstants.FILE_CREATION_TIME));
-        properties.setLastWriteTime(request.getHeaderField(Constants.HeaderConstants.FILE_LAST_WRITE_TIME));
-        properties.setChangeTime(request.getHeaderField(Constants.HeaderConstants.FILE_CHANGE_TIME));
-        if (request.getHeaderField(Constants.HeaderConstants.FILE_ID) != null) {
-            properties.setFileId(request.getHeaderField(Constants.HeaderConstants.FILE_ID));
-        }
-        if (request.getHeaderField(Constants.HeaderConstants.FILE_PARENT_ID) != null) {
-            properties.setParentId(request.getHeaderField(Constants.HeaderConstants.FILE_PARENT_ID));
-        }
+        properties.filePermissionKey = request.getHeaderField(FileConstants.FILE_PERMISSION_KEY);
+        properties.ntfsAttributes = NtfsAttributesParser.toAttributes(request.getHeaderField(FileConstants.FILE_ATTRIBUTES));
+        properties.creationTime = request.getHeaderField(FileConstants.FILE_CREATION_TIME);
+        properties.lastWriteTime = request.getHeaderField(FileConstants.FILE_LAST_WRITE_TIME);
+        properties.setChangeTime(request.getHeaderField(FileConstants.FILE_CHANGE_TIME));
+        properties.setFileId(request.getHeaderField(FileConstants.FILE_ID));
+        properties.setParentId(request.getHeaderField(FileConstants.FILE_PARENT_ID));
 
         // Nullify all the to set SMB properties
-        properties.setFilePermissionKeyToSet(null);
-        properties.setNtfsAttributesToSet(null);
-        properties.setCreationTimeToSet(null);
-        properties.setLastWriteTimeToSet(null);
+        properties.filePermissionKeyToSet = null;
+        properties.ntfsAttributesToSet = null;
+        properties.creationTimeToSet = null;
+        properties.lastWriteTimeToSet = null;
     }
 
     /**
@@ -220,25 +215,20 @@ final class FileResponse extends BaseResponse {
     }
 
     public static void updateFileSMBProperties(final HttpURLConnection request, FileProperties properties) {
-
         // Set all SMB properties that come back from the service
-        properties.setFilePermissionKey(request.getHeaderField(Constants.HeaderConstants.FILE_PERMISSION_KEY));
-        properties.setNtfsAttributes(NtfsAttributesParser.toAttributes(request.getHeaderField(Constants.HeaderConstants.FILE_ATTRIBUTES)));
-        properties.setCreationTime(request.getHeaderField(Constants.HeaderConstants.FILE_CREATION_TIME));
-        properties.setLastWriteTime(request.getHeaderField(Constants.HeaderConstants.FILE_LAST_WRITE_TIME));
-        properties.setChangeTime(request.getHeaderField(Constants.HeaderConstants.FILE_CHANGE_TIME));
-        if (request.getHeaderField(Constants.HeaderConstants.FILE_ID) != null) {
-            properties.setFileId(request.getHeaderField(Constants.HeaderConstants.FILE_ID));
-        }
-        if (request.getHeaderField(Constants.HeaderConstants.FILE_PARENT_ID) != null) {
-            properties.setParentId(request.getHeaderField(Constants.HeaderConstants.FILE_PARENT_ID));
-        }
+        properties.filePermissionKey = request.getHeaderField(FileConstants.FILE_PERMISSION_KEY);
+        properties.ntfsAttributes = NtfsAttributesParser.toAttributes(request.getHeaderField(FileConstants.FILE_ATTRIBUTES));
+        properties.creationTime = request.getHeaderField(FileConstants.FILE_CREATION_TIME);
+        properties.lastWriteTime = request.getHeaderField(FileConstants.FILE_LAST_WRITE_TIME);
+        properties.setChangeTime(request.getHeaderField(FileConstants.FILE_CHANGE_TIME));
+        properties.setFileId(request.getHeaderField(FileConstants.FILE_ID));
+        properties.setParentId(request.getHeaderField(FileConstants.FILE_PARENT_ID));
 
         // Nullify all the to set SMB properties
-        properties.setFilePermissionKeyToSet(null);
-        properties.setNtfsAttributesToSet(null);
-        properties.setCreationTimeToSet(null);
-        properties.setLastWriteTimeToSet(null);
+        properties.filePermissionKeyToSet = null;
+        properties.ntfsAttributesToSet = null;
+        properties.creationTimeToSet = null;
+        properties.lastWriteTimeToSet = null;
     }
 
     /**

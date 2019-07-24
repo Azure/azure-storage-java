@@ -917,10 +917,10 @@ public class CloudFileDirectoryTests {
         assertNotNull(dir.getProperties().getFileId());
         assertNotNull(dir.getProperties().getParentId());
 
-        assertNull(dir.getProperties().getFilePermissionKeyToSet());
-        assertNull(dir.getProperties().getNtfsAttributesToSet());
-        assertNull(dir.getProperties().getCreationTimeToSet());
-        assertNull(dir.getProperties().getLastWriteTimeToSet());
+        assertNull(dir.getProperties().filePermissionKeyToSet);
+        assertNull(dir.getProperties().ntfsAttributesToSet);
+        assertNull(dir.getProperties().creationTimeToSet);
+        assertNull(dir.getProperties().lastWriteTimeToSet);
 
         dir.delete();
     }
@@ -944,10 +944,10 @@ public class CloudFileDirectoryTests {
         String filePermissionKey = this.share.createFilePermission(permission);
 
         // set SMB properties
-        dir.getProperties().setFilePermissionKeyToSet(filePermissionKey);
-        dir.getProperties().setNtfsAttributesToSet(EnumSet.of(NtfsAttributes.DIRECTORY));
-        dir.getProperties().setCreationTimeToSet("2019-07-18T17:37:25.4006072Z");
-        dir.getProperties().setLastWriteTimeToSet("2019-07-18T17:37:25.4006072Z");
+        dir.getProperties().setFilePermissionKey(filePermissionKey);
+        dir.getProperties().setNtfsAttributes(EnumSet.of(NtfsAttributes.DIRECTORY));
+        dir.getProperties().setCreationTime("2019-07-18T17:37:25.4006072Z");
+        dir.getProperties().setLastWriteTime("2019-07-18T17:37:25.4006072Z");
 
         FileDirectoryProperties props1 = dir.getProperties();
         dir.uploadProperties();
@@ -969,10 +969,10 @@ public class CloudFileDirectoryTests {
         String permission = "O:S-1-5-21-2127521184-1604012920-1887927527-21560751G:S-1-5-21-2127521184-1604012920-1887927527-513D:AI(A;;FA;;;SY)(A;;FA;;;BA)(A;;0x1200a9;;;S-1-5-21-397955417-626881126-188441444-3053964)S:NO_ACCESS_CONTROL";
 
         // set SMB properties
-        dir.setFilePermissionToSet(permission);
-        dir.getProperties().setNtfsAttributesToSet(EnumSet.of(NtfsAttributes.DIRECTORY));
-        dir.getProperties().setCreationTimeToSet("2019-07-18T17:37:25.4006072Z");
-        dir.getProperties().setLastWriteTimeToSet("2019-07-18T17:37:25.4006072Z");
+        dir.setFilePermission(permission);
+        dir.getProperties().setNtfsAttributes(EnumSet.of(NtfsAttributes.DIRECTORY));
+        dir.getProperties().setCreationTime("2019-07-18T17:37:25.4006072Z");
+        dir.getProperties().setLastWriteTime("2019-07-18T17:37:25.4006072Z");
 
         FileDirectoryProperties props1 = dir.getProperties();
         dir.uploadProperties();
@@ -982,6 +982,4 @@ public class CloudFileDirectoryTests {
 
         FileTestHelper.assertSMBAreEqual(props1, props2, false);
     }
-
-
 }

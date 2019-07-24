@@ -14,6 +14,7 @@
  */
 package com.microsoft.azure.storage.file;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
@@ -123,16 +124,40 @@ final class FileRequest {
         BaseRequest.addOptionalHeader(request, FileConstants.CONTENT_TYPE_HEADER, properties.getContentType());
     }
 
+    /**
+     * Adds either a file permission or file permission key.
+     *
+     * @param request
+     *            The request
+     * @param filePermissionKey
+     *            The file permission key
+     * @param filePermission
+     *            The file permission
+     * @param defaultFilePermission
+     *            The default file permission
+     */
     private static void addFilePermissionOrFilePermissionKey(final HttpURLConnection request, String filePermissionKey, String filePermission, String defaultFilePermission) {
         if (filePermission == null && filePermissionKey == null) {
-            request.setRequestProperty(Constants.HeaderConstants.FILE_PERMISSION, defaultFilePermission);
+            request.setRequestProperty(FileConstants.FILE_PERMISSION, defaultFilePermission);
         } else if (filePermission != null) {
-            request.setRequestProperty(Constants.HeaderConstants.FILE_PERMISSION, filePermission);
+            request.setRequestProperty(FileConstants.FILE_PERMISSION, filePermission);
         } else {
-            request.setRequestProperty(Constants.HeaderConstants.FILE_PERMISSION_KEY, filePermissionKey);
+            request.setRequestProperty(FileConstants.FILE_PERMISSION_KEY, filePermissionKey);
         }
     }
 
+    /**
+     * Sets the header value or a default header value.
+     *
+     * @param request
+     *            The request
+     * @param headerKey
+     *            The header key
+     * @param value
+     *            The header value
+     * @param defaultValue
+     *            The default header value
+     */
     private static void setHeaderValueOrDefault(final HttpURLConnection request, String headerKey, String value, String defaultValue) {
         if (value != null && !value.equals(Constants.EMPTY_STRING)) {
             request.setRequestProperty(headerKey, value);
@@ -770,8 +795,11 @@ final class FileRequest {
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
      * @param properties
+     *            A {@link FileDirectoryProperties} object that specifies the file directory properties of the directory to create.
      * @param filePermission
+     *            A {@link String} representing the file permission of the directory to create.
      * @return a HttpURLConnection configured for the operation.
+     *
      * @throws StorageException
      * @throws IllegalArgumentException
      */
@@ -781,10 +809,10 @@ final class FileRequest {
         HttpURLConnection request = BaseRequest.create(uri, fileOptions, directoryBuilder, opContext);
 
         if (properties != null) {
-            addFilePermissionOrFilePermissionKey(request, properties.getFilePermissionKeyToSet(), filePermission, Constants.HeaderConstants.FILE_PERMISSION_INHERIT);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.getNtfsAttributesToSet()), Constants.HeaderConstants.FILE_ATTRIBUTES_NONE);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTimeToSet(), Constants.HeaderConstants.FILE_TIME_NOW);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTimeToSet(), Constants.HeaderConstants.FILE_TIME_NOW);
+            addFilePermissionOrFilePermissionKey(request, properties.filePermissionKeyToSet, filePermission, FileConstants.FILE_PERMISSION_INHERIT);
+            setHeaderValueOrDefault(request, FileConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.ntfsAttributesToSet), FileConstants.FILE_ATTRIBUTES_NONE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_CREATION_TIME, properties.creationTimeToSet, FileConstants.FILE_TIME_NOW);
+            setHeaderValueOrDefault(request, FileConstants.FILE_LAST_WRITE_TIME, properties.lastWriteTimeToSet, FileConstants.FILE_TIME_NOW);
         }
 
         return request;
@@ -944,10 +972,10 @@ final class FileRequest {
 
         if (properties != null) {
             addProperties(request, properties);
-            addFilePermissionOrFilePermissionKey(request, properties.getFilePermissionKeyToSet(), filePermission, Constants.HeaderConstants.FILE_PERMISSION_INHERIT);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.getNtfsAttributesToSet()), Constants.HeaderConstants.FILE_ATTRIBUTES_NONE);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTimeToSet(), Constants.HeaderConstants.FILE_TIME_NOW);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTimeToSet(), Constants.HeaderConstants.FILE_TIME_NOW);
+            addFilePermissionOrFilePermissionKey(request, properties.filePermissionKeyToSet, filePermission, FileConstants.FILE_PERMISSION_INHERIT);
+            setHeaderValueOrDefault(request, FileConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.ntfsAttributesToSet), FileConstants.FILE_ATTRIBUTES_NONE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_CREATION_TIME, properties.creationTimeToSet, FileConstants.FILE_TIME_NOW);
+            setHeaderValueOrDefault(request, FileConstants.FILE_LAST_WRITE_TIME, properties.lastWriteTimeToSet, FileConstants.FILE_TIME_NOW);
         }
 
         request.setFixedLengthStreamingMode(0);
@@ -1350,16 +1378,16 @@ final class FileRequest {
 
         if (properties != null) {
             addProperties(request, properties);
-            addFilePermissionOrFilePermissionKey(request, properties.getFilePermissionKeyToSet(), filePermission, Constants.HeaderConstants.PRESERVE);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.getNtfsAttributesToSet()), Constants.HeaderConstants.PRESERVE);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTimeToSet(), Constants.HeaderConstants.PRESERVE);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTimeToSet(), Constants.HeaderConstants.PRESERVE);
+            addFilePermissionOrFilePermissionKey(request, properties.filePermissionKeyToSet, filePermission, FileConstants.PRESERVE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.ntfsAttributesToSet), FileConstants.PRESERVE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_CREATION_TIME, properties.creationTimeToSet, FileConstants.PRESERVE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_LAST_WRITE_TIME, properties.lastWriteTimeToSet, FileConstants.PRESERVE);
         } else {
             // Deals with resize API
-            request.setRequestProperty(Constants.HeaderConstants.FILE_PERMISSION, Constants.HeaderConstants.PRESERVE);
-            request.setRequestProperty(Constants.HeaderConstants.FILE_ATTRIBUTES, Constants.HeaderConstants.PRESERVE);
-            request.setRequestProperty(Constants.HeaderConstants.FILE_CREATION_TIME, Constants.HeaderConstants.PRESERVE);
-            request.setRequestProperty(Constants.HeaderConstants.FILE_LAST_WRITE_TIME, Constants.HeaderConstants.PRESERVE);
+            request.setRequestProperty(FileConstants.FILE_PERMISSION, FileConstants.PRESERVE);
+            request.setRequestProperty(FileConstants.FILE_ATTRIBUTES, FileConstants.PRESERVE);
+            request.setRequestProperty(FileConstants.FILE_CREATION_TIME, FileConstants.PRESERVE);
+            request.setRequestProperty(FileConstants.FILE_LAST_WRITE_TIME, FileConstants.PRESERVE);
         }
 
         return request;
@@ -1459,7 +1487,7 @@ final class FileRequest {
 
         final HttpURLConnection request = BaseRequest.createURLConnection(uri, fileOptions, builder, opContext);
 
-        request.setRequestProperty(Constants.HeaderConstants.FILE_PERMISSION_KEY, filePermissionKey);
+        request.setRequestProperty(FileConstants.FILE_PERMISSION_KEY, filePermissionKey);
 
         request.setRequestMethod(Constants.HTTP_GET);
 
@@ -1483,10 +1511,10 @@ final class FileRequest {
         }
 
         if (properties != null) {
-            addFilePermissionOrFilePermissionKey(request, properties.getFilePermissionKeyToSet(), filePermission, Constants.HeaderConstants.PRESERVE);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.getNtfsAttributesToSet()), Constants.HeaderConstants.PRESERVE);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_CREATION_TIME, properties.getCreationTimeToSet(), Constants.HeaderConstants.PRESERVE);
-            setHeaderValueOrDefault(request, Constants.HeaderConstants.FILE_LAST_WRITE_TIME, properties.getLastWriteTimeToSet(), Constants.HeaderConstants.PRESERVE);
+            addFilePermissionOrFilePermissionKey(request, properties.filePermissionKeyToSet, filePermission, FileConstants.PRESERVE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.ntfsAttributesToSet), FileConstants.PRESERVE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_CREATION_TIME, properties.creationTimeToSet, FileConstants.PRESERVE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_LAST_WRITE_TIME, properties.lastWriteTimeToSet, FileConstants.PRESERVE);
         }
 
         return request;

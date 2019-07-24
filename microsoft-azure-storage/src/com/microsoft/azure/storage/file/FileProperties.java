@@ -85,44 +85,44 @@ public final class FileProperties {
     /**
      * Represents the file's permission key.
      */
-    private String filePermissionKey;
+    String filePermissionKey;
 
     /**
      * Represents the file's permission key to be set.
      */
-    private String filePermissionKeyToSet;
+    String filePermissionKeyToSet;
 
     /**
      * Represents the file system attributes for files and directories.
      * If not set, indicates preservation of existing values.
      */
-    private EnumSet<NtfsAttributes> ntfsAttributes;
+    EnumSet<NtfsAttributes> ntfsAttributes;
 
     /**
      * Represents the file system attributes for files and directories to be set.
      * If not set, indicates preservation of existing values.
      */
-    private EnumSet<NtfsAttributes> ntfsAttributesToSet;
+    EnumSet<NtfsAttributes> ntfsAttributesToSet;
 
     /**
      * Represents the creation time for the file.
      */
-    private String creationTime;
+    String creationTime;
 
     /**
      * Represents the creation time for the file to be set.
      */
-    private String creationTimeToSet;
+    String creationTimeToSet;
 
     /**
      * Represents the last-write time for the file.
      */
-    private String lastWriteTime;
+    String lastWriteTime;
 
     /**
      * Represents the last-write time for the file to set.
      */
-    private String lastWriteTimeToSet;
+    String lastWriteTimeToSet;
 
     /**
      * Represents the change time for the file.
@@ -165,9 +165,13 @@ public final class FileProperties {
         this.lastModified = other.lastModified;
         this.serverEncrypted = other.serverEncrypted;
         this.filePermissionKey = other.filePermissionKey;
+        this.filePermissionKeyToSet = other.filePermissionKeyToSet;
         this.ntfsAttributes = other.ntfsAttributes;
+        this.ntfsAttributesToSet = other.ntfsAttributesToSet;
         this.creationTime = other.creationTime;
+        this.creationTimeToSet = other.creationTimeToSet;
         this.lastWriteTime = other.lastWriteTime;
+        this.lastWriteTimeToSet = other.lastWriteTimeToSet;
     }
 
     /**
@@ -286,16 +290,7 @@ public final class FileProperties {
      * @return A <code>String</code> which specifies the file's permission key.
      */
     public String getFilePermissionKey() {
-        return this.filePermissionKey;
-    }
-
-    /**
-     * Gets the file's permission key to be set.
-     *
-     * @return A <code>String</code> which specifies the file's permission key to be set.
-     */
-    public String getFilePermissionKeyToSet() {
-        return this.filePermissionKeyToSet;
+        return this.filePermissionKeyToSet == null ? this.filePermissionKey : this.filePermissionKeyToSet;
     }
 
     /**
@@ -305,18 +300,9 @@ public final class FileProperties {
      * @return A {@link NtfsAttributes} object which represents the file system attributes.
      */
     public EnumSet<NtfsAttributes> getNtfsAttributes() {
-        return this.ntfsAttributes;
+        return this.ntfsAttributesToSet == null ? this.ntfsAttributes : this.ntfsAttributesToSet;
     }
 
-    /**
-     * Gets the file system attributes to set for files and directories.
-     * If not set, indicates preservation of existing values.
-     *
-     * @return A {@link NtfsAttributes} object which represents the file system attributes to set.
-     */
-    public EnumSet<NtfsAttributes> getNtfsAttributesToSet() {
-        return this.ntfsAttributesToSet;
-    }
 
     /**
      * Gets the creation time for the file.
@@ -324,16 +310,7 @@ public final class FileProperties {
      * @return A <code>String</code> object which represents the creation time.
      */
     public String getCreationTime() {
-        return this.creationTime;
-    }
-
-    /**
-     * Gets the creation time to set for the file.
-     *
-     * @return A <code>String</code> object which represents the creation time to set.
-     */
-    public String getCreationTimeToSet() {
-        return this.creationTimeToSet;
+        return this.creationTimeToSet == null ? this.creationTime : this.creationTimeToSet;
     }
 
     /**
@@ -342,17 +319,9 @@ public final class FileProperties {
      * @return A <code>String</code> object which represents the last write time.
      */
     public String getLastWriteTime() {
-        return this.lastWriteTime;
+        return this.lastWriteTimeToSet == null ? this.lastWriteTime : this.lastWriteTimeToSet;
     }
 
-    /**
-     * Gets the last write time to set for the file.
-     *
-     * @return A <code>String</code> object which represents the last write time to set.
-     */
-    public String getLastWriteTimeToSet() {
-        return this.lastWriteTimeToSet;
-    }
 
     /**
      * Gets the change time for the file.
@@ -497,18 +466,8 @@ public final class FileProperties {
      * @param filePermissionKey
      *        A <code>String</code> which specifies the file permission key to set.
      */
-    protected void setFilePermissionKey(String filePermissionKey) {
-        this.filePermissionKey = filePermissionKey;
-    }
-
-    /**
-     * Sets the file's permission key to set.
-     *
-     * @param filePermissionKeyToSet
-     *        A <code>String</code> which specifies the file permission key to set to set.
-     */
-    public void setFilePermissionKeyToSet(String filePermissionKeyToSet) {
-        this.filePermissionKeyToSet = filePermissionKeyToSet;
+    public void setFilePermissionKey(String filePermissionKey) {
+        this.filePermissionKeyToSet = filePermissionKey;
     }
 
     /**
@@ -518,19 +477,8 @@ public final class FileProperties {
      * @param ntfsAttributes
      *        A {@link NtfsAttributes} which specifies the file system attributes to set.
      */
-    protected void setNtfsAttributes(EnumSet<NtfsAttributes> ntfsAttributes) {
-        this.ntfsAttributes = ntfsAttributes;
-    }
-
-    /**
-     * Sets the file system attributes to set for files and directories.
-     * If not set, indicates preservation of existing values.
-     *
-     * @param ntfsAttributesToSet
-     *        A {@link NtfsAttributes} which specifies the file system attributes to set to set.
-     */
-    public void setNtfsAttributesToSet(EnumSet<NtfsAttributes> ntfsAttributesToSet) {
-        this.ntfsAttributesToSet = ntfsAttributesToSet;
+    public void setNtfsAttributes(EnumSet<NtfsAttributes> ntfsAttributes) {
+        this.ntfsAttributesToSet = ntfsAttributes;
     }
 
     /**
@@ -539,18 +487,8 @@ public final class FileProperties {
      * @param creationTime
      *            A <code>String</code> object which specifies the creation time to set.
      */
-    protected void setCreationTime(String creationTime) {
-        this.creationTime = creationTime;
-    }
-
-    /**
-     * Sets the creation time to set for the file.
-     *
-     * @param creationTimeToSet
-     *            A <code>String</code> object which specifies the creation time to set to set.
-     */
-    public void setCreationTimeToSet(String creationTimeToSet) {
-        this.creationTimeToSet = creationTimeToSet;
+    public void setCreationTime(String creationTime) {
+        this.creationTimeToSet = creationTime;
     }
 
     /**
@@ -560,17 +498,7 @@ public final class FileProperties {
      *            A <code>String</code> object which specifies the last write time to set.
      */
     protected void setLastWriteTime(String lastWriteTime) {
-        this.lastWriteTime = lastWriteTime;
-    }
-
-    /**
-     * Sets the last write time to set for the file.
-     *
-     * @param lastWriteTimeToSet
-     *            A <code>String</code> object which specifies the last write time to set to set.
-     */
-    public void setLastWriteTimeToSet(String lastWriteTimeToSet) {
-        this.lastWriteTimeToSet = lastWriteTimeToSet;
+        this.lastWriteTimeToSet = lastWriteTime;
     }
 
     /**
