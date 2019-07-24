@@ -810,7 +810,7 @@ final class FileRequest {
 
         if (properties != null) {
             addFilePermissionOrFilePermissionKey(request, properties.filePermissionKeyToSet, filePermission, FileConstants.FILE_PERMISSION_INHERIT);
-            setHeaderValueOrDefault(request, FileConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.ntfsAttributesToSet), FileConstants.FILE_ATTRIBUTES_NONE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_ATTRIBUTES, NtfsAttributes.toString(properties.ntfsAttributesToSet), FileConstants.FILE_ATTRIBUTES_NONE);
             setHeaderValueOrDefault(request, FileConstants.FILE_CREATION_TIME, properties.creationTimeToSet, FileConstants.FILE_TIME_NOW);
             setHeaderValueOrDefault(request, FileConstants.FILE_LAST_WRITE_TIME, properties.lastWriteTimeToSet, FileConstants.FILE_TIME_NOW);
         }
@@ -973,7 +973,7 @@ final class FileRequest {
         if (properties != null) {
             addProperties(request, properties);
             addFilePermissionOrFilePermissionKey(request, properties.filePermissionKeyToSet, filePermission, FileConstants.FILE_PERMISSION_INHERIT);
-            setHeaderValueOrDefault(request, FileConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.ntfsAttributesToSet), FileConstants.FILE_ATTRIBUTES_NONE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_ATTRIBUTES, NtfsAttributes.toString(properties.ntfsAttributesToSet), FileConstants.FILE_ATTRIBUTES_NONE);
             setHeaderValueOrDefault(request, FileConstants.FILE_CREATION_TIME, properties.creationTimeToSet, FileConstants.FILE_TIME_NOW);
             setHeaderValueOrDefault(request, FileConstants.FILE_LAST_WRITE_TIME, properties.lastWriteTimeToSet, FileConstants.FILE_TIME_NOW);
         }
@@ -1379,7 +1379,7 @@ final class FileRequest {
         if (properties != null) {
             addProperties(request, properties);
             addFilePermissionOrFilePermissionKey(request, properties.filePermissionKeyToSet, filePermission, FileConstants.PRESERVE);
-            setHeaderValueOrDefault(request, FileConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.ntfsAttributesToSet), FileConstants.PRESERVE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_ATTRIBUTES, NtfsAttributes.toString(properties.ntfsAttributesToSet), FileConstants.PRESERVE);
             setHeaderValueOrDefault(request, FileConstants.FILE_CREATION_TIME, properties.creationTimeToSet, FileConstants.PRESERVE);
             setHeaderValueOrDefault(request, FileConstants.FILE_LAST_WRITE_TIME, properties.lastWriteTimeToSet, FileConstants.PRESERVE);
         } else {
@@ -1512,7 +1512,7 @@ final class FileRequest {
 
         if (properties != null) {
             addFilePermissionOrFilePermissionKey(request, properties.filePermissionKeyToSet, filePermission, FileConstants.PRESERVE);
-            setHeaderValueOrDefault(request, FileConstants.FILE_ATTRIBUTES, NtfsAttributesParser.toString(properties.ntfsAttributesToSet), FileConstants.PRESERVE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_ATTRIBUTES, NtfsAttributes.toString(properties.ntfsAttributesToSet), FileConstants.PRESERVE);
             setHeaderValueOrDefault(request, FileConstants.FILE_CREATION_TIME, properties.creationTimeToSet, FileConstants.PRESERVE);
             setHeaderValueOrDefault(request, FileConstants.FILE_LAST_WRITE_TIME, properties.lastWriteTimeToSet, FileConstants.PRESERVE);
         }

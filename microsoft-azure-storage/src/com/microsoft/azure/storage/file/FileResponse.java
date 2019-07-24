@@ -134,7 +134,7 @@ final class FileResponse extends BaseResponse {
     public static void updateDirectorySMBProperties(final HttpURLConnection request, FileDirectoryProperties properties) {
         // Set all SMB properties that come back from the service
         properties.filePermissionKey = request.getHeaderField(FileConstants.FILE_PERMISSION_KEY);
-        properties.ntfsAttributes = NtfsAttributesParser.toAttributes(request.getHeaderField(FileConstants.FILE_ATTRIBUTES));
+        properties.ntfsAttributes = NtfsAttributes.toAttributes(request.getHeaderField(FileConstants.FILE_ATTRIBUTES));
         properties.creationTime = request.getHeaderField(FileConstants.FILE_CREATION_TIME);
         properties.lastWriteTime = request.getHeaderField(FileConstants.FILE_LAST_WRITE_TIME);
         properties.setChangeTime(request.getHeaderField(FileConstants.FILE_CHANGE_TIME));
@@ -217,7 +217,7 @@ final class FileResponse extends BaseResponse {
     public static void updateFileSMBProperties(final HttpURLConnection request, FileProperties properties) {
         // Set all SMB properties that come back from the service
         properties.filePermissionKey = request.getHeaderField(FileConstants.FILE_PERMISSION_KEY);
-        properties.ntfsAttributes = NtfsAttributesParser.toAttributes(request.getHeaderField(FileConstants.FILE_ATTRIBUTES));
+        properties.ntfsAttributes = NtfsAttributes.toAttributes(request.getHeaderField(FileConstants.FILE_ATTRIBUTES));
         properties.creationTime = request.getHeaderField(FileConstants.FILE_CREATION_TIME);
         properties.lastWriteTime = request.getHeaderField(FileConstants.FILE_LAST_WRITE_TIME);
         properties.setChangeTime(request.getHeaderField(FileConstants.FILE_CHANGE_TIME));

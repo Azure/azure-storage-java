@@ -1926,14 +1926,14 @@ public class CloudFileTests {
     @Test
     public void testNtfsAttributesParserToString() {
         EnumSet<NtfsAttributes> test = EnumSet.of(NtfsAttributes.TEMPORARY, NtfsAttributes.ARCHIVE, NtfsAttributes.READ_ONLY);
-        String testString = NtfsAttributesParser.toString(test);
+        String testString = NtfsAttributes.toString(test);
         assertEquals(testString, "ReadOnly|Archive|Temporary");
     }
 
     @Test
     public void testNtfsAttributesParserToAttributes() {
         String testString = "System|NoScrubData|NotContentIndexed|Archive|Directory";
-        EnumSet<NtfsAttributes> test = NtfsAttributesParser.toAttributes(testString);
+        EnumSet<NtfsAttributes> test = NtfsAttributes.toAttributes(testString);
 
         assertTrue(test.contains(NtfsAttributes.SYSTEM));
         assertTrue(test.contains(NtfsAttributes.NO_SCRUB_DATA));

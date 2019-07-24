@@ -326,9 +326,8 @@ public class FileTestHelper extends TestHelper {
         if (permission != null) {
             file.getProperties().setFilePermissionKey(permission);
         }
-        //TODO: finsih this
-        file.getProperties().ntfsAttributesToSet = EnumSet.of(NtfsAttributes.NORMAL);
-        file.getProperties().creationTimeToSet = "2019-07-18T17:37:25.4006072Z";
-        file.getProperties().lastWriteTimeToSet = "2019-07-18T17:37:25.4006072Z";
+        file.getProperties().setNtfsAttributes(EnumSet.of(NtfsAttributes.NORMAL));
+        file.getProperties().setCreationTime("2019-07-18T17:37:25.4006072Z");
+        file.getProperties().setLastWriteTime("2019-07-18T17:37:25.4006072Z");
     }
 }
