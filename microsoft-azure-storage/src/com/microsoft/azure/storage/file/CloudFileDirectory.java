@@ -1477,15 +1477,6 @@ public final class CloudFileDirectory implements ListFileItem {
     }
 
     /**
-     * Returns the directory's file permission.
-     *
-     * @return A <code>String</code> object that represents the file permission of the directory.
-     */
-    public final String getFilePermission() {
-        return this.filePermission;
-    }
-
-    /**
      * Returns the File service client associated with this directory.
      * 
      * @return An {@link CloudFileClient} object that represents the service client associated with the directory.
@@ -1681,7 +1672,7 @@ public final class CloudFileDirectory implements ListFileItem {
      * Verifies that the directory's filePermission and properties.filePermissionKey are both not set.
      */
     protected void assertValidFilePermissionOrKey() {
-        if (this.getFilePermission() != null && this.properties != null && this.properties.filePermissionKeyToSet != null) {
+        if (this.filePermission != null && this.properties != null && this.properties.filePermissionKeyToSet != null) {
             throw new IllegalArgumentException(SR.FILE_PERMISSION_FILE_PERMISSION_KEY_INVALID);
         }
     }

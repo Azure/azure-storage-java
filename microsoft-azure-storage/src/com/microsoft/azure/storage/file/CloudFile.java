@@ -3344,15 +3344,6 @@ public final class CloudFile implements ListFileItem {
     }
 
     /**
-     * Returns the file's file permission.
-     *
-     * @return A <code>String</code> object that represents the file permission of the file.
-     */
-    public final String getFilePermission() {
-        return this.filePermission;
-    }
-
-    /**
      * Returns the URI for this file.
      *
      * @return A <code>java.net.URI</code> object that represents the URI for the file.
@@ -3471,7 +3462,7 @@ public final class CloudFile implements ListFileItem {
      * Verifies that the directory's filePermission and properties.filePermissionKey are both not set.
      */
     protected void assertValidFilePermissionOrKey() {
-        if (this.getFilePermission() != null && this.properties != null && this.properties.filePermissionKeyToSet != null) {
+        if (this.filePermission != null && this.properties != null && this.properties.filePermissionKeyToSet != null) {
             throw new IllegalArgumentException(SR.FILE_PERMISSION_FILE_PERMISSION_KEY_INVALID);
         }
     }
