@@ -1460,6 +1460,28 @@ final class FileRequest {
         // No op
     }
 
+    /**
+     * Creates a HttpURLConnection to create a file permission.
+     *
+     * @param uri
+     *            A <code>java.net.URI</code> object that specifies the absolute URI.
+     * @param fileOptions
+     *            A {@link FileRequestOptions} object that specifies execution options such as retry policy and timeout
+     *            settings for the operation. Specify <code>null</code> to use the request options specified on the
+     *            {@link CloudFileClient}.
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @return a HttpURLConnection to use to perform the operation.
+     * @throws IOException
+     *             if there is an error opening the connection
+     * @throws URISyntaxException
+     *             if the resource URI is invalid
+     * @throws StorageException
+     *             an exception representing any error which occurred during the operation.
+     * @throws IllegalArgumentException
+     */
     public static HttpURLConnection createFilePermission(final URI uri, final FileRequestOptions fileOptions,
             final OperationContext opContext) throws StorageException, IOException,
             URISyntaxException {
@@ -1478,6 +1500,28 @@ final class FileRequest {
         return request;
     }
 
+    /**
+     * Creates a HttpURLConnection to get a file permission associated with a file permission key.
+     *
+     * @param uri
+     *            A <code>java.net.URI</code> object that specifies the absolute URI.
+     * @param fileOptions
+     *            A {@link FileRequestOptions} object that specifies execution options such as retry policy and timeout
+     *            settings for the operation. Specify <code>null</code> to use the request options specified on the
+     *            {@link CloudFileClient}.
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @return a HttpURLConnection to use to perform the operation.
+     * @throws IOException
+     *             if there is an error opening the connection
+     * @throws URISyntaxException
+     *             if the resource URI is invalid
+     * @throws StorageException
+     *             an exception representing any error which occurred during the operation.
+     * @throws IllegalArgumentException
+     */
     public static HttpURLConnection getFilePermission(final URI uri, final String filePermissionKey, final FileRequestOptions fileOptions,
             final OperationContext opContext) throws StorageException, IOException, URISyntaxException {
         final UriQueryBuilder builder = new UriQueryBuilder();
@@ -1495,7 +1539,37 @@ final class FileRequest {
 
     }
 
-    public static HttpURLConnection setDirectoryProperties(URI uri, FileRequestOptions fileOptions, OperationContext opContext, AccessCondition accessCondition, FileDirectoryProperties properties, String filePermission) throws StorageException, IOException, URISyntaxException {
+    /**
+     * Constructs a HttpURLConnection to set the directory's properties, Sign with zero length specified.
+     *
+     * @param uri
+     *            A <code>java.net.URI</code> object that specifies the absolute URI.
+     * @param fileOptions
+     *            A {@link FileRequestOptions} object that specifies execution options such as retry policy and timeout
+     *            settings for the operation. Specify <code>null</code> to use the request options specified on the
+     *            {@link CloudFileClient}.
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @param accessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the file.
+     * @param properties
+     *            The properties to upload.
+     * @param filePermission
+     *            The file permission to set.
+     * @return a HttpURLConnection to use to perform the operation.
+     * @throws IOException
+     *             if there is an error opening the connection
+     * @throws URISyntaxException
+     *             if the resource URI is invalid
+     * @throws StorageException
+     *             an exception representing any error which occurred during the operation.
+     * @throws IllegalArgumentException
+     */
+    public static HttpURLConnection setDirectoryProperties(URI uri, FileRequestOptions fileOptions,
+            OperationContext opContext, AccessCondition accessCondition, FileDirectoryProperties properties,
+            String filePermission) throws StorageException, IOException, URISyntaxException {
         final UriQueryBuilder builder = new UriQueryBuilder();
         builder.add(Constants.QueryConstants.RESOURCETYPE, "directory");
         builder.add(Constants.QueryConstants.COMPONENT, Constants.QueryConstants.PROPERTIES);
