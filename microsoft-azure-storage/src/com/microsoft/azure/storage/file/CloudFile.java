@@ -2520,7 +2520,7 @@ public final class CloudFile implements ListFileItem {
     }
 
     /**
-     * Updates the file's properties to the storage service.
+     * Uploads the file's properties to the storage service.
      * <p>
      * Use {@link CloudFile#downloadAttributes} to retrieve the latest values for the file's properties and metadata
      * from the Microsoft Azure storage service.
@@ -2535,7 +2535,7 @@ public final class CloudFile implements ListFileItem {
     }
 
     /**
-     * Updates the file's properties using the access condition, request options, and operation context.
+     * Uploads the file's properties using the access condition, request options, and operation context.
      * <p>
      * Use {@link CloudFile#downloadAttributes} to retrieve the latest values for the file's properties and metadata
      * from the Microsoft Azure storage service.

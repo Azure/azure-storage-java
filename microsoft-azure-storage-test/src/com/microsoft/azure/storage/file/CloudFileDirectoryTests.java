@@ -952,8 +952,14 @@ public class CloudFileDirectoryTests {
         FileDirectoryProperties props1 = dir.getProperties();
         dir.uploadProperties();
 
+        FileDirectoryProperties props2 = new FileDirectoryProperties();
+        props2.filePermissionKey = "";
+        props2.ntfsAttributes = props1.getNtfsAttributes();
+        props2.creationTime = "2019-07-18T17:37:25.4116172Z";
+        props2.lastWriteTime = "2019-07-18T17:37:25.4116172Z";
+
         dir.downloadAttributes();
-        FileDirectoryProperties props2 = dir.getProperties();
+        props2 = dir.getProperties();
 
         FileTestHelper.assertSMBAreEqual(props1, props2, true);
     }
