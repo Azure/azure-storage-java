@@ -1204,9 +1204,7 @@ public class CloudFileTests {
         int length = 5;
         int destOffset = 0;
 
-        CloudFileClient client = FileTestHelper.createCloudFileClient();
-        CloudFileShare share = client.getShareReference("sprasa-test");
-        CloudFile source = share.getRootDirectoryReference().getFileReference("source");
+        CloudFile source = this.share.getRootDirectoryReference().getFileReference("source");
         source.getMetadata().put("Test", "value");
         source.uploadText(data, Constants.UTF8_CHARSET, null, null, null);
 
@@ -1221,7 +1219,7 @@ public class CloudFileTests {
         StorageCredentialsSharedAccessSignature credentials = new StorageCredentialsSharedAccessSignature(sasToken);
 
         // Create destination.
-        CloudFile destination = share.getRootDirectoryReference().getFileReference("destination");
+        CloudFile destination = this.share.getRootDirectoryReference().getFileReference("destination");
         destination.create(512);
         destination.putRangeFromURL(destOffset, length, credentials.transformUri(source.getUri()), sourceOffset);
 
