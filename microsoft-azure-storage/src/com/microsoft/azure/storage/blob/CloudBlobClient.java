@@ -739,6 +739,16 @@ public final class CloudBlobClient extends ServiceClient {
 
     }
 
+    /**
+     * Executes a pre-constructed batch operation on the blob service. For more information on constructing blob batch
+     * requests, see {@link BlobBatchOperation}.
+     *
+     * @param batch
+     * @param <P>
+     * @param <T>
+     * @return
+     * @throws StorageException
+     */
     public <P, T> Iterable<Map.Entry<P, T>> executeBatch(BlobBatchOperation<P, T> batch) throws StorageException {
         return this.executeBatch(batch, null /* requestOptions */, null /* operationContext */);
     }

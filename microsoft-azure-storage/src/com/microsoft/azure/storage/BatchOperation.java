@@ -69,10 +69,10 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
      * @return
      *      The built request.
      */
-    protected StorageRequest<C, BatchOperation<C, P, R>, Iterable<Map.Entry<P, R>>> batchImpl(
+    protected StorageRequest<C, BatchOperation<C, P, R>, Map<P, R>> batchImpl(
             C client, final RequestOptions requestOptions) {
 
-        return new StorageRequest<C, BatchOperation<C, P, R>, Iterable<Map.Entry<P, R>>>(requestOptions, client.getStorageUri()) {
+        return new StorageRequest<C, BatchOperation<C, P, R>, Map<P, R>>(requestOptions, client.getStorageUri()) {
             @Override
             public HttpURLConnection buildRequest(C client, BatchOperation<C, P, R> parentObject,
                     OperationContext context) throws Exception {
@@ -97,7 +97,7 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
             }
 
             @Override
-            public Iterable<Map.Entry<P, R>> preProcessResponse(BatchOperation<C, P, R> parentObject, C client,
+            public Map<P, R> preProcessResponse(BatchOperation<C, P, R> parentObject, C client,
                     OperationContext context) throws Exception {
                 if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_ACCEPTED) {
                     throw new StorageException(this.getResult().getErrorCode(), this.getResult().getStatusMessage(), null);
@@ -107,8 +107,8 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
             }
 
             @Override
-            public Iterable<Map.Entry<P, R>> postProcessResponse(HttpURLConnection connection, BatchOperation<C, P, R> parentObject,
-                    C client, OperationContext context, Iterable<Map.Entry<P, R>> storageObject) throws Exception {
+            public Map<P, R> postProcessResponse(HttpURLConnection connection, BatchOperation<C, P, R> parentObject,
+                    C client, OperationContext context, Map<P, R> storageObject) throws Exception {
 
                 ByteArrayOutputStream responseBuffer = new ByteArrayOutputStream();
                 int bytesRead;
@@ -124,70 +124,9 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
 
                 assertBatchSuccess(parsedResponses);
 
-                final Map<BatchSubResponse, Object> failedResponses = new HashMap<>();
-                Iterator<BatchSubResponse> it = parsedResponses.iterator();
-                while (it.hasNext()) {
-                    BatchSubResponse response = it.next();
+                final Map<P, R> successfulResponses = new HashMap<>();
+                final Map<P, BatchSubResponse> failedResponses = new HashMap<>();
 
-                    if (response.getStatusCode() / 100 != 2) {
-                        failedResponses.put(response, findParent(response));
-                        it.remove();
-                    }
-                }
-
-                return new Iterable<Map.Entry<P, R>>() {
-                    @Override
-                    public Iterator<Map.Entry<P, R>> iterator() {
-                        return new Iterator<Map.Entry<P, R>>() {
-                            final Iterator<BatchSubResponse> baseIterator = parsedResponses.iterator();
-                            final BatchException batchException = failedResponses.isEmpty()
-                                    ? null
-                                    : new BatchException(failedResponses);
-
-                            @Override
-                            public void remove() {
-                                baseIterator.remove();
-                            }
-
-                            @Override
-                            public boolean hasNext() {
-                                boolean hasNext = baseIterator.hasNext();
-
-                                if (!hasNext && batchException != null) {
-                                    throw batchException;
-                                }
-
-                                return hasNext;
-                            }
-
-                            @Override
-                            public Map.Entry<P, R> next() {
-                                final BatchSubResponse subResponse = baseIterator.next();
-
-                                return new Map.Entry<P, R>() {
-
-                                    final P key = findParent(subResponse);
-                                    final R value = convertResponse(subResponse);
-
-                                    @Override
-                                    public P getKey() {
-                                        return key;
-                                    }
-
-                                    @Override
-                                    public R getValue() {
-                                        return value;
-                                    }
-
-                                    @Override
-                                    public R setValue(R value) {
-                                        return value;
-                                    }
-                                };
-                            }
-                        };
-                    }
-                };
             }
         };
     }
@@ -210,6 +149,33 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
         throw new IllegalStateException();
     }
 
+    private void sortResponses(
+            List<BatchSubResponse> responses,
+            Map<P, R> successfulBucket,
+            Map<P, BatchSubResponse> failedBucket) {
+
+        Iterator<BatchSubResponse> it = responses.iterator();
+        while (it.hasNext()) {
+            BatchSubResponse response = it.next();
+
+            if (response.getStatusCode() / 100 != 2) {
+                failedBucket.put(findParent(response), response);
+                it.remove();
+            }
+            else {
+                successfulBucket.put(findParent(response), convertResponse(response));
+            }
+        }
+    }
+
+    /**
+     * Throws if the batch as a whole failed.
+     *
+     * @param parsedResponses
+     *      The parsed batch body.
+     * @throws StorageException
+     *      If the body contained a single response detailing that the batch failed.
+     */
     private void assertBatchSuccess(List<BatchSubResponse> parsedResponses) throws StorageException {
 
         if (parsedResponses.size() != 1) {
