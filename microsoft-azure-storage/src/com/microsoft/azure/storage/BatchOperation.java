@@ -20,10 +20,14 @@ import java.util.*;
  * @param <P>
  *     The type of the parent object making the REST call.
  * @param <R>
+ *     The return type of the individual requests on the batch.
  */
 public abstract class BatchOperation <C extends ServiceClient, P, R> implements Iterable<Map.Entry<StorageRequest<C, P, R>, P>> {
 
-    private static String HTTP_LINE_ENDING = "\r\n";
+    private static final String HTTP_LINE_ENDING = "\r\n";
+    private static final String HTTP_MIXED_MULTIPART_CONTENT_TYPE = "multipart/mixed";
+    private static final String HTTP_MIXED_MULTIPART_DELIMITER_DEFINITION = "boundary=";
+    private static final String STORAGE_BATCH_DELIMITER_PREFIX = "batch_";
 
     private final Map<StorageRequest<C, P, R>, P> subOperations = new LinkedHashMap<>(); // maintains iteration order
 
@@ -87,7 +91,11 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
 
             @Override
             public void setHeaders(HttpURLConnection connection, BatchOperation<C, P, R> parentObject, OperationContext context) {
-                connection.setRequestProperty(Constants.HeaderConstants.CONTENT_TYPE, "multipart/mixed; boundary=batch_" + parentObject.getBatchId());
+                connection.setRequestProperty(
+                        Constants.HeaderConstants.CONTENT_TYPE,
+                        Utility.stringJoin("; ",
+                                HTTP_MIXED_MULTIPART_CONTENT_TYPE,
+                                HTTP_MIXED_MULTIPART_DELIMITER_DEFINITION + STORAGE_BATCH_DELIMITER_PREFIX + parentObject.getBatchId()));
             }
 
             @Override
@@ -100,7 +108,7 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
             public Map<P, R> preProcessResponse(BatchOperation<C, P, R> parentObject, C client,
                     OperationContext context) throws Exception {
                 if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_ACCEPTED) {
-                    throw new StorageException(this.getResult().getErrorCode(), this.getResult().getStatusMessage(), null);
+                    this.setNonExceptionedRetryableFailure(true);
                 }
 
                 return null;
@@ -120,13 +128,19 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
 
                 final List<BatchSubResponse> parsedResponses = parseBatchBody(
                         responseBuffer.toByteArray(),
-                        connection.getHeaderField(Constants.HeaderConstants.CONTENT_TYPE).split("boundary=")[1]);
+                        connection.getHeaderField(Constants.HeaderConstants.CONTENT_TYPE).split(HTTP_MIXED_MULTIPART_DELIMITER_DEFINITION)[1]);
 
-                assertBatchSuccess(parsedResponses);
+                throwIfUberRequestFails(parsedResponses);
 
                 final Map<P, R> successfulResponses = new HashMap<>();
                 final Map<P, BatchSubResponse> failedResponses = new HashMap<>();
+                sortResponses(parsedResponses, successfulResponses, failedResponses);
 
+                if (!failedResponses.isEmpty()) {
+                    throw new BatchException(successfulResponses, failedResponses);
+                }
+
+                return successfulResponses;
             }
         };
     }
@@ -176,13 +190,24 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
      * @throws StorageException
      *      If the body contained a single response detailing that the batch failed.
      */
-    private void assertBatchSuccess(List<BatchSubResponse> parsedResponses) throws StorageException {
+    private void throwIfUberRequestFails(List<BatchSubResponse> parsedResponses) throws StorageException {
 
+        // Failure results in 1 and only 1 response. If this is not the case, we're successful.
         if (parsedResponses.size() != 1) {
             return;
         }
 
         BatchSubResponse subResponse = parsedResponses.get(0);
+
+        // If single response is successful, we successfully batched one request.
+        if (subResponse.getStatusCode() / 100 == 2) {
+            return;
+        }
+
+        /* If the user batched one request and it failed, we do not have a method of determining whether the overall
+         * batch failed, or if the single subrequest failed. Either way, there was not a single success, so throw as if
+         * the batch failed.
+         */
 
         ByteArrayOutputStream responseBuffer = new ByteArrayOutputStream();
         try {
@@ -196,7 +221,6 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
         catch (IOException e) {
             throw new RuntimeException(e);
         }
-
 
         throw new StorageException(subResponse.getStatusMessage(), responseBuffer.toString(), subResponse.getStatusCode(), null, null);
     }

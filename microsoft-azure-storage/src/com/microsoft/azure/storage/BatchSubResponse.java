@@ -19,7 +19,7 @@ public class BatchSubResponse {
         return statusCode;
     }
 
-    public void setStatusCode(int statusCode) {
+    void setStatusCode(int statusCode) {
         this.statusCode = statusCode;
     }
 
@@ -27,7 +27,7 @@ public class BatchSubResponse {
         return status;
     }
 
-    public void setStatusMessage(String status) {
+    void setStatusMessage(String status) {
         this.status = status;
     }
 
@@ -35,7 +35,7 @@ public class BatchSubResponse {
         return headers;
     }
 
-    public void setHeaders(Map<String, String> headers) {
+    void setHeaders(Map<String, String> headers) {
         this.headers = headers;
     }
 
@@ -43,7 +43,7 @@ public class BatchSubResponse {
         return body;
     }
 
-    public void setBody(InputStream body) {
+    void setBody(InputStream body) {
         this.body = body;
     }
 }

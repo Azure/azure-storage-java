@@ -744,16 +744,52 @@ public final class CloudBlobClient extends ServiceClient {
      * requests, see {@link BlobBatchOperation}.
      *
      * @param batch
+     *      The batch of operations to execute.
      * @param <P>
+     *      The parent type of the individual operations.
      * @param <T>
+     *      The return type of the individual operations.
+     *
      * @return
+     *      A mapping from parent object in the batch to the response for that parent.
+     *
+     * @throws BatchException
+     *      Throws this subset of storage exception if one or more individual requests on the batch fail.
      * @throws StorageException
+     *      Throws if an error with the service occurs.
      */
-    public <P, T> Iterable<Map.Entry<P, T>> executeBatch(BlobBatchOperation<P, T> batch) throws StorageException {
+    public <P, T> Map<P, T> executeBatch(BlobBatchOperation<P, T> batch) throws StorageException {
         return this.executeBatch(batch, null /* requestOptions */, null /* operationContext */);
     }
 
-    public <P, T> Iterable<Map.Entry<P, T>> executeBatch(BlobBatchOperation<P, T> batch, BlobRequestOptions requestOptions,
+    /**
+     * Executes a pre-constructed batch operation on the blob service. For more information on constructing blob batch
+     * requests, see {@link BlobBatchOperation}.
+     *
+     * @param batch
+     *      The batch of operations to execute.
+     * @param requestOptions
+     *      A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *      <code>null</code> will use the default request options from the associated service client (
+     *      {@link CloudBlobClient}).
+     * @param operationContext
+     *      An {@link OperationContext} object that represents the context for the current operation. This object
+     *      is used to track requests to the storage service, and to provide additional runtime information about
+     *      the operation.
+     * @param <P>
+     *      The parent type of the individual operations.
+     * @param <T>
+     *      The return type of the individual operations.
+     *
+     * @return
+     *      A mapping from parent object in the batch to the response for that parent.
+     *
+     * @throws BatchException
+     *      Throws this subset of storage exception if one or more individual requests on the batch fail.
+     * @throws StorageException
+     *      Throws if an error with the service occurs.
+     */
+    public <P, T> Map<P, T> executeBatch(BlobBatchOperation<P, T> batch, BlobRequestOptions requestOptions,
             OperationContext operationContext) throws StorageException {
         requestOptions = BlobRequestOptions.populateAndApplyDefaults(requestOptions, BlobType.PAGE_BLOB, this);
 

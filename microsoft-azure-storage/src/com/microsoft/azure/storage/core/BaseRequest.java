@@ -541,8 +541,6 @@ public final class BaseRequest {
 
         final HttpURLConnection request = createURLConnection(uri, options, builder, opContext);
 
-
-
         request.setDoOutput(true);
         request.setRequestMethod(Constants.HTTP_POST);
 
@@ -602,7 +600,6 @@ public final class BaseRequest {
         }
 
         stream.write(("--batch_" + batch.getBatchId() + "--" + HTTP_LINE_ENDING).getBytes(StandardCharsets.UTF_8));
-
 
         return stream.toByteArray();
     }

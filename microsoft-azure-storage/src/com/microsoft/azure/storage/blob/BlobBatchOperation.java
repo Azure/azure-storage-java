@@ -7,7 +7,7 @@ import java.util.Map;
 
 public abstract class BlobBatchOperation<P, R> extends BatchOperation<CloudBlobClient, P, R> {
 
-    final Iterable<Map.Entry<P, R>> execute(CloudBlobClient client, BlobRequestOptions requestOptions, OperationContext operationContext)
+    final Map<P, R> execute(CloudBlobClient client, BlobRequestOptions requestOptions, OperationContext operationContext)
             throws StorageException {
 
         if (operationContext == null) {

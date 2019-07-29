@@ -14,23 +14,18 @@
  */
 package com.microsoft.azure.storage.blob;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.microsoft.azure.storage.AccessCondition;
 import com.microsoft.azure.storage.Constants;
 import com.microsoft.azure.storage.Constants.HeaderConstants;
 import com.microsoft.azure.storage.OperationContext;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.core.*;
+
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashMap;
 
 /**
  * RESERVED FOR INTERNAL USE. Provides a set of methods for constructing requests for blob operations.
