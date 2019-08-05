@@ -15,11 +15,7 @@
 package com.microsoft.azure.storage.core;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.Proxy;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.net.*;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -178,14 +174,32 @@ public final class BaseRequest {
 
         // Get the proxy settings
         Proxy proxy = OperationContext.getDefaultProxy();
+        String username = null;
+        String password = null;
         if (opContext != null && opContext.getProxy() != null) {
             proxy = opContext.getProxy();
+            username = opContext.getProxyUsername();
+            password = opContext.getProxyPassword();
         }
 
         // Set up connection, optionally with proxy settings
         final HttpURLConnection retConnection;
         if (proxy != null) {
             retConnection = (HttpURLConnection) resourceUrl.openConnection(proxy);
+            if (username != null && password != null) {
+                String authString = "Basic " + Utility.safeEncode(username + ":" + password);
+                final String authUsername = username;
+                final String authPassword = password;
+                retConnection.setRequestProperty("Proxy-Authorization", authString);
+                Authenticator.setDefault(new Authenticator() {
+                    @Override
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        PasswordAuthentication passwordAuthentication =
+                                new PasswordAuthentication (authUsername, authPassword.toCharArray());
+                        return passwordAuthentication;
+                    }
+                });
+            }
         }
         else {
             retConnection = (HttpURLConnection) resourceUrl.openConnection();
