@@ -1,5 +1,7 @@
 package com.microsoft.azure.storage;
 
+import com.microsoft.azure.storage.core.Utility;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -29,7 +31,7 @@ public class BatchException extends StorageException {
     private final Map<?, StorageException> exceptions;
 
 
-    BatchException(Map<?, ?> successfulResponses, Map<?, BatchSubResponse> failedResponses) {
+    BatchException(Map<?, ?> successfulResponses, Map<?, BatchSubResponse> failedResponses, OperationContext opContext) {
         super("Batch exception", "One ore more requests in a batch operation failed", null);
 
         Map<Object, StorageException> exceptions = new HashMap<>(failedResponses.size());
@@ -45,10 +47,10 @@ public class BatchException extends StorageException {
                 throw new RuntimeException(e);
             }
 
-            exceptions.put(
-                    response.getKey(),
-                    new StorageException(response.getValue().getStatusMessage(), builder.toString(),
-                            response.getValue().getStatusCode(), null, null));
+            StorageException exception = new StorageException(response.getValue().getStatusMessage(), builder.toString(),
+                    response.getValue().getStatusCode(), null, null);
+            Utility.logHttpError(exception, opContext);
+            exceptions.put(response.getKey(), exception);
         }
 
         this.successfulResponses = Collections.unmodifiableMap(successfulResponses);

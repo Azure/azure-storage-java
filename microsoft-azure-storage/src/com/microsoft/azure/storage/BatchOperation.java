@@ -137,7 +137,7 @@ public abstract class BatchOperation <C extends ServiceClient, P, R> implements 
                 sortResponses(parsedResponses, successfulResponses, failedResponses);
 
                 if (!failedResponses.isEmpty()) {
-                    throw new BatchException(successfulResponses, failedResponses);
+                    throw new BatchException(successfulResponses, failedResponses, context);
                 }
 
                 return successfulResponses;

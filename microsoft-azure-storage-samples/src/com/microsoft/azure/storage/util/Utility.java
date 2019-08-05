@@ -33,9 +33,9 @@ public final class Utility {
      * 
      * Stores the storage connection string.
      */
-    public static final String storageConnectionString = "DefaultEndpointsProtocol=https;"
-            + "AccountName=[MY_ACCOUNT_NAME];"
-            + "AccountKey=[MY_ACCOUNT_KEY]";
+    public static final String storageConnectionString = "DefaultEndpointsProtocol=http;"
+            + "AccountName=jamesschreppler;"
+            + "AccountKey=5POtFgqT5vsDYmIUOSsEpoXnbd3iw+mpBiXB4jiMvdqOcprfPX3gZXGU/sGZviLbIIFDMq+5c00w7O2eG0UT6Q==";
 
     /**
      * You only need to modify the following values if you want to run the
