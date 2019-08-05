@@ -393,36 +393,41 @@ public class CloudBlobClientTests {
         // setup
 
         CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
-        container.createIfNotExists();
+        try {
+            container.createIfNotExists();
 
-        List<CloudBlob> blobs = new ArrayList<>();
-        BlobDeleteBatchOperation batchDeleteOp = new BlobDeleteBatchOperation();
+            List<CloudBlob> blobs = new ArrayList<>();
+            BlobDeleteBatchOperation batchDeleteOp = new BlobDeleteBatchOperation();
 
-        for (int i = 0; i < 3; i++) {
-            CloudBlockBlob blob = container.getBlockBlobReference("testblob_" + UUID.randomUUID());
-            blob.uploadText("content");
+            for (int i = 0; i < 3; i++) {
+                CloudBlockBlob blob = container.getBlockBlobReference("testblob_" + UUID.randomUUID());
+                blob.uploadText("content");
 
-            blobs.add(blob);
-            batchDeleteOp.addSubOperation(blob);
+                blobs.add(blob);
+                batchDeleteOp.addSubOperation(blob);
+            }
+
+            // execute batch
+
+            Map<CloudBlob, Void> responses = container.getServiceClient().executeBatch(batchDeleteOp);
+
+            // validate
+
+            for (CloudBlob blob : blobs) {
+                assertFalse(blob.exists());
+            }
+
+            int numResponses = 0;
+            for (Map.Entry<CloudBlob, Void> response : responses.entrySet()) {
+                assertTrue(blobs.contains(response.getKey()));
+                assertNull(response.getValue()); // CloudBlob::delete() returns Void (null), so all batch responses should be null
+                numResponses++;
+            }
+            assertEquals(blobs.size(), numResponses);
         }
-
-        // execute batch
-
-        Map<CloudBlob, Void> responses = container.getServiceClient().executeBatch(batchDeleteOp);
-
-        // validate
-
-        for (CloudBlob blob : blobs) {
-            assertFalse(blob.exists());
+        finally {
+            container.deleteIfExists();
         }
-
-        int numResponses = 0;
-        for (Map.Entry<CloudBlob, Void> response : responses.entrySet()) {
-            assertTrue(blobs.contains(response.getKey()));
-            assertNull(response.getValue()); // CloudBlob::delete() returns Void (null), so all batch responses should be null
-            numResponses++;
-        }
-        assertEquals(blobs.size(), numResponses);
     }
 
     @Test(expected = StorageException.class)
@@ -432,13 +437,18 @@ public class CloudBlobClientTests {
         // setup
 
         CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
-        container.createIfNotExists();
+        try {
+            container.createIfNotExists();
 
-        BlobDeleteBatchOperation batchDeleteOp = new BlobDeleteBatchOperation();
+            BlobDeleteBatchOperation batchDeleteOp = new BlobDeleteBatchOperation();
 
-        // execute batch
+            // execute batch
 
-        Map<CloudBlob, Void> responses = container.getServiceClient().executeBatch(batchDeleteOp); //throws
+            Map<CloudBlob, Void> responses = container.getServiceClient().executeBatch(batchDeleteOp); //throws
+        }
+        finally {
+            container.deleteIfExists();
+        }
     }
 
     @Test
@@ -450,42 +460,46 @@ public class CloudBlobClientTests {
         int BAD_REQUESTS = 2; // blobs that don't exist to delete
 
         CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
-        container.createIfNotExists();
+        try {
+            container.createIfNotExists();
 
-        List<CloudBlob> blobs = new ArrayList<>();
-        BlobDeleteBatchOperation batchDeleteOp = new BlobDeleteBatchOperation();
+            List<CloudBlob> blobs = new ArrayList<>();
+            BlobDeleteBatchOperation batchDeleteOp = new BlobDeleteBatchOperation();
 
-        for (int i = 0; i < BLOBS; i++) {
-            CloudBlockBlob blob = container.getBlockBlobReference("testblob_" + UUID.randomUUID());
+            for (int i = 0; i < BLOBS; i++) {
+                CloudBlockBlob blob = container.getBlockBlobReference("testblob_" + UUID.randomUUID());
 
-            if (i >= BAD_REQUESTS) {
-                blob.uploadText("content");
+                if (i >= BAD_REQUESTS) {
+                    blob.uploadText("content");
+                }
+
+                blobs.add(blob);
+                batchDeleteOp.addSubOperation(blob);
             }
 
-            blobs.add(blob);
-            batchDeleteOp.addSubOperation(blob);
-        }
+            // execute batch
 
-        // execute batch
+            Map<CloudBlob, Void> responses;
+            boolean threw = true;
+            try {
+                responses = container.getServiceClient().executeBatch(batchDeleteOp);
+                threw = false;
+            }
 
-        Map<CloudBlob, Void> responses;
-        boolean threw = true;
-        try {
-            responses = container.getServiceClient().executeBatch(batchDeleteOp);
-            threw = false;
-        }
+            // validate
 
-        // validate
-
-        catch (BatchException e) {
-            // good deletes are successful
-            for (CloudBlob blob : blobs) {
-                assertFalse(blob.exists());
-                assertTrue(e.getSuccessfulResponses().keySet().contains(blob) || e.getExceptions().keySet().contains(blob));
+            catch (BatchException e) {
+                // good deletes are successful
+                for (CloudBlob blob : blobs) {
+                    assertFalse(blob.exists());
+                    assertTrue(e.getSuccessfulResponses().keySet().contains(blob) || e.getExceptions().keySet().contains(blob));
+                }
+            } finally {
+                assertTrue(threw);
             }
         }
         finally {
-            assertTrue(threw);
+            container.deleteIfExists();
         }
     }
 
@@ -496,37 +510,42 @@ public class CloudBlobClientTests {
         // setup
 
         CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
-        container.createIfNotExists();
+        try {
+            container.createIfNotExists();
 
-        List<CloudBlob> blobs = new ArrayList<>();
-        BlobSetTierBatchOperation batchTierOp = new BlobSetTierBatchOperation();
+            List<CloudBlob> blobs = new ArrayList<>();
+            BlobSetTierBatchOperation batchTierOp = new BlobSetTierBatchOperation();
 
-        for (int i = 0; i < 3; i++) {
-            CloudBlockBlob blob = container.getBlockBlobReference("testblob_" + UUID.randomUUID());
-            blob.uploadText("content");
+            for (int i = 0; i < 3; i++) {
+                CloudBlockBlob blob = container.getBlockBlobReference("testblob_" + UUID.randomUUID());
+                blob.uploadText("content");
 
-            blobs.add(blob);
-            batchTierOp.addSubOperation(blob, StandardBlobTier.HOT);
+                blobs.add(blob);
+                batchTierOp.addSubOperation(blob, StandardBlobTier.HOT);
+            }
+
+            // execute batch
+
+            Map<CloudBlob, Void> responses = container.getServiceClient().executeBatch(batchTierOp);
+
+            // validate
+
+            for (CloudBlob blob : blobs) {
+                blob.downloadAttributes();
+                assertEquals(StandardBlobTier.HOT, blob.getProperties().getStandardBlobTier());
+            }
+
+            int numResponses = 0;
+            for (Map.Entry<CloudBlob, Void> response : responses.entrySet()) {
+                assertTrue(blobs.contains(response.getKey()));
+                assertNull(response.getValue()); // CloudBlob::setTier() returns Void (null), so all batch responses should be null
+                numResponses++;
+            }
+            assertEquals(blobs.size(), numResponses);
         }
-
-        // execute batch
-
-        Map<CloudBlob, Void> responses = container.getServiceClient().executeBatch(batchTierOp);
-
-        // validate
-
-        for (CloudBlob blob : blobs) {
-            blob.downloadAttributes();
-            assertEquals(StandardBlobTier.HOT, blob.getProperties().getStandardBlobTier());
+        finally {
+            container.deleteIfExists();
         }
-
-        int numResponses = 0;
-        for (Map.Entry<CloudBlob, Void> response : responses.entrySet()) {
-            assertTrue(blobs.contains(response.getKey()));
-            assertNull(response.getValue()); // CloudBlob::setTier() returns Void (null), so all batch responses should be null
-            numResponses++;
-        }
-        assertEquals(blobs.size(), numResponses);
     }
 
     @Test(expected = StorageException.class)
@@ -536,13 +555,18 @@ public class CloudBlobClientTests {
         // setup
 
         CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
-        container.createIfNotExists();
+        try {
+            container.createIfNotExists();
 
-        BlobSetTierBatchOperation batchDeleteOp = new BlobSetTierBatchOperation();
+            BlobSetTierBatchOperation batchDeleteOp = new BlobSetTierBatchOperation();
 
-        // execute batch
+            // execute batch
 
-        Map<CloudBlob, Void> responses = container.getServiceClient().executeBatch(batchDeleteOp); //throws
+            Map<CloudBlob, Void> responses = container.getServiceClient().executeBatch(batchDeleteOp); //throws
+        }
+        finally {
+            container.deleteIfExists();
+        }
     }
 
     @Test
@@ -554,46 +578,50 @@ public class CloudBlobClientTests {
         int BAD_REQUESTS = 2; // blobs that don't exist to delete
 
         CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
-        container.createIfNotExists();
+        try {
+            container.createIfNotExists();
 
-        List<CloudBlob> blobs = new ArrayList<>();
-        BlobSetTierBatchOperation batchSetTierOp = new BlobSetTierBatchOperation();
+            List<CloudBlob> blobs = new ArrayList<>();
+            BlobSetTierBatchOperation batchSetTierOp = new BlobSetTierBatchOperation();
 
-        for (int i = 0; i < BLOBS; i++) {
-            CloudBlockBlob blob = container.getBlockBlobReference("testblob_" + UUID.randomUUID());
+            for (int i = 0; i < BLOBS; i++) {
+                CloudBlockBlob blob = container.getBlockBlobReference("testblob_" + UUID.randomUUID());
 
-            // bad requests first; displays that good responses come first regardless of order of request
-            if (i >= BAD_REQUESTS) {
-                blob.uploadText("content");
+                // bad requests first; displays that good responses come first regardless of order of request
+                if (i >= BAD_REQUESTS) {
+                    blob.uploadText("content");
+                }
+
+                blobs.add(blob);
+                batchSetTierOp.addSubOperation(blob, StandardBlobTier.HOT);
             }
 
-            blobs.add(blob);
-            batchSetTierOp.addSubOperation(blob, StandardBlobTier.HOT);
-        }
+            // execute batch
 
-        // execute batch
+            Map<CloudBlob, Void> responses;
+            boolean threw = true;
+            try {
+                responses = container.getServiceClient().executeBatch(batchSetTierOp);
+                threw = false;
+            }
 
-        Map<CloudBlob, Void> responses;
-        boolean threw = true;
-        try {
-            responses = container.getServiceClient().executeBatch(batchSetTierOp);
-            threw = false;
-        }
+            // validate
 
-        // validate
-
-        catch (BatchException e) {
-            // good deletes are successful
-            for (CloudBlob blob : blobs) {
-                if (blob.exists()) {
-                    blob.downloadAttributes();
-                    assertEquals(StandardBlobTier.HOT, blob.getProperties().getStandardBlobTier());
+            catch (BatchException e) {
+                // good deletes are successful
+                for (CloudBlob blob : blobs) {
+                    if (blob.exists()) {
+                        blob.downloadAttributes();
+                        assertEquals(StandardBlobTier.HOT, blob.getProperties().getStandardBlobTier());
+                    }
+                    assertTrue(e.getSuccessfulResponses().keySet().contains(blob) || e.getExceptions().keySet().contains(blob));
                 }
-                assertTrue(e.getSuccessfulResponses().keySet().contains(blob) || e.getExceptions().keySet().contains(blob));
+            } finally {
+                assertTrue(threw);
             }
         }
         finally {
-            assertTrue(threw);
+            container.deleteIfExists();
         }
     }
 }

@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * Exception for when one or more sub-requests within a batch request fail. This exception is a map of the
  * {@link StorageException}s to the parent objects of the sub-request. Extensions of {@link Throwable} cannot use
- * generics, so this class uses data several structures with wildcards. Since only groups of the same request type can
+ * generics, so this class uses several data structures with wildcards. Since only groups of the same request type can
  * be batched together, the batch caller will know the intended type in context, and can safely cast the result.
  */
 public class BatchException extends StorageException {
