@@ -103,6 +103,25 @@ public class BaseResponse {
     public static boolean isServerRequestEncrypted(HttpURLConnection request) {
         return Constants.TRUE.equals(request.getHeaderField(Constants.HeaderConstants.SERVER_REQUEST_ENCRYPTED));
     }
+
+    /**
+     * Gets if the request was encrypted by the server.
+     * @param request
+     *            The response from the server.
+     * @return A boolean indicating if the request was encrypted by the server.
+     */
+    public static boolean isServerEncrypted(HttpURLConnection request) {
+        return Constants.TRUE.equals(request.getHeaderField(Constants.HeaderConstants.SERVER_ENCRYPTED));
+    }
+
+    /**
+     * Gets the hash of the client-provided encryption key used for encryption.
+     * @param request
+     * @return
+     */
+    public static String getEncryptionKeyHash(HttpURLConnection request) {
+        return request.getHeaderField(Constants.HeaderConstants.CLIENT_PROVIDED_ENCRYPTION_KEY_HASH);
+    }
     
     /**
      * Returns all the header/value pairs with the given prefix.

@@ -1,11 +1,11 @@
 /**
  * Copyright Microsoft Corporation
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -89,11 +89,16 @@ public final class CloudFile implements ListFileItem {
     private StorageUri storageUri;
 
     /**
+     * Represents the file permission
+     */
+    private String filePermission;
+
+    /**
      * Creates an instance of the <code>CloudFile</code> class using the specified absolute URI.
-     * 
+     *
      * @param fileAbsoluteUri
      *            A <code>java.net.URI</code> object that represents the absolute URI to the file.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      * @throws URISyntaxException
@@ -105,10 +110,10 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Creates an instance of the <code>CloudFile</code> class using the specified absolute StorageUri.
-     * 
+     *
      * @param fileAbsoluteUri
      *            A {@link StorageUri} object that represents the absolute URI to the file.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      * @throws URISyntaxException
@@ -121,15 +126,15 @@ public final class CloudFile implements ListFileItem {
     /**
      * Creates an instance of the <code>CloudFile</code> class using the specified absolute URI 
      * and credentials.
-     * 
+     *
      * @param fileAbsoluteUri
      *            A <code>java.net.URI</code> object that represents the absolute URI to the file.
      * @param credentials
      *            A {@link StorageCredentials} object used to authenticate access.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     public CloudFile(final URI fileAbsoluteUri, final StorageCredentials credentials) throws StorageException, URISyntaxException {
         this(new StorageUri(fileAbsoluteUri), credentials);
@@ -138,23 +143,23 @@ public final class CloudFile implements ListFileItem {
     /**
      * Creates an instance of the <code>CloudFile</code> class using the specified absolute StorageUri 
      * and credentials.
-     * 
+     *
      * @param fileAbsoluteUri
      *            A {@link StorageUri} object that represents the absolute URI to the file.
      * @param credentials
      *            A {@link StorageCredentials} object used to authenticate access.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
-    public CloudFile(final StorageUri fileAbsoluteUri, final StorageCredentials credentials) throws StorageException, URISyntaxException {    
+    public CloudFile(final StorageUri fileAbsoluteUri, final StorageCredentials credentials) throws StorageException, URISyntaxException {
         this.parseQueryAndVerify(fileAbsoluteUri, credentials);
     }
 
     /**
      * Creates an instance of the <code>CloudFile</code> class by copying values from another cloud file.
-     * 
+     *
      * @param otherFile
      *            A <code>CloudFile</code> object that represents the file to copy.
      */
@@ -174,12 +179,13 @@ public final class CloudFile implements ListFileItem {
         this.name = otherFile.name;
         this.setStreamMinimumReadSizeInBytes(otherFile.getStreamMinimumReadSizeInBytes());
         this.setStreamWriteSizeInBytes(otherFile.getStreamWriteSizeInBytes());
+        this.filePermission = otherFile.filePermission;
     }
-    
+
     /**
      * Creates an instance of the <code>CloudFile</code> class using the specified address, share,
      * and client.
-     * 
+     *
      * @param uri
      *            A {@link StorageUri} that represents the file directory's address.
      * @param fileName
@@ -206,7 +212,7 @@ public final class CloudFile implements ListFileItem {
      *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public final void abortCopy(final String copyId) throws StorageException, URISyntaxException {
@@ -231,7 +237,7 @@ public final class CloudFile implements ListFileItem {
      *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public final void abortCopy(final String copyId, final AccessCondition accessCondition, FileRequestOptions options,
@@ -407,7 +413,7 @@ public final class CloudFile implements ListFileItem {
      *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public final String startCopy(final URI source) throws StorageException, URISyntaxException {
@@ -438,7 +444,7 @@ public final class CloudFile implements ListFileItem {
      *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      *
      */
     @DoesServiceRequest
@@ -511,15 +517,15 @@ public final class CloudFile implements ListFileItem {
      * <p>
      * Calling <code>clearRange</code> releases the storage space used by the specified range. Ranges that have been
      * cleared are no longer tracked as part of the file.
-     * 
+     *
      * @param offset
      *            The offset, in bytes, at which to begin clearing.
      * @param length
      *            The length, in bytes, of the data range to be cleared.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public void clearRange(final long offset, final long length) throws StorageException, URISyntaxException {
@@ -531,7 +537,7 @@ public final class CloudFile implements ListFileItem {
      * <p>
      * Calling <code>clearRange</code> releases the storage space used by the specified range. Ranges that have been
      * cleared are no longer tracked as part of the file.
-     * 
+     *
      * @param offset
      *            A <code>long</code> which represents the offset, in bytes, at which to begin clearing.
      * @param length
@@ -546,10 +552,10 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object which represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public void clearRange(final long offset, final long length, final AccessCondition accessCondition,
@@ -564,19 +570,19 @@ public final class CloudFile implements ListFileItem {
 
         final FileRange range = new FileRange(offset, offset + length - 1);
 
-        this.putRangeInternal(range, FileRangeOperationType.CLEAR, null, length, null, accessCondition, options,
-                opContext);
+        this.putRangeInternal(range, FileRangeOperationType.CLEAR, null /* data */, length, null /* md5 */,
+                 accessCondition, options, opContext);
     }
 
     /**
      * Creates a file. If the file already exists, this will replace it.
-     * 
+     *
      * @param size
      *            A <code>long</code> which represents the size, in bytes, of the file.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public void create(final long size) throws StorageException, URISyntaxException {
@@ -584,9 +590,9 @@ public final class CloudFile implements ListFileItem {
     }
 
     /**
-     * Creates a file using the specified access condition, request options and operation context. If the file already 
+     * Creates a file using the specified access condition, request options and operation context. If the file already
      * exists, this will replace it.
-     * 
+     *
      * @param size
      *            A <code>long</code> which represents the size, in bytes, of the file.
      * @param accessCondition
@@ -599,10 +605,10 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object which represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public void create(final long size, final AccessCondition accessCondition, FileRequestOptions options,
@@ -613,6 +619,7 @@ public final class CloudFile implements ListFileItem {
         }
 
         this.getShare().assertNoSnapshot();
+        this.assertValidFilePermissionOrKey();
 
         options = FileRequestOptions.populateAndApplyDefaults(options, this.fileServiceClient);
 
@@ -629,7 +636,7 @@ public final class CloudFile implements ListFileItem {
             public HttpURLConnection buildRequest(CloudFileClient client, CloudFile file, OperationContext context)
                     throws Exception {
                 return FileRequest.putFile(file.getTransformedAddress(context).getUri(this.getCurrentLocation()),
-                        options, context, accessCondition, file.properties, size);
+                        options, context, accessCondition, file.properties, size, file.filePermission);
             }
 
             @Override
@@ -650,7 +657,14 @@ public final class CloudFile implements ListFileItem {
                     this.setNonExceptionedRetryableFailure(true);
                     return null;
                 }
-
+                // Update the file SMB properties (including the file permission) to be the file SMB properties returned in the HTTP response
+                FileResponse.updateFileSMBProperties(this.getConnection(), file.properties);
+                /**
+                 * This is by design.  The service doesn't return filePermission in the File.Create, File.SetProperties, File.Get, or File.GetProperties responses.
+                 * Also, the service sometimes modifies the filePermission server-side, so this field may be inaccurate if we maintained it's value.
+                 * To retrieve a filePermission, call share.GetFilePermission(filePermissionId).
+                 */
+                file.filePermission = null;
                 file.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
                 return null;
@@ -663,10 +677,10 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Deletes the file.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public final void delete() throws StorageException, URISyntaxException {
@@ -675,7 +689,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Deletes the file using the specified access condition, request options, and operation context.
-     * 
+     *
      * @param accessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the file.
      * @param options
@@ -686,10 +700,10 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public final void delete(final AccessCondition accessCondition, FileRequestOptions options,
@@ -709,13 +723,13 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Deletes the file if it exists.
-     * 
+     *
      * @return <code>true</code> if the file was deleted; otherwise, <code>false</code>.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
-     * 
+     * @throws URISyntaxException
+     *
      */
     @DoesServiceRequest
     public final boolean deleteIfExists() throws StorageException, URISyntaxException {
@@ -724,7 +738,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Deletes the file if it exists, using the specified access condition, request options, and operation context.
-     * 
+     *
      * @param accessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the file.
      * @param options
@@ -735,12 +749,12 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @return <code>true</code> if the file existed and was deleted; otherwise, <code>false</code>
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public final boolean deleteIfExists(final AccessCondition accessCondition, FileRequestOptions options,
@@ -805,7 +819,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Downloads the contents of a file to a stream.
-     * 
+     *
      * @param outStream
      *            An <code>{@link OutputStream}</code> object that represents the target stream.
      * @throws StorageException
@@ -818,7 +832,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Downloads the contents of a file to a stream using the specified request options and operation context.
-     * 
+     *
      * @param outStream
      *            An <code>OutputStream</code> object that represents the target stream.
      * @param accessCondition
@@ -851,7 +865,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Downloads the contents of a file to a stream.
-     * 
+     *
      * @param offset
      *            A <code>long</code> which represents the offset to use as the starting point for the source.
      * @param length
@@ -869,7 +883,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Downloads the contents of a file to a stream using the specified request options and operation context.
-     * 
+     *
      * @param offset
      *            A <code>long</code> which represents the offset to use as the starting point for the source.
      * @param length
@@ -911,7 +925,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Downloads a range of bytes from the file to the given byte buffer.
-     * 
+     *
      * @param fileOffset
      *            A <code>long</code> which represents the offset within the file to begin downloading.
      * @param length
@@ -943,7 +957,7 @@ public final class CloudFile implements ListFileItem {
         }
 
         options = FileRequestOptions.populateAndApplyDefaults(options, this.fileServiceClient);
-        
+
         WrappedByteArrayOutputStream outputStream = new WrappedByteArrayOutputStream(buffer, bufferOffset);
         ExecutionEngine.executeWithRetry(this.fileServiceClient, this,
                 this.downloadToStreamImpl(fileOffset, length, outputStream, accessCondition, options, opContext),
@@ -953,7 +967,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Downloads a range of bytes from the file to the given byte buffer.
-     * 
+     *
      * @param offset
      *            A <code>long</code> which represents the byte offset to use as the starting point for the source.
      * @param length
@@ -962,7 +976,7 @@ public final class CloudFile implements ListFileItem {
      *            A <code>byte</code> array which represents the buffer to which the file bytes are downloaded.
      * @param bufferOffset
      *            An <code>int</code> which represents the byte offset to use as the starting point for the target.
-     * 
+     *
      * @throws StorageException
      */
     @DoesServiceRequest
@@ -975,7 +989,7 @@ public final class CloudFile implements ListFileItem {
     /**
      * Downloads a range of bytes from the file to the given byte buffer, using the specified request options and
      * operation context.
-     * 
+     *
      * @param offset
      *            A <code>long</code> which represents the byte offset to use as the starting point for the source.
      * @param length
@@ -994,7 +1008,7 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      */
@@ -1022,12 +1036,12 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Downloads a range of bytes from the file to the given byte buffer.
-     * 
+     *
      * @param buffer
      *            A <code>byte</code> array which represents the buffer to which the file bytes are downloaded.
      * @param bufferOffset
      *            An <code>int</code> which represents the byte offset to use as the starting point for the target.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      */
@@ -1040,7 +1054,7 @@ public final class CloudFile implements ListFileItem {
     /**
      * Downloads a range of bytes from the file to the given byte buffer, using the specified request options and
      * operation context.
-     * 
+     *
      * @param buffer
      *            A <code>byte</code> array which represents the buffer to which the file bytes are downloaded.
      * @param bufferOffset
@@ -1055,7 +1069,7 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      */
@@ -1079,7 +1093,7 @@ public final class CloudFile implements ListFileItem {
 
         opContext.initialize();
         options = FileRequestOptions.populateAndApplyDefaults(options, this.fileServiceClient);
-        
+
         WrappedByteArrayOutputStream outputStream = new WrappedByteArrayOutputStream(buffer, bufferOffset);
         ExecutionEngine.executeWithRetry(this.fileServiceClient, this,
                 this.downloadToStreamImpl(null, null, outputStream, accessCondition, options, opContext),
@@ -1089,10 +1103,10 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Downloads a file.
-     * 
+     *
      * @param path
      *            A <code>String</code> which represents the path to the file that will be created.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      * @throws IOException
@@ -1103,7 +1117,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Downloads a file.
-     * 
+     *
      * @param path
      *            A <code>String</code> which represents the path to the file that will be created.
      * @param accessCondition
@@ -1116,7 +1130,7 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      * @throws IOException
@@ -1140,7 +1154,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Helper to delete an empty file in the case of an exception
-     * 
+     *
      * @param outputStream
      * @param path
      * @throws IOException
@@ -1158,9 +1172,9 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Downloads a file to a string using the platform's default encoding.
-     * 
+     *
      * @return A <code>String</code> which represents the file's contents.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      * @throws IOException
@@ -1172,7 +1186,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Downloads a file to a string using the specified encoding.
-     * 
+     *
      * @param charsetName
      *            A <code>String</code> which represents the name of the charset to use to encode the content.
      *            If null, the platform's default encoding is used.
@@ -1186,9 +1200,9 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @return A <code>String</code> which represents the file's contents.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      * @throws IOException
@@ -1205,10 +1219,10 @@ public final class CloudFile implements ListFileItem {
      * Returns a collection of file ranges and their starting and ending byte offsets.
      * <p>
      * The start and end byte offsets for each file range are inclusive.
-     * 
+     *
      * @return An <code>ArrayList</code> object which represents the set of file ranges and their starting and ending
      *         byte offsets.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      */
@@ -1220,7 +1234,7 @@ public final class CloudFile implements ListFileItem {
     /**
      * Returns a collection of file ranges and their starting and ending byte offsets using the specified request
      * options and operation context.
-     * 
+     *
      * @param accessCondition
      *            An {@link AccessCondition} object which represents the access conditions for the file.
      * @param options
@@ -1231,10 +1245,10 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object which represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @return An <code>ArrayList</code> object which represents the set of file ranges and their starting
      *            and ending byte offsets.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      */
@@ -1354,7 +1368,7 @@ public final class CloudFile implements ListFileItem {
                 if (!this.getArePropertiesPopulated()) {
                     final FileAttributes retrievedAttributes = FileResponse.getFileAttributes(this.getConnection(),
                             file.getStorageUri());
-
+                    FileResponse.updateFileSMBProperties(this.getConnection(), retrievedAttributes.getProperties());
                     file.properties = retrievedAttributes.getProperties();
                     file.metadata = retrievedAttributes.getMetadata();
 
@@ -1449,7 +1463,7 @@ public final class CloudFile implements ListFileItem {
      * This method populates the file's system properties and user-defined metadata. Before reading or modifying
      * a file's properties or metadata, call this method or its overload to retrieve the latest values for the
      * file's properties and metadata from the Microsoft Azure storage service.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      */
@@ -1464,7 +1478,7 @@ public final class CloudFile implements ListFileItem {
      * This method populates the file's system properties and user-defined metadata. Before reading or modifying
      * a file's properties or metadata, call this method or its overload to retrieve the latest values for
      * the file's properties and metadata from the Microsoft Azure storage service.
-     * 
+     *
      * @param accessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the file.
      * @param options
@@ -1475,7 +1489,7 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      */
@@ -1527,6 +1541,9 @@ public final class CloudFile implements ListFileItem {
                 // Set attributes
                 final FileAttributes retrievedAttributes = FileResponse.getFileAttributes(this.getConnection(),
                         file.getStorageUri());
+                // Update the file SMB properties to be the file SMB properties returned in the HTTP response
+                FileResponse.updateFileSMBProperties(this.getConnection(), retrievedAttributes.getProperties());
+
                 file.properties = retrievedAttributes.getProperties();
                 file.metadata = retrievedAttributes.getMetadata();
 
@@ -1539,9 +1556,9 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Checks to see if the file exists.
-     * 
+     *
      * @return <code>true</code> if the file exists, otherwise <code>false</code>.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      */
@@ -1552,7 +1569,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Checks to see if the file exists, using the specified access condition, request options and operation context.
-     * 
+     *
      * @param accessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the file.
      * @param options
@@ -1563,9 +1580,9 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @return <code>true</code> if the file exists, otherwise <code>false</code>.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      */
@@ -1659,7 +1676,7 @@ public final class CloudFile implements ListFileItem {
             throws InvalidKeyException, StorageException {
         return generateSharedAccessSignature(policy, null /* headers */, groupPolicyIdentifier);
     }
-    
+
     /**
      * Returns a shared access signature for the file using the specified group policy identifier and
      * shared access file headers. Note this does not contain the leading "?".
@@ -1689,7 +1706,7 @@ public final class CloudFile implements ListFileItem {
         return this.generateSharedAccessSignature(policy, headers, groupPolicyIdentifier,
                 null /* IP range */, null /* protocols */);
     }
-    
+
     /**
      * Returns a shared access signature for the file using the specified group policy identifier and
      * shared access file headers. Note this does not contain the leading "?".
@@ -1734,7 +1751,7 @@ public final class CloudFile implements ListFileItem {
 
         return builder.toString();
     }
-    
+
     /**
      * Returns the canonical name of the file in the format of
      * <i>/&lt;service-name&gt;/&lt;account-name&gt;/&lt;share-name&gt;/&lt;file-name&gt;</i>.
@@ -1756,7 +1773,7 @@ public final class CloudFile implements ListFileItem {
             canonicalName.append(PathUtility.getCanonicalPathFromCredentials(
                     this.getServiceClient().getCredentials(), rawPath));
         }
-        
+
         return canonicalName.toString();
     }
 
@@ -1773,9 +1790,9 @@ public final class CloudFile implements ListFileItem {
      * Opens a file input stream to download the file.
      * <p>
      * Use {@link CloudFile#setStreamMinimumReadSizeInBytes(int)} to configure the read size.
-     * 
+     *
      * @return An <code>InputStream</code> object that represents the stream to use for reading from the file.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      */
@@ -1789,7 +1806,7 @@ public final class CloudFile implements ListFileItem {
      * operation context.
      * <p>
      * Use {@link #setStreamMinimumReadSizeInBytes(int)} to configure the read size.
-     * 
+     *
      * @param accessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the file.
      * @param options
@@ -1800,9 +1817,9 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @return An <code>InputStream</code> object that represents the stream to use for reading from the file.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      */
@@ -1821,12 +1838,12 @@ public final class CloudFile implements ListFileItem {
     /**
      * Opens an output stream object to write data to the file. The file must already exist and any existing data may 
      * be overwritten.
-     * 
+     *
      * @return A {@link FileOutputStream} object used to write data to the file.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public FileOutputStream openWriteExisting() throws StorageException, URISyntaxException {
@@ -1837,7 +1854,7 @@ public final class CloudFile implements ListFileItem {
     /**
      * Opens an output stream object to write data to the file, using specified request options and
      * operation context. The file must already exist and any existing data may be overwritten.
-     * 
+     *
      * @param accessCondition
      *            An {@link AccessCondition} object which represents the access conditions for the file.
      * @param options
@@ -1848,12 +1865,12 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object which represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @return A {@link FileOutputStream} object used to write data to the file.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public FileOutputStream openWriteExisting(AccessCondition accessCondition, FileRequestOptions options,
@@ -1868,15 +1885,15 @@ public final class CloudFile implements ListFileItem {
      * To avoid overwriting and instead throw an error, please use the
      * {@link #openWriteNew(long, AccessCondition, FileRequestOptions, OperationContext)} overload with the appropriate
      * {@link AccessCondition}.
-     * 
+     *
      * @param length
      *            A <code>long</code> which represents the length, in bytes, of the stream to create.
-     * 
+     *
      * @return A {@link FileOutputStream} object used to write data to the file.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public FileOutputStream openWriteNew(final long length) throws StorageException, URISyntaxException {
@@ -1891,7 +1908,7 @@ public final class CloudFile implements ListFileItem {
      * <p>
      * To avoid overwriting and instead throw an error, please pass in an {@link AccessCondition} generated using 
      * {@link AccessCondition#generateIfNotExistsCondition()}.
-     * 
+     *
      * @param length
      *            A <code>long</code> which represents the length, in bytes, of the stream to create.
      * @param accessCondition
@@ -1904,12 +1921,12 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object which represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @return A {@link FileOutputStream} object used to write data to the file.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public FileOutputStream openWriteNew(final long length, AccessCondition accessCondition,
@@ -1921,7 +1938,7 @@ public final class CloudFile implements ListFileItem {
      * Opens an output stream object to write data to the file, using the specified lease ID, request options and
      * operation context. If the length is specified, a new file will be created with the length specified.
      * Otherwise, the file must already exist and a stream of its current length will be opened.
-     * 
+     *
      * @param length
      *            A <code>long</code> which represents the length, in bytes, of the stream to create. This value must be
      *            null if the file already exists.
@@ -1935,12 +1952,12 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object which represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @return A {@link FileOutputStream} object used to write data to the file.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     private FileOutputStream openOutputStreamInternal(Long length, AccessCondition accessCondition,
             FileRequestOptions options, OperationContext opContext) throws StorageException, URISyntaxException {
@@ -1973,18 +1990,18 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Uploads a file from data in a byte array. If the file already exists on the service, it will be overwritten.
-     * 
+     *
      * @param buffer
      *            A <code>byte</code> array which represents the data to write to the file.
      * @param offset
      *            A <code>int</code> which represents the offset of the byte array from which to start the data upload.
      * @param length
      *            An <code>int</code> which represents the number of bytes to upload from the input buffer.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      * @throws IOException
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     public void uploadFromByteArray(final byte[] buffer, final int offset, final int length) throws StorageException,
             IOException, URISyntaxException {
@@ -1993,7 +2010,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Uploads a file from data in a byte array. If the file already exists on the service, it will be overwritten.
-     * 
+     *
      * @param buffer
      *            A <code>byte</code> array which represents the data to write to the file.
      * @param offset
@@ -2010,11 +2027,11 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      * @throws IOException
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     public void uploadFromByteArray(final byte[] buffer, final int offset, final int length,
             final AccessCondition accessCondition, FileRequestOptions options, OperationContext opContext)
@@ -2026,14 +2043,14 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Uploads a local file. If the file already exists on the service, it will be overwritten.
-     * 
+     *
      * @param path
      *            A <code>String</code> which represents the path to the file to be uploaded.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      * @throws IOException
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     public void uploadFromFile(final String path) throws StorageException, IOException, URISyntaxException {
         uploadFromFile(path, null /* accessCondition */, null /* options */, null /* opContext */);
@@ -2041,7 +2058,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Uploads a file from a local file. If the file already exists on the service, it will be overwritten.
-     * 
+     *
      * @param path
      *            A <code>String</code> which represents the path to the file to be uploaded.
      * @param accessCondition
@@ -2054,11 +2071,11 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      * @throws IOException
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     public void uploadFromFile(final String path, final AccessCondition accessCondition, FileRequestOptions options,
             OperationContext opContext) throws StorageException, IOException, URISyntaxException {
@@ -2072,14 +2089,14 @@ public final class CloudFile implements ListFileItem {
     /**
      * Uploads a file from a string using the platform's default encoding. If the file already exists on the service, it
      * will be overwritten.
-     * 
+     *
      * @param content
      *            A <code>String</code> which represents the content that will be uploaded to the file.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      * @throws IOException
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     public void uploadText(final String content) throws StorageException, IOException, URISyntaxException {
         this.uploadText(content, null /* charsetName */, null /* accessCondition */, null /* options */, null /* opContext */);
@@ -2088,7 +2105,7 @@ public final class CloudFile implements ListFileItem {
     /**
      * Uploads a file from a string using the specified encoding. If the file already exists on the service, it will be 
      * overwritten.
-     * 
+     *
      * @param content
      *            A <code>String</code> which represents the content that will be uploaded to the file.
      * @param charsetName
@@ -2104,11 +2121,11 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      * @throws IOException
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     public void uploadText(final String content, final String charsetName, final AccessCondition accessCondition,
             FileRequestOptions options, OperationContext opContext) throws StorageException, IOException, URISyntaxException {
@@ -2118,7 +2135,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Uploads a range to a file. 
-     * 
+     *
      * @param sourceStream
      *            An {@link InputStream} object which represents the input stream to write to the file.
      * @param offset
@@ -2126,12 +2143,12 @@ public final class CloudFile implements ListFileItem {
      *            data.
      * @param length
      *            A <code>long</code> which represents the length, in bytes, of the data to write.
-     * 
+     *
      * @throws IOException
      *             If an I/O exception occurred.
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public void uploadRange(final InputStream sourceStream, final long offset, final long length)
@@ -2141,7 +2158,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Uploads a range to a file using the specified lease ID, request options, and operation context.
-     * 
+     *
      * @param sourceStream
      *            An {@link InputStream} object which represents the input stream to write to the file.
      * @param offset
@@ -2159,12 +2176,12 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object which represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @throws IOException
      *             If an I/O exception occurred.
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public void uploadRange(final InputStream sourceStream, final long offset, final long length,
@@ -2201,13 +2218,12 @@ public final class CloudFile implements ListFileItem {
             }
         }
 
-        this.putRangeInternal(range, FileRangeOperationType.UPDATE, data, length, md5, accessCondition, options,
-                opContext);
+        this.putRangeInternal(range, FileRangeOperationType.UPDATE, data, length, md5, accessCondition, options, opContext);
     }
 
     /**
      * Used for both uploadRange and clearRange.
-     * 
+     *
      * @param range
      *            A {@link FileRange} object that specifies the file range.
      * @param operationType
@@ -2228,7 +2244,7 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object which represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      */
@@ -2247,51 +2263,163 @@ public final class CloudFile implements ListFileItem {
         final StorageRequest<CloudFileClient, CloudFile, Void> putRequest =
                 new StorageRequest<CloudFileClient, CloudFile, Void>(options, this.getStorageUri()) {
 
-            @Override
-            public HttpURLConnection buildRequest(CloudFileClient client, CloudFile file, OperationContext context)
-                    throws Exception {
-                if (operationType == FileRangeOperationType.UPDATE) {
-                    this.setSendStream(new ByteArrayInputStream(data));
-                    this.setLength(length);
-                }
+                    @Override
+                    public HttpURLConnection buildRequest(CloudFileClient client, CloudFile file, OperationContext context)
+                            throws Exception {
+                        if (operationType == FileRangeOperationType.UPDATE) {
+                            this.setSendStream(new ByteArrayInputStream(data));
+                            this.setLength(length);
+                        }
 
-                return FileRequest.putRange(file.getTransformedAddress(context).getUri(this.getCurrentLocation()),
-                        options, opContext, accessCondition, range, operationType);
-            }
-
-            @Override
-            public void setHeaders(HttpURLConnection connection, CloudFile file, OperationContext context) {
-                if (operationType == FileRangeOperationType.UPDATE) {
-                    if (options.getUseTransactionalContentMD5()) {
-                        connection.setRequestProperty(Constants.HeaderConstants.CONTENT_MD5, md5);
+                        return FileRequest.putRange(file.getTransformedAddress(context).getUri(this.getCurrentLocation()),
+                                options, opContext, accessCondition, range, operationType);
                     }
-                }
-            }
 
-            @Override
-            public void signRequest(HttpURLConnection connection, CloudFileClient client, OperationContext context)
-                    throws Exception {
-                if (operationType == FileRangeOperationType.UPDATE) {
-                    StorageRequest.signBlobQueueAndFileRequest(connection, client, length, context);
-                }
-                else {
-                    StorageRequest.signBlobQueueAndFileRequest(connection, client, 0L, context);
-                }
-            }
+                    @Override
+                    public void setHeaders(HttpURLConnection connection, CloudFile file, OperationContext context) {
+                        if (operationType == FileRangeOperationType.UPDATE) {
+                            if (options.getUseTransactionalContentMD5()) {
+                                connection.setRequestProperty(Constants.HeaderConstants.CONTENT_MD5, md5);
+                            }
+                        }
+                    }
 
-            @Override
-            public Void preProcessResponse(CloudFile file, CloudFileClient client, OperationContext context)
-                    throws Exception {
-                if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_CREATED) {
-                    this.setNonExceptionedRetryableFailure(true);
-                    return null;
-                }
+                    @Override
+                    public void signRequest(HttpURLConnection connection, CloudFileClient client, OperationContext context)
+                            throws Exception {
+                        if (operationType == FileRangeOperationType.UPDATE) {
+                            StorageRequest.signBlobQueueAndFileRequest(connection, client, length, context);
+                        }
+                        else {
+                            StorageRequest.signBlobQueueAndFileRequest(connection, client, 0L, context);
+                        }
+                    }
 
-                file.updateEtagAndLastModifiedFromResponse(this.getConnection());
-                this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
-                return null;
-            }
-        };
+                    @Override
+                    public Void preProcessResponse(CloudFile file, CloudFileClient client, OperationContext context)
+                            throws Exception {
+                        if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_CREATED) {
+                            this.setNonExceptionedRetryableFailure(true);
+                            return null;
+                        }
+
+                        file.updateEtagAndLastModifiedFromResponse(this.getConnection());
+                        this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                        return null;
+                    }
+                };
+
+        return putRequest;
+    }
+
+    /**
+     * Uploads a range from one file to another file.
+     *
+     * @param destOffset
+     *            A <code>long</code> which represents the offset, in number of bytes, at which to begin writing the
+     *            data.
+     * @param length
+     *            A <code>long</code> which represents the length, in bytes, of the data to write and read.
+     * @param sourceUri
+     *            A <code>java.net.URI</code> object that specifies the source URI.
+     * @param sourceOffset
+     *            A <code>long</code> which represents the offset, in number of bytes, at which to begin reading the
+     *            data.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     * @throws URISyntaxException
+     */
+    @DoesServiceRequest
+    public void putRangeFromURL(final long destOffset, final long length, final URI sourceUri, final long sourceOffset)
+            throws StorageException, URISyntaxException {
+        this.putRangeFromURL(destOffset, length, sourceUri, sourceOffset, null /* options */, null /* opContext */);
+    }
+
+    /**
+     * Uploads a range from one file to another file using the specified lease ID, request options, and operation context
+     *
+     * @param destOffset
+     *            A <code>long</code> which represents the offset, in number of bytes, at which to begin writing the
+     *            data.
+     * @param length
+     *            A <code>long</code> which represents the length, in bytes, of the data to write and read.
+     * @param sourceUri
+     *            A <code>java.net.URI</code> object that specifies the source URI.
+     * @param sourceOffset
+     *            A <code>long</code> which represents the offset, in number of bytes, at which to begin reading the
+     *            data.
+     * @param options
+     *            A {@link FileRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudFileClient}).
+     * @param opContext
+     *            An {@link OperationContext} object which represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     * @throws URISyntaxException
+     */
+    @DoesServiceRequest
+    public void putRangeFromURL(final long destOffset, final long length, final URI sourceUri, final long sourceOffset,
+            FileRequestOptions options, OperationContext opContext)
+            throws StorageException, URISyntaxException {
+
+        Utility.assertNotNull("sourceUri", sourceUri);
+        Utility.assertInBounds("destOffset", destOffset, 0, Long.MAX_VALUE);
+        Utility.assertInBounds("length", length, 0, 4*Constants.MB);
+        Utility.assertInBounds("sourceOffset", sourceOffset, 0, Long.MAX_VALUE);
+
+        if (opContext == null) {
+            opContext = new OperationContext();
+        }
+
+        this.getShare().assertNoSnapshot();
+
+        options = FileRequestOptions.populateAndApplyDefaults(options, this.fileServiceClient);
+
+        final FileRange range = new FileRange(destOffset, destOffset + length - 1);
+        final FileRange sourceRange = new FileRange(sourceOffset, sourceOffset + length - 1);
+
+        ExecutionEngine.executeWithRetry(this.fileServiceClient, this,
+                putRangeFromURLImpl(range, sourceUri, sourceRange, options,
+                        opContext), options.getRetryPolicyFactory(), opContext);
+    }
+
+    private StorageRequest<CloudFileClient, CloudFile, Void> putRangeFromURLImpl(final FileRange range,
+            final URI sourceURI, final FileRange sourceRange, final FileRequestOptions options,
+            final OperationContext opContext) {
+        final StorageRequest<CloudFileClient, CloudFile, Void> putRequest =
+                new StorageRequest<CloudFileClient, CloudFile, Void>(options, this.getStorageUri()) {
+
+                    @Override
+                    public HttpURLConnection buildRequest(CloudFileClient client, CloudFile file, OperationContext context)
+                            throws Exception {
+                        return FileRequest.putRangeFromURL(file.getTransformedAddress(context).getUri(this.getCurrentLocation()),
+                                options, opContext, range, sourceURI, sourceRange);
+                    }
+
+                    @Override
+                    public void signRequest(HttpURLConnection connection, CloudFileClient client, OperationContext context)
+                            throws Exception {
+                        StorageRequest.signBlobQueueAndFileRequest(connection, client, 0L, context);
+                    }
+
+                    @Override
+                    public Void preProcessResponse(CloudFile file, CloudFileClient client, OperationContext context)
+                            throws Exception {
+                        if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_CREATED) {
+                            this.setNonExceptionedRetryableFailure(true);
+                            return null;
+                        }
+
+                        file.updateEtagAndLastModifiedFromResponse(this.getConnection());
+                        this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                        return null;
+                    }
+                };
 
         return putRequest;
     }
@@ -2301,10 +2429,10 @@ public final class CloudFile implements ListFileItem {
      * <p>
      * Use {@link CloudFile#downloadAttributes} to retrieve the latest values for the file's properties and metadata
      * from the Microsoft Azure storage service.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public final void uploadMetadata() throws StorageException, URISyntaxException {
@@ -2317,7 +2445,7 @@ public final class CloudFile implements ListFileItem {
      * <p>
      * Use {@link CloudFile#downloadAttributes} to retrieve the latest values for the file's properties and metadata
      * from the Microsoft Azure storage service.
-     * 
+     *
      * @param accessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the file.
      * @param options
@@ -2328,10 +2456,10 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public final void uploadMetadata(final AccessCondition accessCondition, FileRequestOptions options,
@@ -2392,14 +2520,14 @@ public final class CloudFile implements ListFileItem {
     }
 
     /**
-     * Updates the file's properties to the storage service.
+     * Uploads the file's properties to the storage service.
      * <p>
      * Use {@link CloudFile#downloadAttributes} to retrieve the latest values for the file's properties and metadata
      * from the Microsoft Azure storage service.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public final void uploadProperties() throws StorageException, URISyntaxException {
@@ -2407,11 +2535,11 @@ public final class CloudFile implements ListFileItem {
     }
 
     /**
-     * Updates the file's properties using the access condition, request options, and operation context.
+     * Uploads the file's properties using the access condition, request options, and operation context.
      * <p>
      * Use {@link CloudFile#downloadAttributes} to retrieve the latest values for the file's properties and metadata
      * from the Microsoft Azure storage service.
-     * 
+     *
      * @param accessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the file.
      * @param options
@@ -2422,10 +2550,10 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public final void uploadProperties(final AccessCondition accessCondition, FileRequestOptions options,
@@ -2435,6 +2563,7 @@ public final class CloudFile implements ListFileItem {
         }
 
         this.getShare().assertNoSnapshot();
+        this.assertValidFilePermissionOrKey();
 
         opContext.initialize();
         options = FileRequestOptions.populateAndApplyDefaults(options, this.fileServiceClient);
@@ -2453,7 +2582,7 @@ public final class CloudFile implements ListFileItem {
                     throws Exception {
                 return FileRequest.setFileProperties(
                         file.getTransformedAddress(context).getUri(this.getCurrentLocation()),
-                        options, context, accessCondition, file.properties);
+                        options, context, accessCondition, file.properties, file.filePermission);
             }
 
             @Override
@@ -2470,7 +2599,14 @@ public final class CloudFile implements ListFileItem {
                     this.setNonExceptionedRetryableFailure(true);
                     return null;
                 }
-
+                // Update the file SMB properties (including the file permission) to be the file SMB properties returned in the HTTP response
+                FileResponse.updateFileSMBProperties(this.getConnection(), file.properties);
+                /**
+                 * This is by design.  The service doesn't return filePermission in the File.Create, File.SetProperties, File.Get, or File.GetProperties responses.
+                 * Also, the service sometimes modifies the filePermission server-side, so this field may be inaccurate if we maintained it's value.
+                 * To retrieve a filePermission, call share.GetFilePermission(filePermissionId).
+                 */
+                file.filePermission = null;
                 file.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
                 return null;
@@ -2482,13 +2618,13 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Resizes the file to the specified size.
-     * 
+     *
      * @param size
      *            A <code>long</code> which represents the size of the file, in bytes.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     public void resize(long size) throws StorageException, URISyntaxException {
         this.resize(size, null /* accessCondition */, null /* options */, null /* operationContext */);
@@ -2496,7 +2632,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Resizes the file to the specified size.
-     * 
+     *
      * @param size
      *            A <code>long</code> which represents the size of the file, in bytes.
      * @param accessCondition
@@ -2509,10 +2645,10 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object which represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     public void resize(long size, AccessCondition accessCondition, FileRequestOptions options,
             OperationContext opContext) throws StorageException, URISyntaxException {
@@ -2567,17 +2703,17 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Uploads the source stream data to the file. If the file already exists on the service, it will be overwritten.
-     * 
+     *
      * @param sourceStream
      *            An {@link InputStream} object to read from.
      * @param length
      *            A <code>long</code> which represents the length, in bytes, of the stream data. Must be non zero.
-     * 
+     *
      * @throws IOException
      *             If an I/O exception occurred.
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public void upload(final InputStream sourceStream, final long length) throws StorageException, IOException, URISyntaxException {
@@ -2587,7 +2723,7 @@ public final class CloudFile implements ListFileItem {
     /**
      * Uploads the source stream data to the file using the specified access condition, request options, and operation
      * context. If the file already exists on the service, it will be overwritten.
-     * 
+     *
      * @param sourceStream
      *            An {@link InputStream} object to read from.
      * @param length
@@ -2603,12 +2739,12 @@ public final class CloudFile implements ListFileItem {
      *            An {@link OperationContext} object which represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @throws IOException
      *             If an I/O exception occurred.
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     @DoesServiceRequest
     public void upload(final InputStream sourceStream, final long length, final AccessCondition accessCondition,
@@ -2978,14 +3114,14 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Retrieves the parent name for a file URI.
-     * 
+     *
      * @param resourceAddress
      *            A {@link StorageUri} object which represents the resource URI.
      * @param share
      *            A {@link CloudFileShare} object which represents the file share.
-     * 
+     *
      * @return A <code>String</code> which represents the parent address for a file URI.
-     * 
+     *
      * @throws URISyntaxException
      */
     protected static String getParentNameFromURI(final StorageUri resourceAddress, final CloudFileShare share)
@@ -3033,14 +3169,14 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Verifies the passed in URI. Then parses it and uses its components to populate this resource's properties.
-     * 
+     *
      * @param completeUri
      *            A {@link StorageUri} object which represents the complete URI.
      * @param credentials
      *            A {@link StorageCredentials} object used to authenticate access.
      * @throws StorageException
      *             If a storage service error occurred.
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     private void parseQueryAndVerify(final StorageUri completeUri, final StorageCredentials credentials)
             throws StorageException, URISyntaxException {
@@ -3052,7 +3188,7 @@ public final class CloudFile implements ListFileItem {
 
         this.storageUri = PathUtility.stripURIQueryAndFragment(completeUri);
 
-        final StorageCredentialsSharedAccessSignature parsedCredentials = 
+        final StorageCredentialsSharedAccessSignature parsedCredentials =
                 SharedAccessSignatureHelper.parseQuery(completeUri);
 
         if (credentials != null && parsedCredentials != null) {
@@ -3099,7 +3235,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Returns the file's share.
-     * 
+     *
      * @return A {@link CloudFileShare} object that represents the share of the file.
      * @throws StorageException
      *             If a storage service error occurred.
@@ -3120,7 +3256,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Returns the metadata for the file.
-     * 
+     *
      * @return A <code>java.util.HashMap</code> object that represents the metadata for the file.
      */
     public final HashMap<String, String> getMetadata() {
@@ -3129,7 +3265,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Returns the name of the file.
-     * 
+     *
      * @return A <code>String</code> that represents the name of the file.
      */
     public final String getName() {
@@ -3138,9 +3274,9 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Returns the file item's parent.
-     * 
+     *
      * @return A {@link CloudFileDirectory} object that represents the parent directory for the file.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      * @throws URISyntaxException
@@ -3161,7 +3297,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Returns the file's properties.
-     * 
+     *
      * @return A {@link FileProperties} object that represents the properties of the file.
      */
     public final FileProperties getProperties() {
@@ -3170,7 +3306,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Returns the file service client associated with the file.
-     * 
+     *
      * @return A {@link CloudFileClient} object that represents the client.
      */
     public final CloudFileClient getServiceClient() {
@@ -3179,7 +3315,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Gets the number of bytes to buffer when writing to a {@link FileOutputStream}.
-     * 
+     *
      * @return
      *         A <code>int</code> which represents the number of bytes to buffer.
      */
@@ -3189,7 +3325,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Returns the minimum read size when using a {@link FileInputStream}.
-     * 
+     *
      * @return A <code>int</code> which represents the minimum read size, in bytes, when using a {@link FileInputStream}
      *         object.
      */
@@ -3199,7 +3335,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Returns the list of URIs for all locations.
-     * 
+     *
      * @return A {@link StorageUri} that represents the list of URIs for all locations.
      */
     @Override
@@ -3209,7 +3345,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Returns the URI for this file.
-     * 
+     *
      * @return A <code>java.net.URI</code> object that represents the URI for the file.
      */
     @Override
@@ -3219,7 +3355,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Sets the share for the file.
-     * 
+     *
      * @param share
      *            A {@link CloudFileShare} object that represents the share being assigned to the file.
      */
@@ -3229,7 +3365,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Sets the metadata for the file.
-     * 
+     *
      * @param metadata
      *            A <code>java.util.HashMap</code> object that contains the metadata being assigned to the file.
      */
@@ -3239,7 +3375,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Sets the properties for the file.
-     * 
+     *
      * @param properties
      *            A {@link FileProperties} object that represents the properties being assigned to the file.
      */
@@ -3249,7 +3385,7 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Sets the list of URIs for all locations.
-     * 
+     *
      * @param storageUri
      *            A {@link StorageUri} that represents the list of URIs for all locations.
      */
@@ -3258,8 +3394,18 @@ public final class CloudFile implements ListFileItem {
     }
 
     /**
+     * Sets the file's file permission to set
+     * @param filePermission
+     *          A <code>String</code> that represents the file's file permission to set.
+     */
+    public void setFilePermission(String filePermission) {
+        Utility.assertInBounds("filePermission", filePermission.getBytes().length, 0, 8*Constants.KB);
+        this.filePermission = filePermission;
+    }
+
+    /**
      * Sets the minimum read size when using a {@link FileInputStream}.
-     * 
+     *
      * @param minimumReadSize
      *            An <code>int</code> that represents the minimum number of bytes to buffer when reading from
      *            a file while using a {@link FileInputStream} object. Must be greater than or equal to 16 KB.
@@ -3276,11 +3422,11 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Sets the number of bytes to buffer when writing to a {@link FileOutputStream}.
-     * 
+     *
      * @param streamWriteSizeInBytes
      *            An <code>int</code> which represents the number of bytes to buffer while using a
      *            {@link FileOutputStream} object, ranging from 512 bytes to 4 MB, inclusive.
-     * 
+     *
      * @throws IllegalArgumentException
      *             If <code>streamWriteSizeInBytes</code> is less than 512 bytes or greater than 4 MB.
      */
@@ -3294,14 +3440,14 @@ public final class CloudFile implements ListFileItem {
 
     /**
      * Returns the transformed URI for the resource if the given credentials require transformation.
-     * 
+     *
      * @param opContext
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
-     * 
+     *
      * @return A {@link StorageUri} object that represents the transformed URI.
-     * 
+     *
      * @throws StorageException
      *             If a storage service error occurred.
      * @throws URISyntaxException
@@ -3310,5 +3456,14 @@ public final class CloudFile implements ListFileItem {
     protected final StorageUri getTransformedAddress(final OperationContext opContext)
             throws URISyntaxException, StorageException {
         return this.fileServiceClient.getCredentials().transformUri(this.getStorageUri(), opContext);
+    }
+
+    /**
+     * Verifies that the directory's filePermission and properties.filePermissionKey are both not set.
+     */
+    protected void assertValidFilePermissionOrKey() {
+        if (this.filePermission != null && this.properties != null && this.properties.filePermissionKeyToSet != null) {
+            throw new IllegalArgumentException(SR.FILE_PERMISSION_FILE_PERMISSION_KEY_INVALID);
+        }
     }
 }

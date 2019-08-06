@@ -1,3 +1,13 @@
+2019.08.05 Version 8.4.0
+ * Support for 2019-02-02 REST version. Please see our REST API documentation and blogs for information about the related added features.
+ * Added support for setting rehydrate priority for SetBlobTier and CopyBlob APIs.
+ * Added support for PutRangeFromURL API to writes bytes from one Azure File endpoint into the specified range of another Azure File endpoint.
+ * Added setDirectoryProperties, createPermission, and getPermission APIs to the File package.
+ * Added required headers for creatFile, createDirectory, setFileProperties, getFileProperties, getDirectoryProperties, getFile APIs.
+ * Updated getFileProperties, getDirectoryProperties, and getFile calls to update SMB properties.
+ * Added support for setting access tier for PutBlob/PutBlockList and CopyBlob APIs.
+ * Added support for batching blob operations. Currently the only batchable apis are deleteBlob and setBlobTier.
+
 2019.04.23 Version 8.3.0
  * Fixed a bug in the range download to InputStream that would throw an exception if the source blob was empty.
  * Added support for List/Close File Handles APIs.
@@ -9,6 +19,7 @@
  * Fixed a bug in which putBlockFromURI accessConditions were indicated as being on the destination when in actuality they only apply to the source.
  * Added a method to get share stats in bytes.
  * Support for snapshot-level shared access signature tokens on blobs.
+ * Support for customer-provided keys with server-side encryption.
 
 2019.03.01 Version 8.1.0
  * Added support for the deep sync copy blob api.

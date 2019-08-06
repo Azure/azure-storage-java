@@ -33,6 +33,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 
 import org.junit.After;
@@ -895,5 +896,96 @@ public class CloudFileDirectoryTests {
         directory.listHandlesSegmented(400, true, null, null, null);
 
         directory.closeAllHandlesSegmented();
+    }
+
+    /**
+     * Test file creation and deletion.
+     *
+     * @throws URISyntaxException
+     * @throws StorageException
+     */
+    @Test
+    public void testCloudFileDirectoryCreateSMBAttributes() throws URISyntaxException, StorageException {
+        CloudFileDirectory dir = this.share.getRootDirectoryReference().getDirectoryReference("newdir");
+        dir.create();
+
+        assertNotNull(dir.getProperties().getFilePermissionKey());
+        assertNotNull(dir.getProperties().getNtfsAttributes());
+        assertNotNull(dir.getProperties().getCreationTime());
+        assertNotNull(dir.getProperties().getLastWriteTime());
+        assertNotNull(dir.getProperties().getChangeTime());
+        assertNotNull(dir.getProperties().getFileId());
+        assertNotNull(dir.getProperties().getParentId());
+
+        assertNull(dir.getProperties().filePermissionKeyToSet);
+        assertNull(dir.getProperties().ntfsAttributesToSet);
+        assertNull(dir.getProperties().creationTimeToSet);
+        assertNull(dir.getProperties().lastWriteTimeToSet);
+
+        dir.delete();
+    }
+
+    /**
+     * Test SMB properties set and get.
+     *
+     * @throws URISyntaxException
+     * @throws StorageException
+     */
+    @Test
+    public void testCloudFileUploadDownloadSMBFileProperties() throws URISyntaxException, StorageException, IOException {
+
+        // with explicit upload/download of properties
+        CloudFileDirectory dir = this.share.getRootDirectoryReference().getDirectoryReference("newdir");
+
+        dir.create();
+
+        // Get permission key
+        String permission = "O:S-1-5-21-2127521184-1604012920-1887927527-21560751G:S-1-5-21-2127521184-1604012920-1887927527-513D:AI(A;;FA;;;SY)(A;;FA;;;BA)(A;;0x1200a9;;;S-1-5-21-397955417-626881126-188441444-3053964)S:NO_ACCESS_CONTROL";
+        String filePermissionKey = this.share.createFilePermission(permission);
+
+        // set SMB properties
+        dir.getProperties().setFilePermissionKey(filePermissionKey);
+        dir.getProperties().setNtfsAttributes(EnumSet.of(NtfsAttributes.DIRECTORY));
+        dir.getProperties().setCreationTime("2019-07-18T17:37:25.4006072Z");
+        dir.getProperties().setLastWriteTime("2019-07-18T17:37:25.4006072Z");
+
+        FileDirectoryProperties props1 = dir.getProperties();
+        dir.uploadProperties();
+
+        FileDirectoryProperties props2 = new FileDirectoryProperties();
+        props2.filePermissionKey = "";
+        props2.ntfsAttributes = props1.getNtfsAttributes();
+        props2.creationTime = "2019-07-18T17:37:25.4116172Z";
+        props2.lastWriteTime = "2019-07-18T17:37:25.4116172Z";
+
+        dir.downloadAttributes();
+        props2 = dir.getProperties();
+
+        FileTestHelper.assertSMBAreEqual(props1, props2, true);
+    }
+
+    @Test
+    public void testCloudFileSetGetFilePermission() throws URISyntaxException, StorageException, IOException {
+        // with explicit upload/download of properties
+        CloudFileDirectory dir = this.share.getRootDirectoryReference().getDirectoryReference("newdir");
+
+        dir.create();
+
+        // Get permission key
+        String permission = "O:S-1-5-21-2127521184-1604012920-1887927527-21560751G:S-1-5-21-2127521184-1604012920-1887927527-513D:AI(A;;FA;;;SY)(A;;FA;;;BA)(A;;0x1200a9;;;S-1-5-21-397955417-626881126-188441444-3053964)S:NO_ACCESS_CONTROL";
+
+        // set SMB properties
+        dir.setFilePermission(permission);
+        dir.getProperties().setNtfsAttributes(EnumSet.of(NtfsAttributes.DIRECTORY));
+        dir.getProperties().setCreationTime("2019-07-18T17:37:25.4006072Z");
+        dir.getProperties().setLastWriteTime("2019-07-18T17:37:25.4006072Z");
+
+        FileDirectoryProperties props1 = dir.getProperties();
+        dir.uploadProperties();
+
+        dir.downloadAttributes();
+        FileDirectoryProperties props2 = dir.getProperties();
+
+        FileTestHelper.assertSMBAreEqual(props1, props2, false);
     }
 }

@@ -14,8 +14,10 @@
  */
 package com.microsoft.azure.storage.file;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.ProtocolException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.EnumSet;
@@ -122,6 +124,48 @@ final class FileRequest {
     }
 
     /**
+     * Adds either a file permission or file permission key.
+     *
+     * @param request
+     *            The request
+     * @param filePermissionKey
+     *            The file permission key
+     * @param filePermission
+     *            The file permission
+     * @param defaultFilePermission
+     *            The default file permission
+     */
+    private static void addFilePermissionOrFilePermissionKey(final HttpURLConnection request, String filePermissionKey, String filePermission, String defaultFilePermission) {
+        if (filePermission == null && filePermissionKey == null) {
+            request.setRequestProperty(FileConstants.FILE_PERMISSION, defaultFilePermission);
+        } else if (filePermission != null) {
+            request.setRequestProperty(FileConstants.FILE_PERMISSION, filePermission);
+        } else {
+            request.setRequestProperty(FileConstants.FILE_PERMISSION_KEY, filePermissionKey);
+        }
+    }
+
+    /**
+     * Sets the header value or a default header value.
+     *
+     * @param request
+     *            The request
+     * @param headerKey
+     *            The header key
+     * @param value
+     *            The header value
+     * @param defaultValue
+     *            The default header value
+     */
+    private static void setHeaderValueOrDefault(final HttpURLConnection request, String headerKey, String value, String defaultValue) {
+        if (value != null && !value.equals(Constants.EMPTY_STRING)) {
+            request.setRequestProperty(headerKey, value);
+        } else {
+            request.setRequestProperty(headerKey, defaultValue);
+        }
+    }
+
+    /**
      * Adds the share snapshot if present.
      * Only for listing files and directories which requires a different query param.
      * 
@@ -151,13 +195,13 @@ final class FileRequest {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
+     * @param sourceAccessCondition
+     *            A {@link AccessCondition} that represents the access conditions for the source
+     * @param destinationAccessCondition
+     *            A {@link AccessCondition} that represents the access conditions for the destination
      * @param source
      *            The canonical path to the source file,
      *            in the form /<account-name>/<share-name>/<directory-path>/<file-name>.
-     * @param sourceAccessConditionType
-     *            A type of condition to check on the source file.
-     * @param sourceAccessConditionValue
-     *            The value of the condition to check on the source file
      * @return a HttpURLConnection configured for the operation.
      * @throws StorageException
      *             an exception representing any error which occurred during the operation.
@@ -737,7 +781,7 @@ final class FileRequest {
     }
 
     /**
-     * Constructs a web request to create a new directory. Sign with 0 length.
+     * Constructs a web request to create a new directory
      * 
      * @param uri
      *            A <code>java.net.URI</code> object that specifies the absolute URI.
@@ -749,14 +793,28 @@ final class FileRequest {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
+     * @param properties
+     *            A {@link FileDirectoryProperties} object that specifies the file directory properties of the directory to create.
+     * @param filePermission
+     *            A {@link String} representing the file permission of the directory to create.
      * @return a HttpURLConnection configured for the operation.
+     *
      * @throws StorageException
      * @throws IllegalArgumentException
      */
     public static HttpURLConnection createDirectory(final URI uri, final FileRequestOptions fileOptions,
-            final OperationContext opContext) throws IOException, URISyntaxException, StorageException {
+            final OperationContext opContext, FileDirectoryProperties properties, String filePermission) throws IOException, URISyntaxException, StorageException {
         final UriQueryBuilder directoryBuilder = getDirectoryUriQueryBuilder();
-        return BaseRequest.create(uri, fileOptions, directoryBuilder, opContext);
+        HttpURLConnection request = BaseRequest.create(uri, fileOptions, directoryBuilder, opContext);
+
+        if (properties != null) {
+            addFilePermissionOrFilePermissionKey(request, properties.filePermissionKeyToSet, filePermission, FileConstants.FILE_PERMISSION_INHERIT);
+            setHeaderValueOrDefault(request, FileConstants.FILE_ATTRIBUTES, NtfsAttributes.toString(properties.ntfsAttributesToSet), FileConstants.FILE_ATTRIBUTES_NONE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_CREATION_TIME, properties.creationTimeToSet, FileConstants.FILE_TIME_NOW);
+            setHeaderValueOrDefault(request, FileConstants.FILE_LAST_WRITE_TIME, properties.lastWriteTimeToSet, FileConstants.FILE_TIME_NOW);
+        }
+
+        return request;
     }
 
     /**
@@ -891,6 +949,8 @@ final class FileRequest {
      *            The properties to set for the file.
      * @param fileSize
      *            The size of the file.
+     * @param filePermission
+     *            The file permission to set for the file
      * @return a HttpURLConnection to use to perform the operation.
      * @throws IOException
      *             if there is an error opening the connection
@@ -902,14 +962,20 @@ final class FileRequest {
      */
     public static HttpURLConnection putFile(final URI uri, final FileRequestOptions fileOptions,
             final OperationContext opContext, final AccessCondition accessCondition, final FileProperties properties,
-            final long fileSize) throws IOException, URISyntaxException, StorageException {
+            final long fileSize, final String filePermission) throws IOException, URISyntaxException, StorageException {
         final HttpURLConnection request = BaseRequest.createURLConnection(uri, fileOptions, null, opContext);
 
         request.setDoOutput(true);
 
         request.setRequestMethod(Constants.HTTP_PUT);
 
-        addProperties(request, properties);
+        if (properties != null) {
+            addProperties(request, properties);
+            addFilePermissionOrFilePermissionKey(request, properties.filePermissionKeyToSet, filePermission, FileConstants.FILE_PERMISSION_INHERIT);
+            setHeaderValueOrDefault(request, FileConstants.FILE_ATTRIBUTES, NtfsAttributes.toString(properties.ntfsAttributesToSet), FileConstants.FILE_ATTRIBUTES_NONE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_CREATION_TIME, properties.creationTimeToSet, FileConstants.FILE_TIME_NOW);
+            setHeaderValueOrDefault(request, FileConstants.FILE_LAST_WRITE_TIME, properties.lastWriteTimeToSet, FileConstants.FILE_TIME_NOW);
+        }
 
         request.setFixedLengthStreamingMode(0);
         request.setRequestProperty(Constants.HeaderConstants.CONTENT_LENGTH, "0");
@@ -928,7 +994,7 @@ final class FileRequest {
 
     /**
      * Constructs a HttpURLConnection to upload a file range. Sign with file size for update, or 0 for clear.
-     * 
+     *
      * @param uri
      *            A <code>java.net.URI</code> object that specifies the absolute URI.
      * @param fileOptions
@@ -945,7 +1011,7 @@ final class FileRequest {
      *            a {link @FileRange} representing the file range
      * @param operationType
      *            a {link @FileRangeOperationType} enumeration value representing the file range operation type.
-     * 
+     *
      * @return a HttpURLConnection to use to perform the operation.
      * @throws IOException
      *             if there is an error opening the connection
@@ -977,6 +1043,58 @@ final class FileRequest {
         if (accessCondition != null) {
             accessCondition.applyConditionToRequest(request);
         }
+
+        return request;
+    }
+
+    /**
+     * Constructs a HttpURLConnection to upload a file range. Sign with file size for update, or 0 for clear.
+     *
+     * @param uri
+     *            A <code>java.net.URI</code> object that specifies the absolute URI.
+     * @param fileOptions
+     *            A {@link FileRequestOptions} object that specifies execution options such as retry policy and timeout
+     *            settings for the operation. Specify <code>null</code> to use the request options specified on the
+     *            {@link CloudFileClient}.
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @param range
+     *            a {link @FileRange} representing the file range
+     * @param sourceUri
+     *            An optional <code>java.net.URI</code> object for putRangeFromURL that specifies the source URI.
+     * @param sourceRange
+     *            An optional {link @FileRange} for putRangeFromURL representing the file range of the source
+     *
+     * @return a HttpURLConnection to use to perform the operation.
+     * @throws IOException
+     *             if there is an error opening the connection
+     * @throws URISyntaxException
+     *             if the resource URI is invalid
+     * @throws StorageException
+     *             an exception representing any error which occurred during the operation.
+     * @throws IllegalArgumentException
+     */
+    public static HttpURLConnection putRangeFromURL(final URI uri, final FileRequestOptions fileOptions,
+            final OperationContext opContext, final FileRange range, final URI sourceUri, final FileRange sourceRange)
+            throws IOException, URISyntaxException, StorageException {
+        final UriQueryBuilder builder = new UriQueryBuilder();
+        builder.add(Constants.QueryConstants.COMPONENT, RANGE_QUERY_ELEMENT_NAME);
+
+        final HttpURLConnection request = BaseRequest.createURLConnection(uri, fileOptions, builder, opContext);
+
+        request.setDoOutput(true);
+        request.setRequestMethod(Constants.HTTP_PUT);
+
+        request.setRequestProperty(FileConstants.FILE_RANGE_WRITE, FileRangeOperationType.UPDATE.toString());
+        request.setRequestProperty(Constants.HeaderConstants.STORAGE_RANGE_HEADER, range.toString());
+
+        request.setFixedLengthStreamingMode(0);
+        request.setRequestProperty(Constants.HeaderConstants.CONTENT_LENGTH, "0");
+        request.setRequestProperty(Constants.HeaderConstants.COPY_SOURCE, sourceUri.toString());
+
+        request.setRequestProperty(Constants.HeaderConstants.STORAGE_SOURCE_RANGE_HEADER, sourceRange.toString());
 
         return request;
     }
@@ -1059,7 +1177,7 @@ final class FileRequest {
     public static HttpURLConnection resize(final URI uri, final FileRequestOptions fileOptions,
             final OperationContext opContext, final AccessCondition accessCondition, final Long newFileSize)
             throws IOException, URISyntaxException, StorageException {
-        final HttpURLConnection request = setFileProperties(uri, fileOptions, opContext, accessCondition, null);
+        final HttpURLConnection request = setFileProperties(uri, fileOptions, opContext, accessCondition, null, null);
 
         if (newFileSize != null) {
             request.setRequestProperty(FileConstants.CONTENT_LENGTH_HEADER, newFileSize.toString());
@@ -1230,6 +1348,8 @@ final class FileRequest {
      *            An {@link AccessCondition} object that represents the access conditions for the file.
      * @param properties
      *            The properties to upload.
+     * @param filePermission
+     *            The file permission to set.
      * @return a HttpURLConnection to use to perform the operation.
      * @throws IOException
      *             if there is an error opening the connection
@@ -1240,8 +1360,8 @@ final class FileRequest {
      * @throws IllegalArgumentException
      */
     public static HttpURLConnection setFileProperties(final URI uri, final FileRequestOptions fileOptions,
-            final OperationContext opContext, final AccessCondition accessCondition, final FileProperties properties)
-            throws IOException, URISyntaxException, StorageException {
+            final OperationContext opContext, final AccessCondition accessCondition, final FileProperties properties,
+            final String filePermission) throws IOException, URISyntaxException, StorageException {
         final UriQueryBuilder builder = new UriQueryBuilder();
         builder.add(Constants.QueryConstants.COMPONENT, Constants.QueryConstants.PROPERTIES);
 
@@ -1257,6 +1377,16 @@ final class FileRequest {
 
         if (properties != null) {
             addProperties(request, properties);
+            addFilePermissionOrFilePermissionKey(request, properties.filePermissionKeyToSet, filePermission, FileConstants.PRESERVE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_ATTRIBUTES, NtfsAttributes.toString(properties.ntfsAttributesToSet), FileConstants.PRESERVE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_CREATION_TIME, properties.creationTimeToSet, FileConstants.PRESERVE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_LAST_WRITE_TIME, properties.lastWriteTimeToSet, FileConstants.PRESERVE);
+        } else {
+            // Deals with resize API
+            request.setRequestProperty(FileConstants.FILE_PERMISSION, FileConstants.PRESERVE);
+            request.setRequestProperty(FileConstants.FILE_ATTRIBUTES, FileConstants.PRESERVE);
+            request.setRequestProperty(FileConstants.FILE_CREATION_TIME, FileConstants.PRESERVE);
+            request.setRequestProperty(FileConstants.FILE_LAST_WRITE_TIME, FileConstants.PRESERVE);
         }
 
         return request;
@@ -1327,5 +1457,140 @@ final class FileRequest {
      */
     private FileRequest() {
         // No op
+    }
+
+    /**
+     * Creates a HttpURLConnection to create a file permission.
+     *
+     * @param uri
+     *            A <code>java.net.URI</code> object that specifies the absolute URI.
+     * @param fileOptions
+     *            A {@link FileRequestOptions} object that specifies execution options such as retry policy and timeout
+     *            settings for the operation. Specify <code>null</code> to use the request options specified on the
+     *            {@link CloudFileClient}.
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @return a HttpURLConnection to use to perform the operation.
+     * @throws IOException
+     *             if there is an error opening the connection
+     * @throws URISyntaxException
+     *             if the resource URI is invalid
+     * @throws StorageException
+     *             an exception representing any error which occurred during the operation.
+     * @throws IllegalArgumentException
+     */
+    public static HttpURLConnection createFilePermission(final URI uri, final FileRequestOptions fileOptions,
+            final OperationContext opContext) throws StorageException, IOException,
+            URISyntaxException {
+        final UriQueryBuilder builder = new UriQueryBuilder();
+
+        builder.add(Constants.QueryConstants.RESOURCETYPE, "share");
+        builder.add(Constants.QueryConstants.COMPONENT, "filepermission");
+
+        final HttpURLConnection request = BaseRequest.createURLConnection(uri, fileOptions, builder, opContext);
+
+        request.setRequestProperty(Constants.HeaderConstants.CONTENT_TYPE, Constants.HeaderConstants.JSON_TYPE);
+
+        request.setDoOutput(true);
+        request.setRequestMethod(Constants.HTTP_PUT);
+
+        return request;
+    }
+
+    /**
+     * Creates a HttpURLConnection to get a file permission associated with a file permission key.
+     *
+     * @param uri
+     *            A <code>java.net.URI</code> object that specifies the absolute URI.
+     * @param fileOptions
+     *            A {@link FileRequestOptions} object that specifies execution options such as retry policy and timeout
+     *            settings for the operation. Specify <code>null</code> to use the request options specified on the
+     *            {@link CloudFileClient}.
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @return a HttpURLConnection to use to perform the operation.
+     * @throws IOException
+     *             if there is an error opening the connection
+     * @throws URISyntaxException
+     *             if the resource URI is invalid
+     * @throws StorageException
+     *             an exception representing any error which occurred during the operation.
+     * @throws IllegalArgumentException
+     */
+    public static HttpURLConnection getFilePermission(final URI uri, final String filePermissionKey, final FileRequestOptions fileOptions,
+            final OperationContext opContext) throws StorageException, IOException, URISyntaxException {
+        final UriQueryBuilder builder = new UriQueryBuilder();
+
+        builder.add(Constants.QueryConstants.RESOURCETYPE, "share");
+        builder.add(Constants.QueryConstants.COMPONENT, "filepermission");
+
+        final HttpURLConnection request = BaseRequest.createURLConnection(uri, fileOptions, builder, opContext);
+
+        request.setRequestProperty(FileConstants.FILE_PERMISSION_KEY, filePermissionKey);
+
+        request.setRequestMethod(Constants.HTTP_GET);
+
+        return request;
+
+    }
+
+    /**
+     * Constructs a HttpURLConnection to set the directory's properties, Sign with zero length specified.
+     *
+     * @param uri
+     *            A <code>java.net.URI</code> object that specifies the absolute URI.
+     * @param fileOptions
+     *            A {@link FileRequestOptions} object that specifies execution options such as retry policy and timeout
+     *            settings for the operation. Specify <code>null</code> to use the request options specified on the
+     *            {@link CloudFileClient}.
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @param accessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the file.
+     * @param properties
+     *            The properties to upload.
+     * @param filePermission
+     *            The file permission to set.
+     * @return a HttpURLConnection to use to perform the operation.
+     * @throws IOException
+     *             if there is an error opening the connection
+     * @throws URISyntaxException
+     *             if the resource URI is invalid
+     * @throws StorageException
+     *             an exception representing any error which occurred during the operation.
+     * @throws IllegalArgumentException
+     */
+    public static HttpURLConnection setDirectoryProperties(URI uri, FileRequestOptions fileOptions,
+            OperationContext opContext, AccessCondition accessCondition, FileDirectoryProperties properties,
+            String filePermission) throws StorageException, IOException, URISyntaxException {
+        final UriQueryBuilder builder = new UriQueryBuilder();
+        builder.add(Constants.QueryConstants.RESOURCETYPE, "directory");
+        builder.add(Constants.QueryConstants.COMPONENT, Constants.QueryConstants.PROPERTIES);
+
+        final HttpURLConnection request = BaseRequest.createURLConnection(uri, fileOptions, builder, opContext);
+
+        request.setFixedLengthStreamingMode(0);
+        request.setDoOutput(true);
+        request.setRequestMethod(Constants.HTTP_PUT);
+
+        if (accessCondition != null) {
+            accessCondition.applyConditionToRequest(request);
+        }
+
+        if (properties != null) {
+            addFilePermissionOrFilePermissionKey(request, properties.filePermissionKeyToSet, filePermission, FileConstants.PRESERVE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_ATTRIBUTES, NtfsAttributes.toString(properties.ntfsAttributesToSet), FileConstants.PRESERVE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_CREATION_TIME, properties.creationTimeToSet, FileConstants.PRESERVE);
+            setHeaderValueOrDefault(request, FileConstants.FILE_LAST_WRITE_TIME, properties.lastWriteTimeToSet, FileConstants.PRESERVE);
+        }
+
+        return request;
+
     }
 }

@@ -21,10 +21,13 @@ import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.TestHelper;
 import com.microsoft.azure.storage.ServiceProperties;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -475,6 +478,28 @@ public class BlobTestHelper extends TestHelper {
         HashMap<String, String> result = new HashMap<>(entries);
         for (int i = 0; i < entries; i++) {
             result.put("metadataKey_" + i, "metadataValue_" + i);
+        }
+
+        return result;
+    }
+
+    public static BlobCustomerProvidedKey generateCPK() {
+        KeyGenerator keyGen;
+        try {
+            keyGen = KeyGenerator.getInstance("AES");
+        }
+        catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+
+        keyGen.init(256);
+        SecretKey key = keyGen.generateKey();
+
+        BlobCustomerProvidedKey result;
+        try {
+            result = new BlobCustomerProvidedKey(key.getEncoded());
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
         }
 
         return result;

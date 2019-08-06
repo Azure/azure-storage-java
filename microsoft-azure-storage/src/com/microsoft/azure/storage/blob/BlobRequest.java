@@ -14,22 +14,18 @@
  */
 package com.microsoft.azure.storage.blob;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashMap;
-
 import com.microsoft.azure.storage.AccessCondition;
 import com.microsoft.azure.storage.Constants;
 import com.microsoft.azure.storage.Constants.HeaderConstants;
 import com.microsoft.azure.storage.OperationContext;
 import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.core.BaseRequest;
-import com.microsoft.azure.storage.core.ListingContext;
-import com.microsoft.azure.storage.core.SR;
-import com.microsoft.azure.storage.core.UriQueryBuilder;
-import com.microsoft.azure.storage.core.Utility;
+import com.microsoft.azure.storage.core.*;
+
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashMap;
 
 /**
  * RESERVED FOR INTERNAL USE. Provides a set of methods for constructing requests for blob operations.
@@ -197,6 +193,10 @@ final class BlobRequest {
             accessCondition.applyAppendConditionToRequest(request);
         }
 
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
         return request;
     }
 
@@ -263,6 +263,15 @@ final class BlobRequest {
 
         BaseRequest.addOptionalHeader(request, HeaderConstants.SOURCE_CONTENT_MD5_HEADER, md5);
 
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
+        // TODO uncomment when append block from URL allows source CPK
+        //if (blobOptions.getSourceCustomerProvidedKey() != null) {
+        //    addCustomerProvidedKey(request, blobOptions.getSourceCustomerProvidedKey(), true);
+        //}
+
         return request;
     }
 
@@ -289,8 +298,8 @@ final class BlobRequest {
      *            The snapshot version, if the source blob is a snapshot.
      * @param incrementalCopy
      *            A boolean indicating whether or not this is an incremental copy.
-     * @param premiumPageBlobTier
-     *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
+     * @param blobTierString
+     *            A String which represents the tier of the blob.
      * @return a HttpURLConnection configured for the operation.
      * @throws StorageException
      *             an exception representing any error which occurred during the operation.
@@ -301,10 +310,11 @@ final class BlobRequest {
     public static HttpURLConnection copyFrom(final URI uri, final BlobRequestOptions blobOptions,
                                              final OperationContext opContext, final AccessCondition sourceAccessCondition,
                                              final AccessCondition destinationAccessCondition, String source, final String sourceSnapshotID,
-                                             final boolean incrementalCopy, final PremiumPageBlobTier premiumPageBlobTier)
+                                             final boolean incrementalCopy, final String blobTierString,
+                                             final RehydratePriority rehydratePriority)
             throws StorageException, IOException, URISyntaxException {
 
-        return copyFrom(uri, blobOptions, opContext, sourceAccessCondition, destinationAccessCondition, source, sourceSnapshotID, incrementalCopy, false, null, premiumPageBlobTier);
+        return copyFrom(uri, blobOptions, opContext, sourceAccessCondition, destinationAccessCondition, source, sourceSnapshotID, incrementalCopy, false, null, blobTierString, rehydratePriority);
     }
 
     /**
@@ -335,8 +345,11 @@ final class BlobRequest {
      *            A boolean indicating whether or not this is an incremental copy.
      * @param syncCopy
      *            A boolean to enable synchronous server copy of blobs.
-     * @param premiumPageBlobTier
-     *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
+     * @param blobTierString
+     *            A String which represents the tier of the blob.
+     * @param rehydratePriority
+     *            A {@link RehydratePriority} object which represents the rehydrate priority.
+     *
      * @return a HttpURLConnection configured for the operation.
      * @throws StorageException
      *             an exception representing any error which occurred during the operation.
@@ -347,7 +360,8 @@ final class BlobRequest {
     public static HttpURLConnection copyFrom(final URI uri, final BlobRequestOptions blobOptions,
             final OperationContext opContext, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, String source, final String sourceSnapshotID,
-            final boolean incrementalCopy, final boolean syncCopy, final String contentMd5, final PremiumPageBlobTier premiumPageBlobTier)
+            final boolean incrementalCopy, final boolean syncCopy, final String contentMd5,
+            final String blobTierString, final RehydratePriority rehydratePriority)
             throws StorageException, IOException, URISyntaxException {
 
         if (!syncCopy && !Utility.isNullOrEmpty(contentMd5)) {
@@ -374,8 +388,12 @@ final class BlobRequest {
 
         request.setRequestProperty(Constants.HeaderConstants.COPY_SOURCE_HEADER, source);
 
-        if (premiumPageBlobTier != null) {
-            request.setRequestProperty(BlobConstants.ACCESS_TIER_HEADER, String.valueOf(premiumPageBlobTier));
+        if (blobTierString != null) {
+            request.setRequestProperty(BlobConstants.ACCESS_TIER_HEADER, blobTierString);
+        }
+
+        if (rehydratePriority != null) {
+            request.setRequestProperty(BlobConstants.REHYDRATE_PRIORITY_HEADER, String.valueOf(rehydratePriority));
         }
 
         if (sourceAccessCondition != null) {
@@ -393,6 +411,15 @@ final class BlobRequest {
         if (!Utility.isNullOrEmpty(contentMd5)) {
             request.setRequestProperty(HeaderConstants.SOURCE_CONTENT_MD5_HEADER, contentMd5);
         }
+
+        // TODO uncomment when copy blob with CPK is ready
+        /*if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
+        if (blobOptions.getSourceCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getSourceCustomerProvidedKey(), true);
+        }*/
 
         return request;
     }
@@ -668,7 +695,37 @@ final class BlobRequest {
             request.setRequestProperty(Constants.HeaderConstants.RANGE_GET_CONTENT_MD5, Constants.TRUE);
         }
 
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
         return request;
+    }
+
+    /**
+     * Adds headers for customer-provided key encryption.
+     *
+     * @param request
+     *            The request to add the headers to.
+     * @param key
+     *            The key to apply to the request.
+     */
+    private static void addCustomerProvidedKey(HttpURLConnection request, BlobCustomerProvidedKey key, boolean isSource) {
+        request.setRequestProperty(
+                isSource
+                    ? HeaderConstants.CLIENT_PROVIDED_ENCRYPTION_KEY_SOURCE
+                    : HeaderConstants.CLIENT_PROVIDED_ENCRYPTION_KEY,
+                key.getKey());
+        request.setRequestProperty(
+                isSource
+                    ? HeaderConstants.CLIENT_PROVIDED_ENCRYPTION_KEY_HASH_SOURCE
+                    : HeaderConstants.CLIENT_PROVIDED_ENCRYPTION_KEY_HASH,
+                key.getKeySHA256());
+        request.setRequestProperty(
+                isSource
+                    ? HeaderConstants.CLIENT_PROVIDED_ENCRYPTION_ALGORITHM_SOURCE
+                    : HeaderConstants.CLIENT_PROVIDED_ENCRYPTION_ALGORITHM,
+                key.getEncryptionAlgorithm());
     }
 
     /**
@@ -985,6 +1042,10 @@ final class BlobRequest {
 
         if (accessCondition != null) {
             accessCondition.applyLeaseConditionToRequest(request);
+        }
+
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
         }
 
         return request;
@@ -1341,7 +1402,7 @@ final class BlobRequest {
     public static HttpURLConnection putBlob(final URI uri, final BlobRequestOptions blobOptions,
             final OperationContext opContext, final AccessCondition accessCondition, final BlobProperties properties,
             final BlobType blobType, final long pageBlobSize) throws IOException, URISyntaxException, StorageException {
-        return BlobRequest.putBlob(uri, blobOptions, opContext, accessCondition, properties, blobType, pageBlobSize, null /* premiumPageBlobTier */);
+        return BlobRequest.putBlob(uri, blobOptions, opContext, accessCondition, properties, blobType, pageBlobSize, null /* blobTierString */);
     }
 
     /**
@@ -1365,8 +1426,8 @@ final class BlobRequest {
      *            The type of the blob.
      * @param pageBlobSize
      *            For a page blob, the size of the blob. This parameter is ignored for block blobs.
-     * @param premiumPageBlobTier
-     *            A {@link PremiumPageBlobTier} object representing the tier to set.
+     * @param blobTierString
+     *            A String representing the tier to set.
      * @return a HttpURLConnection to use to perform the operation.
      * @throws IOException
      *             if there is an error opening the connection
@@ -1378,7 +1439,7 @@ final class BlobRequest {
      */
     public static HttpURLConnection putBlob(final URI uri, final BlobRequestOptions blobOptions,
             final OperationContext opContext, final AccessCondition accessCondition, final BlobProperties properties,
-            final BlobType blobType, final long pageBlobSize, final PremiumPageBlobTier premiumPageBlobTier) throws IOException, URISyntaxException, StorageException {
+            final BlobType blobType, final long pageBlobSize, final String blobTierString) throws IOException, URISyntaxException, StorageException {
         if (blobType == BlobType.UNSPECIFIED) {
             throw new IllegalArgumentException(SR.BLOB_TYPE_NOT_DEFINED);
         }
@@ -1398,11 +1459,6 @@ final class BlobRequest {
             request.setRequestProperty(BlobConstants.BLOB_TYPE_HEADER, BlobConstants.PAGE_BLOB);
             request.setRequestProperty(BlobConstants.SIZE, String.valueOf(pageBlobSize));
 
-            if (premiumPageBlobTier != null)
-            {
-                request.setRequestProperty(BlobConstants.ACCESS_TIER_HEADER, String.valueOf(premiumPageBlobTier));
-            }
-
             properties.setLength(pageBlobSize);
         }
         else if (blobType == BlobType.BLOCK_BLOB){
@@ -1413,9 +1469,16 @@ final class BlobRequest {
             request.setRequestProperty(BlobConstants.BLOB_TYPE_HEADER, BlobConstants.APPEND_BLOB);
             request.setRequestProperty(Constants.HeaderConstants.CONTENT_LENGTH, "0");
         }
+        if (blobTierString != null) {
+            request.setRequestProperty(BlobConstants.ACCESS_TIER_HEADER, blobTierString);
+        }
 
         if (accessCondition != null) {
             accessCondition.applyConditionToRequest(request);
+        }
+
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
         }
 
         return request;
@@ -1463,6 +1526,10 @@ final class BlobRequest {
             accessCondition.applyConditionToRequest(request);
         }
 
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
         return request;
     }
 
@@ -1502,7 +1569,7 @@ final class BlobRequest {
      *             an exception representing any error which occurred during the operation.
      * @throws IllegalArgumentException
      */
-    public static HttpURLConnection putBlock(final URI uri, final String source, long offset, Long length,
+    public static HttpURLConnection putBlock(final URI uri, final String source, Long offset, Long length,
             final BlobRequestOptions blobOptions, String md5, final OperationContext opContext,
             final AccessCondition sourceAccessCondition, final String blockId)
             throws IOException, URISyntaxException, StorageException {
@@ -1527,6 +1594,15 @@ final class BlobRequest {
 
         BaseRequest.addOptionalHeader(request, HeaderConstants.SOURCE_CONTENT_MD5_HEADER, md5);
 
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
+        // TODO uncomment when append block from URL allows source CPK
+        //if (blobOptions.getSourceCustomerProvidedKey() != null) {
+        //    addCustomerProvidedKey(request, blobOptions.getSourceCustomerProvidedKey(), true);
+        //}
+
         return request;
     }
     
@@ -1546,6 +1622,8 @@ final class BlobRequest {
      *            the operation.
      * @param premiumBlobTier
      *            A {@link PremiumPageBlobTier} object representing the tier to set.
+     * @param rehydratePriority
+     *            A {@link RehydratePriority} object representing the rehydrate priority.
      * @return a HttpURLConnection to use to perform the operation.
      * @throws IOException
      *             if there is an error opening the connection
@@ -1556,7 +1634,7 @@ final class BlobRequest {
      * @throws IllegalArgumentException
      */
     public static HttpURLConnection setBlobTier(final URI uri, final BlobRequestOptions blobOptions,
-            final OperationContext opContext, final String premiumBlobTier)
+            final OperationContext opContext, final String premiumBlobTier, final String rehydratePriority)
             throws IOException, URISyntaxException, StorageException {
         final UriQueryBuilder builder = new UriQueryBuilder();
         builder.add(Constants.QueryConstants.COMPONENT, TIER_QUERY_ELEMENT_NAME);
@@ -1568,6 +1646,15 @@ final class BlobRequest {
         request.setFixedLengthStreamingMode(0);
         request.setRequestProperty(Constants.HeaderConstants.CONTENT_LENGTH, "0");
         request.setRequestProperty(BlobConstants.ACCESS_TIER_HEADER, premiumBlobTier);
+
+        if(rehydratePriority!=null){
+            request.setRequestProperty(BlobConstants.REHYDRATE_PRIORITY_HEADER, rehydratePriority);
+        }
+
+        // TODO uncomment when set tier with CPK is ready
+        /*if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }*/
 
         return request;
     }
@@ -1588,6 +1675,8 @@ final class BlobRequest {
      *            the operation.
      * @param accessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the blob.
+     * @param blobTierString
+     *            A String that represents the tier of the blob.
      * @return a HttpURLConnection to use to perform the operation.
      * @throws IOException
      *             if there is an error opening the connection
@@ -1598,7 +1687,8 @@ final class BlobRequest {
      * @throws IllegalArgumentException
      */
     public static HttpURLConnection putBlockList(final URI uri, final BlobRequestOptions blobOptions,
-            final OperationContext opContext, final AccessCondition accessCondition, final BlobProperties properties)
+            final OperationContext opContext, final AccessCondition accessCondition, final BlobProperties properties,
+            final String blobTierString)
             throws IOException, URISyntaxException, StorageException {
 
         final UriQueryBuilder builder = new UriQueryBuilder();
@@ -1612,8 +1702,15 @@ final class BlobRequest {
         if (accessCondition != null) {
             accessCondition.applyConditionToRequest(request);
         }
+        if (blobTierString != null) {
+            request.setRequestProperty(BlobConstants.ACCESS_TIER_HEADER, blobTierString);
+        }
 
         addProperties(request, properties);
+
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
 
         return request;
     }
@@ -1668,6 +1765,10 @@ final class BlobRequest {
         if (accessCondition != null) {
             accessCondition.applyConditionToRequest(request);
             accessCondition.applySequenceConditionToRequest(request);
+        }
+
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
         }
 
         return request;
@@ -1737,6 +1838,15 @@ final class BlobRequest {
         addSourceRange(request, sourceOffset, sourceLength);
 
         BaseRequest.addOptionalHeader(request, HeaderConstants.SOURCE_CONTENT_MD5_HEADER, md5);
+
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
+        // TODO uncomment when put page from URL allows source CPK
+        //if (blobOptions.getSourceCustomerProvidedKey() != null) {
+        //    addCustomerProvidedKey(request, blobOptions.getSourceCustomerProvidedKey(), true);
+        //}
 
         return request;
     }
@@ -1913,6 +2023,10 @@ final class BlobRequest {
             addProperties(request, properties);
         }
 
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
         return request;
     }
 
@@ -1974,6 +2088,10 @@ final class BlobRequest {
             accessCondition.applyConditionToRequest(request);
         }
 
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
+        }
+
         return request;
     }
 
@@ -2014,6 +2132,10 @@ final class BlobRequest {
 
         if (accessCondition != null) {
             accessCondition.applyConditionToRequest(request);
+        }
+
+        if (blobOptions.getCustomerProvidedKey() != null) {
+            addCustomerProvidedKey(request, blobOptions.getCustomerProvidedKey(), false);
         }
 
         return request;

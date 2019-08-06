@@ -27,13 +27,7 @@ import java.net.URISyntaxException;
 
 import javax.crypto.Cipher;
 
-import com.microsoft.azure.storage.AccessCondition;
-import com.microsoft.azure.storage.Constants;
-import com.microsoft.azure.storage.DoesServiceRequest;
-import com.microsoft.azure.storage.OperationContext;
-import com.microsoft.azure.storage.StorageCredentials;
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.StorageUri;
+import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.core.*;
 
 /**
@@ -177,8 +171,7 @@ public final class CloudAppendBlob extends CloudBlob {
      */
     @DoesServiceRequest
     public final String startCopy(final CloudAppendBlob sourceBlob) throws StorageException, URISyntaxException {
-        return this.startCopy(sourceBlob, null /* sourceAccessCondition */,
-                null /* destinationAccessCondition */, null /* options */, null /* opContext */);
+        return this.startCopy(sourceBlob, null /* sourceAccessCondition */, null /* destinationAccessCondition */, null /* options */, null /* opContext */);
     }
 
     /**
@@ -219,7 +212,7 @@ public final class CloudAppendBlob extends CloudBlob {
             source = sourceBlob.getServiceClient().getCredentials().transformUri(sourceBlob.getSnapshotQualifiedUri());
         }
 
-        return this.startCopy(source, null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(source, null /* contentMd5 */, false /* syncCopy */, null /* premiumPageBlobTier */, null /* rehydratePriority*/, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
@@ -306,6 +299,8 @@ public final class CloudAppendBlob extends CloudBlob {
 
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options, true);
                 blob.getProperties().setLength(0);
                 return null;
             }
@@ -457,6 +452,9 @@ public final class CloudAppendBlob extends CloudBlob {
                 blob.updateCommittedBlockCountFromResponse(this.getConnection());
 
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options, true);
+
                 return appendOffset;
             }
 
@@ -610,8 +608,8 @@ public final class CloudAppendBlob extends CloudBlob {
             public HttpURLConnection buildRequest(CloudBlobClient client, CloudAppendBlob blob, OperationContext context)
                 throws Exception {
                 return BlobRequest.appendBlock(blob.getTransformedAddress(opContext).getUri(this.getCurrentLocation()),
-                        copySource.toASCIIString(), offset, length, options, md5, opContext, accessCondition,
-                        sourceAccessCondition);
+                        copySource.toASCIIString(), offset == null ? 0 : offset, length, options, md5, opContext,
+                        accessCondition, sourceAccessCondition);
             }
 
             @Override
@@ -638,6 +636,9 @@ public final class CloudAppendBlob extends CloudBlob {
                 blob.updateCommittedBlockCountFromResponse(this.getConnection());
 
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options, true);
+
                 return appendOffset;
             }
         };

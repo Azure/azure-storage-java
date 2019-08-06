@@ -19,6 +19,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.util.*;
 
@@ -382,6 +383,245 @@ public class CloudBlobClientTests {
             if (sourceFile.exists()) {
                 sourceFile.delete();
             }
+        }
+    }
+
+    @Test
+    @Category({ DevFabricTests.class, DevStoreTests.class, CloudTests.class })
+    public void testBatchBlobDelete() throws Exception {
+
+        // setup
+
+        CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
+        try {
+            container.createIfNotExists();
+
+            List<CloudBlob> blobs = new ArrayList<>();
+            BlobDeleteBatchOperation batchDeleteOp = new BlobDeleteBatchOperation();
+
+            for (int i = 0; i < 3; i++) {
+                CloudBlockBlob blob = container.getBlockBlobReference("testblob_" + UUID.randomUUID());
+                blob.uploadText("content");
+
+                blobs.add(blob);
+                batchDeleteOp.addSubOperation(blob);
+            }
+
+            // execute batch
+
+            Map<CloudBlob, Void> responses = container.getServiceClient().executeBatch(batchDeleteOp);
+
+            // validate
+
+            for (CloudBlob blob : blobs) {
+                assertFalse(blob.exists());
+            }
+
+            int numResponses = 0;
+            for (Map.Entry<CloudBlob, Void> response : responses.entrySet()) {
+                assertTrue(blobs.contains(response.getKey()));
+                assertNull(response.getValue()); // CloudBlob::delete() returns Void (null), so all batch responses should be null
+                numResponses++;
+            }
+            assertEquals(blobs.size(), numResponses);
+        }
+        finally {
+            container.deleteIfExists();
+        }
+    }
+
+    @Test(expected = StorageException.class)
+    @Category({ DevFabricTests.class, DevStoreTests.class, CloudTests.class })
+    public void testBatchBlobDeleteNoRequests() throws Exception {
+
+        // setup
+
+        CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
+        try {
+            container.createIfNotExists();
+
+            BlobDeleteBatchOperation batchDeleteOp = new BlobDeleteBatchOperation();
+
+            // execute batch
+
+            Map<CloudBlob, Void> responses = container.getServiceClient().executeBatch(batchDeleteOp); //throws
+        }
+        finally {
+            container.deleteIfExists();
+        }
+    }
+
+    @Test
+    @Category({ DevFabricTests.class, DevStoreTests.class, CloudTests.class })
+    public void testBatchBlobDeleteMixedRequests() throws Exception {
+
+        // setup
+        int BLOBS = 4;
+        int BAD_REQUESTS = 2; // blobs that don't exist to delete
+
+        CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
+        try {
+            container.createIfNotExists();
+
+            List<CloudBlob> blobs = new ArrayList<>();
+            BlobDeleteBatchOperation batchDeleteOp = new BlobDeleteBatchOperation();
+
+            for (int i = 0; i < BLOBS; i++) {
+                CloudBlockBlob blob = container.getBlockBlobReference("testblob_" + UUID.randomUUID());
+
+                if (i >= BAD_REQUESTS) {
+                    blob.uploadText("content");
+                }
+
+                blobs.add(blob);
+                batchDeleteOp.addSubOperation(blob);
+            }
+
+            // execute batch
+
+            Map<CloudBlob, Void> responses;
+            boolean threw = true;
+            try {
+                responses = container.getServiceClient().executeBatch(batchDeleteOp);
+                threw = false;
+            }
+
+            // validate
+
+            catch (BatchException e) {
+                // good deletes are successful
+                for (CloudBlob blob : blobs) {
+                    assertFalse(blob.exists());
+                    assertTrue(e.getSuccessfulResponses().keySet().contains(blob) || e.getExceptions().keySet().contains(blob));
+                }
+            } finally {
+                assertTrue(threw);
+            }
+        }
+        finally {
+            container.deleteIfExists();
+        }
+    }
+
+    @Test
+    @Category({ DevFabricTests.class, DevStoreTests.class, CloudTests.class })
+    public void testBatchBlobSetTier() throws Exception {
+
+        // setup
+
+        CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
+        try {
+            container.createIfNotExists();
+
+            List<CloudBlob> blobs = new ArrayList<>();
+            BlobSetTierBatchOperation batchTierOp = new BlobSetTierBatchOperation();
+
+            for (int i = 0; i < 3; i++) {
+                CloudBlockBlob blob = container.getBlockBlobReference("testblob_" + UUID.randomUUID());
+                blob.uploadText("content");
+
+                blobs.add(blob);
+                batchTierOp.addSubOperation(blob, StandardBlobTier.HOT, RehydratePriority.HIGH, null);
+            }
+
+            // execute batch
+
+            Map<CloudBlob, Void> responses = container.getServiceClient().executeBatch(batchTierOp);
+
+            // validate
+
+            for (CloudBlob blob : blobs) {
+                blob.downloadAttributes();
+                assertEquals(StandardBlobTier.HOT, blob.getProperties().getStandardBlobTier());
+            }
+
+            int numResponses = 0;
+            for (Map.Entry<CloudBlob, Void> response : responses.entrySet()) {
+                assertTrue(blobs.contains(response.getKey()));
+                assertNull(response.getValue()); // CloudBlob::setTier() returns Void (null), so all batch responses should be null
+                numResponses++;
+            }
+            assertEquals(blobs.size(), numResponses);
+        }
+        finally {
+            container.deleteIfExists();
+        }
+    }
+
+    @Test(expected = StorageException.class)
+    @Category({ DevFabricTests.class, DevStoreTests.class, CloudTests.class })
+    public void testBatchBlobSetTierNoRequests() throws Exception {
+
+        // setup
+
+        CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
+        try {
+            container.createIfNotExists();
+
+            BlobSetTierBatchOperation batchDeleteOp = new BlobSetTierBatchOperation();
+
+            // execute batch
+
+            Map<CloudBlob, Void> responses = container.getServiceClient().executeBatch(batchDeleteOp); //throws
+        }
+        finally {
+            container.deleteIfExists();
+        }
+    }
+
+    @Test
+    @Category({ DevFabricTests.class, DevStoreTests.class, CloudTests.class })
+    public void testBatchBlobSetTierMixedRequests() throws Exception {
+
+        // setup
+        int BLOBS = 4;
+        int BAD_REQUESTS = 2; // blobs that don't exist to delete
+
+        CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
+        try {
+            container.createIfNotExists();
+
+            List<CloudBlob> blobs = new ArrayList<>();
+            BlobSetTierBatchOperation batchSetTierOp = new BlobSetTierBatchOperation();
+
+            for (int i = 0; i < BLOBS; i++) {
+                CloudBlockBlob blob = container.getBlockBlobReference("testblob_" + UUID.randomUUID());
+
+                // bad requests first; displays that good responses come first regardless of order of request
+                if (i >= BAD_REQUESTS) {
+                    blob.uploadText("content");
+                }
+
+                blobs.add(blob);
+                batchSetTierOp.addSubOperation(blob, StandardBlobTier.HOT);
+            }
+
+            // execute batch
+
+            Map<CloudBlob, Void> responses;
+            boolean threw = true;
+            try {
+                responses = container.getServiceClient().executeBatch(batchSetTierOp);
+                threw = false;
+            }
+
+            // validate
+
+            catch (BatchException e) {
+                // good deletes are successful
+                for (CloudBlob blob : blobs) {
+                    if (blob.exists()) {
+                        blob.downloadAttributes();
+                        assertEquals(StandardBlobTier.HOT, blob.getProperties().getStandardBlobTier());
+                    }
+                    assertTrue(e.getSuccessfulResponses().keySet().contains(blob) || e.getExceptions().keySet().contains(blob));
+                }
+            } finally {
+                assertTrue(threw);
+            }
+        }
+        finally {
+            container.deleteIfExists();
         }
     }
 }

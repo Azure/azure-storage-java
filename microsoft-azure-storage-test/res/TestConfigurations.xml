@@ -30,6 +30,7 @@
     <ActiveDirectoryApplicationId>[APPLICATION_ID]</ActiveDirectoryApplicationId>
     <ActiveDirectoryApplicationSecret>[APPLICATION_SECRET]</ActiveDirectoryApplicationSecret>
     <ActiveDirectoryTenantId>[TENANT_ID]</ActiveDirectoryTenantId>
+    <ActiveDirectoryAuthEndpoint>[ENDPOINT]</ActiveDirectoryAuthEndpoint>
   </TenantConfiguration>
 </TenantConfigurations>
 </TestConfigurations>
