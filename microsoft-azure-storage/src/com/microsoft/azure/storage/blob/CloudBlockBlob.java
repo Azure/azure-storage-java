@@ -1691,8 +1691,8 @@ public final class CloudBlockBlob extends CloudBlob {
      *             If a storage service error occurred.
      */
     @DoesServiceRequest
-    public void uploadStandardBlobTier(final StandardBlobTier standardBlobTier, RehydratePriority rehydratePriority, BlobRequestOptions options,
-                                       OperationContext opContext) throws StorageException {
+    public void uploadStandardBlobTier(final StandardBlobTier standardBlobTier, RehydratePriority rehydratePriority,
+            BlobRequestOptions options, OperationContext opContext) throws StorageException {
         assertNoWriteOperationForSnapshot();
 
         Utility.assertNotNull("standardBlobTier", standardBlobTier);
@@ -1704,7 +1704,9 @@ public final class CloudBlockBlob extends CloudBlob {
         options = BlobRequestOptions.populateAndApplyDefaults(options, BlobType.BLOCK_BLOB, this.blobServiceClient);
 
         ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.uploadBlobTierImpl(rehydratePriority == null? null : rehydratePriority.toString(), standardBlobTier.toString(), options), options.getRetryPolicyFactory(), opContext);
+                this.uploadBlobTierImpl(standardBlobTier.toString(),
+                        rehydratePriority == null ? null : rehydratePriority.toString(), options),
+                options.getRetryPolicyFactory(), opContext);
     }
 
     /**

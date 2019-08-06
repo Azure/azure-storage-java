@@ -521,7 +521,7 @@ public class CloudBlobClientTests {
                 blob.uploadText("content");
 
                 blobs.add(blob);
-                batchTierOp.addSubOperation(blob, StandardBlobTier.HOT);
+                batchTierOp.addSubOperation(blob, StandardBlobTier.HOT, RehydratePriority.HIGH, null);
             }
 
             // execute batch

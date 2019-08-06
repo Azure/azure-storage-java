@@ -40,7 +40,7 @@ public class OAuthTests {
             blobClient.downloadServiceProperties();
             fail();
         } catch (StorageException e) {
-            assertEquals("AuthenticationFailed", e.getErrorCode());
+            assertEquals("InvalidAuthenticationInfo", e.getErrorCode());
         }
 
         // change the token again to see it succeed

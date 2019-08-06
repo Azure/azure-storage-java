@@ -1785,7 +1785,8 @@ public final class CloudPageBlob extends CloudBlob {
         options = BlobRequestOptions.populateAndApplyDefaults(options, BlobType.PAGE_BLOB, this.blobServiceClient);
 
         ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.uploadBlobTierImpl(null /* rehydratePriority */, premiumBlobTier.toString(), options), options.getRetryPolicyFactory(), opContext);
+                this.uploadBlobTierImpl(premiumBlobTier.toString(), null /* rehydratePriority */, options),
+                options.getRetryPolicyFactory(), opContext);
         this.properties.setPremiumPageBlobTier(premiumBlobTier);
         this.properties.setBlobTierInferred(false);
     }

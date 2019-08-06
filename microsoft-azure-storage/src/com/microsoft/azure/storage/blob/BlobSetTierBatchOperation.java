@@ -6,16 +6,18 @@ import com.microsoft.azure.storage.core.Utility;
 public final class BlobSetTierBatchOperation extends BlobBatchOperation<CloudBlob, Void> {
 
     public void addSubOperation(CloudBlockBlob blockBlob, StandardBlobTier tier) {
-        this.addSubOperation(blockBlob, tier, null /* options */);
+        this.addSubOperation(blockBlob, tier, null, null /* options */);
     }
 
-    public void addSubOperation(CloudBlockBlob blockBlob, StandardBlobTier tier, BlobRequestOptions options) {
+    public void addSubOperation(CloudBlockBlob blockBlob, StandardBlobTier tier, RehydratePriority rehydratePriority,
+            BlobRequestOptions options) {
         Utility.assertNotNull("blockBlob", blockBlob);
         Utility.assertNotNull("tier", tier);
 
         options = BlobRequestOptions.populateAndApplyDefaults(options, BlobType.BLOCK_BLOB, blockBlob.blobServiceClient);
 
-        super.addSubOperation(blockBlob.uploadBlobTierImpl(tier.toString(), options), blockBlob);
+        super.addSubOperation(blockBlob.uploadBlobTierImpl(tier.toString(),
+                rehydratePriority == null ? null : rehydratePriority.toString(), options), blockBlob);
     }
 
     public void addSubOperation(CloudPageBlob pageBlob, PremiumPageBlobTier tier) {
@@ -28,7 +30,7 @@ public final class BlobSetTierBatchOperation extends BlobBatchOperation<CloudBlo
 
         options = BlobRequestOptions.populateAndApplyDefaults(options, BlobType.PAGE_BLOB, pageBlob.blobServiceClient);
 
-        super.addSubOperation(pageBlob.uploadBlobTierImpl(tier.toString(), options), pageBlob);
+        super.addSubOperation(pageBlob.uploadBlobTierImpl(tier.toString(), null, options), pageBlob);
     }
 
     @Override

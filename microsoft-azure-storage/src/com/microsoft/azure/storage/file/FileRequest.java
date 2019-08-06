@@ -31,7 +31,6 @@ import com.microsoft.azure.storage.core.BaseRequest;
 import com.microsoft.azure.storage.core.ListingContext;
 import com.microsoft.azure.storage.core.UriQueryBuilder;
 import com.microsoft.azure.storage.core.Utility;
-import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 
 /**
  * RESERVED FOR INTERNAL USE. Provides a set of methods for constructing requests for file operations.
