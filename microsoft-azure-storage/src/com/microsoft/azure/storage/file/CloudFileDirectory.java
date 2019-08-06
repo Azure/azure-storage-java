@@ -88,6 +88,11 @@ public final class CloudFileDirectory implements ListFileItem {
      * Holds a FileDirectoryProperties object that holds the directory's system properties.
      */
     private FileDirectoryProperties properties = new FileDirectoryProperties();
+
+    /**
+     * Represents the file permission for this directory.
+     */
+    private String filePermission;
     
     /**
      * Creates an instance of the <code>CloudFileDirectory</code> class using an absolute URI to the directory.
@@ -202,6 +207,7 @@ public final class CloudFileDirectory implements ListFileItem {
         }
 
         this.getShare().assertNoSnapshot();
+        this.assertValidFilePermissionOrKey();
 
         opContext.initialize();
         options = FileRequestOptions.populateAndApplyDefaults(options, this.fileServiceClient);
@@ -218,7 +224,8 @@ public final class CloudFileDirectory implements ListFileItem {
             public HttpURLConnection buildRequest(CloudFileClient client, CloudFileDirectory directory,
                     OperationContext context) throws Exception {
                 final HttpURLConnection request = FileRequest.createDirectory(
-                        directory.getTransformedAddress().getUri(this.getCurrentLocation()), options, context);
+                        directory.getTransformedAddress().getUri(this.getCurrentLocation()), options, context,
+                        directory.properties, directory.filePermission);
                 return request;
             }
             
@@ -244,6 +251,9 @@ public final class CloudFileDirectory implements ListFileItem {
                 // Set attributes
                 final FileDirectoryAttributes attributes = FileResponse
                         .getFileDirectoryAttributes(this.getConnection(), client.isUsePathStyleUris());
+                // Update the file SMB properties to be the file SMB properties returned in the HTTP response
+                FileResponse.updateDirectorySMBProperties(this.getConnection(), attributes.getProperties());
+                directory.filePermission = null;
                 directory.setProperties(attributes.getProperties());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
                 return null;
@@ -654,6 +664,96 @@ public final class CloudFileDirectory implements ListFileItem {
     }
 
     /**
+     * Uploads the directory's properties to the storage service.
+     * <p>
+     * Use {@link CloudFileDirectory#downloadAttributes} to retrieve the latest values for the directory's properties
+     * and metadata from the Microsoft Azure storage service.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     * @throws URISyntaxException
+     */
+    @DoesServiceRequest
+    public final void uploadProperties() throws StorageException, URISyntaxException {
+        this.uploadProperties(null /* accessCondition */, null /* options */, null /*opContext */);
+    }
+
+    /**
+     * Uploads the directory's properties using the access condition, request options, and operation context.
+     * <p>
+     * Use {@link CloudFileDirectory#downloadAttributes} to retrieve the latest values for the directory's properties
+     * and metadata from the Microsoft Azure storage service.
+     *
+     * @param accessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the directory.
+     * @param options
+     *            A {@link FileRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudFileClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     * @throws URISyntaxException
+     */
+    @DoesServiceRequest
+    public final void uploadProperties(final AccessCondition accessCondition, FileRequestOptions options,
+            OperationContext opContext) throws StorageException, URISyntaxException {
+        if (opContext == null) {
+            opContext = new OperationContext();
+        }
+
+        this.getShare().assertNoSnapshot();
+        this.assertValidFilePermissionOrKey();
+
+        opContext.initialize();
+        options = FileRequestOptions.populateAndApplyDefaults(options, this.fileServiceClient);
+
+        ExecutionEngine.executeWithRetry(this.fileServiceClient, this,
+                this.uploadPropertiesImpl(accessCondition, options), options.getRetryPolicyFactory(), opContext);
+    }
+
+    private StorageRequest<CloudFileClient, CloudFileDirectory, Void> uploadPropertiesImpl(
+            final AccessCondition accessCondition, final FileRequestOptions options) {
+        final StorageRequest<CloudFileClient, CloudFileDirectory, Void> putRequest =
+                new StorageRequest<CloudFileClient, CloudFileDirectory, Void>(
+                        options, this.getStorageUri()) {
+
+                    @Override
+                    public HttpURLConnection buildRequest(
+                            CloudFileClient client, CloudFileDirectory directory, OperationContext context) throws Exception {
+                        return FileRequest.setDirectoryProperties(directory.getTransformedAddress().getUri(this.getCurrentLocation()),
+                                options, context, accessCondition, directory.properties, directory.filePermission);
+                    }
+
+                    @Override
+                    public void signRequest(HttpURLConnection connection, CloudFileClient client, OperationContext context)
+                            throws Exception {
+                        StorageRequest.signBlobQueueAndFileRequest(connection, client, 0L, context);
+                    }
+
+                    @Override
+                    public Void preProcessResponse(CloudFileDirectory directory, CloudFileClient client, OperationContext context)
+                            throws Exception {
+                        if (this.getResult().getStatusCode() != HttpURLConnection.HTTP_OK) {
+                            this.setNonExceptionedRetryableFailure(true);
+                            return null;
+                        }
+                        // Update the file SMB properties to be the file SMB properties returned in the HTTP response
+                        FileResponse.updateDirectorySMBProperties(this.getConnection(), directory.properties);
+                        directory.filePermission = null;
+                        this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                        return null;
+                    }
+                };
+
+        return putRequest;
+    }
+
+    /**
      * Downloads the directory's properties.
      * 
      * @throws StorageException
@@ -731,6 +831,8 @@ public final class CloudFileDirectory implements ListFileItem {
                 final FileDirectoryAttributes attributes =
                         FileResponse.getFileDirectoryAttributes(this.getConnection(), client.isUsePathStyleUris());
                 directory.setMetadata(attributes.getMetadata());
+                // Update the file SMB properties to be the file SMB properties returned in the HTTP response
+                FileResponse.updateDirectorySMBProperties(this.getConnection(), attributes.getProperties());
                 directory.setProperties(attributes.getProperties());
                 return null;
             }
@@ -1496,6 +1598,16 @@ public final class CloudFileDirectory implements ListFileItem {
     }
 
     /**
+     * Sets the directory's file permission
+     * @param filePermission
+     *          A <code>String</code> that represents the directory's file permission.
+     */
+    public void setFilePermission(String filePermission) {
+        Utility.assertInBounds("filePermission", filePermission.getBytes().length, 0, 8*Constants.KB);
+        this.filePermission = filePermission;
+    }
+
+    /**
      * Verifies the passed in URI. Then parses it and uses its components to populate this resource's properties.
      * 
      * @param completeUri
@@ -1554,5 +1666,14 @@ public final class CloudFileDirectory implements ListFileItem {
      */
     private StorageUri getTransformedAddress() throws URISyntaxException, StorageException {
         return this.fileServiceClient.getCredentials().transformUri(this.storageUri);
+    }
+
+    /**
+     * Verifies that the directory's filePermission and properties.filePermissionKey are both not set.
+     */
+    protected void assertValidFilePermissionOrKey() {
+        if (this.filePermission != null && this.properties != null && this.properties.filePermissionKeyToSet != null) {
+            throw new IllegalArgumentException(SR.FILE_PERMISSION_FILE_PERMISSION_KEY_INVALID);
+        }
     }
 }

@@ -48,6 +48,16 @@ public final class RequestResult {
     private boolean requestServiceEncrypted;
 
     /**
+     * Represents whether or not the data for a read operation is encrypted on the server-side.
+     */
+    private boolean serviceEncrypted;
+
+    /**
+     * Represents the hash for the key used to server-side encrypt with client-provided keys.
+     */
+    private String encryptionKeySHA256;
+
+    /**
      * Represents the ETag header returned by the storage service.
      */
     private String etag;
@@ -134,6 +144,24 @@ public final class RequestResult {
      */
     public boolean isRequestServiceEncrypted() {
         return requestServiceEncrypted;
+    }
+
+    /**
+     * Gets whether the result is server-side encrypted.
+     *
+     * @return A <code>boolean</code> which contains the server-side encryption status of the request.
+     */
+    public boolean isServiceEncrypted() {
+        return serviceEncrypted;
+    }
+
+    /**
+     * Gets the hash of the key used to server-side encrypt for client-provided keys.
+     *
+     * @return A base64 encoded string which represents the key hash.
+     */
+    public String getEncryptionKeySHA256() {
+        return encryptionKeySHA256;
     }
 
     /**
@@ -236,12 +264,32 @@ public final class RequestResult {
 
     /**
      * Sets the request's server-encryption status.
-     * 
+     *
      * @param requestServiceEncrypted
      *            A <code>boolean</code> object which represents the server-encryption status to set.
      */
     public void setRequestServiceEncrypted(boolean requestServiceEncrypted) {
         this.requestServiceEncrypted = requestServiceEncrypted;
+    }
+
+    /**
+     * Sets the server-encryption status.
+     *
+     * @param requestServiceEncrypted
+     *            A <code>boolean</code> object which represents the server-encryption status to set.
+     */
+    public void setServiceEncrypted(boolean requestServiceEncrypted) {
+        this.serviceEncrypted = requestServiceEncrypted;
+    }
+
+    /**
+     * Sets the request's key hash for client-provided key requests.
+     *
+     * @param keyHash
+     *            The hash of the key, represented by a base64 encoded string.
+     */
+    public void setEncryptionKeySHA256(String keyHash) {
+        this.encryptionKeySHA256 = keyHash;
     }
 
     /**

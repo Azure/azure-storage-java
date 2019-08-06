@@ -31,14 +31,8 @@ import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.TimeZone;
 import java.util.concurrent.TimeoutException;
 
 import javax.crypto.Cipher;
@@ -1523,5 +1517,167 @@ public final class Utility {
         }
 
         return RequestLocationMode.PRIMARY_OR_SECONDARY;
+    }
+
+    /**
+     * Equivalent of String.join() in Java 8.
+     *
+     * @param delimiter  Characters to join strings with.
+     * @param strings    Strings to join.
+     * @return           The joined string.
+     */
+    public static String stringJoin(CharSequence delimiter, final String... strings) {
+        return stringJoin(delimiter, new Iterable<String>() {
+            @Override
+            public Iterator<String> iterator() {
+                return new Iterator<String>() {
+                    private final String[] internalArray = strings;
+                    private int index;
+
+                    @Override
+                    public boolean hasNext() {
+                        return internalArray.length > index;
+                    }
+
+                    @Override
+                    public String next() {
+                        return internalArray[index++];
+                    }
+
+                    @Override
+                    public void remove() {
+                        throw new UnsupportedOperationException();
+                    }
+                };
+            }
+        });
+    }
+
+    /**
+     * Equivalent of String.join() in Java 8.
+     *
+     * @param delimiter  Characters to join strings with.
+     * @param strings    Strings to join.
+     * @return           The joined string.
+     */
+    public static String stringJoin(CharSequence delimiter, Iterable<String> strings) {
+        StringBuilder sb = new StringBuilder();
+        Iterator<String> iterator = strings.iterator();
+
+        if (iterator.hasNext()) {
+            sb.append(iterator.next());
+        }
+        while (iterator.hasNext()) {
+            sb.append(delimiter);
+            sb.append(iterator.next());
+        }
+
+        return sb.toString();
+    }
+
+    public static List<byte[]> splitOnPattern(byte[] array, byte[] pattern) {
+        List<Integer> sortedPatternIndices = findAllPatternOccurences(array, pattern);
+        List<byte[]> tokens = new ArrayList<>(sortedPatternIndices.size() + 1);
+
+        int nextTokenStart = 0;
+        for (int patternStart : sortedPatternIndices) {
+            // filter out empty ranges
+            if (patternStart - 1 > nextTokenStart) {
+                tokens.add(Arrays.copyOfRange(array, nextTokenStart, patternStart));
+            }
+
+            nextTokenStart = patternStart + pattern.length;
+        }
+
+        if (nextTokenStart < array.length - 1) {
+            tokens.add(Arrays.copyOfRange(array, nextTokenStart, array.length));
+        }
+
+        return tokens;
+    }
+
+    /**
+     * Scans a byte array for all occurrences of a pattern, with no overlap of occurrence spans.
+     *
+     * @param array
+     *          The array to search.
+     * @param pattern
+     *          The pattern to search for.
+     *
+     * @return
+     *          A list of starting indices of all occurrences of the pattern, in ascending order.
+     */
+    public static List<Integer> findAllPatternOccurences(byte[] array, byte[] pattern) {
+        List<Integer> indices = new ArrayList<>();
+
+        int offset = 0;
+        while (true) {
+            int result = findPattern(array, pattern, offset);
+
+            // if pattern not found, we reached the end.
+            if (result == -1) {
+                break;
+            }
+
+            indices.add(result);
+            offset = result + pattern.length;
+
+            // if no room left for pattern, don't bother checking.
+            if (offset > array.length - pattern.length + 1) {
+                break;
+            }
+        }
+
+        // guaranteed to be in ascending order
+        return indices;
+    }
+
+    /**
+     * Scans a byte array for the first occurrence of a pattern, starting at the offset provided.
+     *
+     * @param array
+     *          The array to search.
+     * @param pattern
+     *          The pattern to search for.
+     * @param scanOffset
+     *          Where to begin the search.
+     *
+     * @return
+     *          The starting index of the found pattern. -1 if not found.
+     */
+    public static int findPattern(byte[] array, byte[] pattern, int scanOffset) {
+        for (int i = scanOffset; i < array.length - pattern.length + 1; i++) {
+            if (isMatch(array, pattern, i)) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    /**
+     * Checks if a byte pattern exists in the array at the given position.
+     *
+     * @param array
+     *          The array to check for the pattern.
+     * @param pattern
+     *          The pattern to check for.
+     * @param arrayPos
+     *          Where to check for the pattern.
+     *
+     * @return
+     *          Whether the pattern exists at this point of the array.
+     *
+     * @throws IndexOutOfBoundsException
+     *          Throws if trying to check for the pattern outside the bounds of the array.
+     */
+    private static boolean isMatch(byte[] array, byte[] pattern, int arrayPos) {
+        for (int i = 0; i < pattern.length; i++) {
+            if (pattern[i] != array[arrayPos + i]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

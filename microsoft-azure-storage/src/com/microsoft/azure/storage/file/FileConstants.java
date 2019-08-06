@@ -157,6 +157,66 @@ final class FileConstants {
     public static final String FILE_TYPE_HEADER = Constants.PREFIX_FOR_STORAGE_HEADER + "type";
 
     /**
+     * Header that specifies file permission.
+     */
+    public static final String FILE_PERMISSION = Constants.PREFIX_FOR_STORAGE_HEADER + "file-permission";
+
+    /**
+     * Default header value for file permission.
+     */
+    public static final String FILE_PERMISSION_INHERIT = "Inherit";
+
+    /**
+     * Header that specifies file permission key.
+     */
+    public static final String FILE_PERMISSION_KEY = Constants.PREFIX_FOR_STORAGE_HEADER + "file-permission-key";
+
+    /**
+     * Header that specifies file attributes.
+     */
+    public static final String FILE_ATTRIBUTES = Constants.PREFIX_FOR_STORAGE_HEADER + "file-attributes";
+
+    /**
+     * Default file attribute value for files.
+     */
+    public static final String FILE_ATTRIBUTES_NONE = "None";
+
+    /**
+     * Header that specifies file creation time.
+     */
+    public static final String FILE_CREATION_TIME = Constants.PREFIX_FOR_STORAGE_HEADER + "file-creation-time";
+
+    /**
+     *  Header that specifies file last write time.
+     */
+    public static final String FILE_LAST_WRITE_TIME = Constants.PREFIX_FOR_STORAGE_HEADER + "file-last-write-time";
+
+    /**
+     *  Header that specifies file change time.
+     */
+    public static final String FILE_CHANGE_TIME = Constants.PREFIX_FOR_STORAGE_HEADER + "file-change-time";
+
+    /**
+     * Default file creation and file last write time.
+     */
+    public static final String FILE_TIME_NOW = "Now";
+
+    /**
+     * Default value for several SMB file headers.
+     */
+    public static final String PRESERVE = "Preserve";
+
+    /**
+     * Header that specifies file id.
+     */
+    public static final String FILE_ID = Constants.PREFIX_FOR_STORAGE_HEADER + "file-id";
+
+    /**
+     * Header that spcifies file parent id.
+     */
+    public static final String FILE_PARENT_ID = Constants.PREFIX_FOR_STORAGE_HEADER + "file-parent-id";
+
+    /**
      * Specifies the file type.
      */
     public static final String FILE = "File";

@@ -25,13 +25,7 @@ import java.util.List;
 
 import javax.crypto.Cipher;
 
-import com.microsoft.azure.storage.AccessCondition;
-import com.microsoft.azure.storage.Constants;
-import com.microsoft.azure.storage.DoesServiceRequest;
-import com.microsoft.azure.storage.OperationContext;
-import com.microsoft.azure.storage.StorageCredentials;
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.StorageUri;
+import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.core.Base64;
 import com.microsoft.azure.storage.core.BaseResponse;
 import com.microsoft.azure.storage.core.ExecutionEngine;
@@ -40,6 +34,7 @@ import com.microsoft.azure.storage.core.SR;
 import com.microsoft.azure.storage.core.StorageRequest;
 import com.microsoft.azure.storage.core.UriQueryBuilder;
 import com.microsoft.azure.storage.core.Utility;
+import org.apache.commons.lang3.EnumUtils;
 
 /**
  * Represents a Microsoft Azure page blob.
@@ -258,7 +253,7 @@ public final class CloudPageBlob extends CloudBlob {
             source = sourceBlob.getServiceClient().getCredentials().transformUri(sourceBlob.getSnapshotQualifiedUri());
         }
 
-        return this.startCopy(source, premiumBlobTier, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(source, premiumBlobTier == null? null: premiumBlobTier.toString(), sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
@@ -377,7 +372,7 @@ public final class CloudPageBlob extends CloudBlob {
         options = BlobRequestOptions.populateAndApplyDefaults(options, this.properties.getBlobType(), this.blobServiceClient);
 
         return ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.startCopyImpl(sourceSnapshot, Constants.EMPTY_STRING,false /* syncCopy */, true /* incrementalCopy */, null /* premiumPageBlobTier */, null /* sourceAccesCondition */,
+                this.startCopyImpl(sourceSnapshot, Constants.EMPTY_STRING,false /* syncCopy */, true /* incrementalCopy */, null /* premiumPageBlobTier */, null /* rehydratePriority */, null /* sourceAccesCondition */,
                         destinationAccessCondition, options),
                 options.getRetryPolicyFactory(), opContext);
     }
@@ -541,10 +536,10 @@ public final class CloudPageBlob extends CloudBlob {
         options = BlobRequestOptions.populateAndApplyDefaults(options, BlobType.PAGE_BLOB, this.blobServiceClient);
 
         ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.createImpl(length, premiumBlobTier, accessCondition, options), options.getRetryPolicyFactory(), opContext);
+                this.createImpl(length, premiumBlobTier == null? null : premiumBlobTier.toString(), accessCondition, options), options.getRetryPolicyFactory(), opContext);
     }
 
-    private StorageRequest<CloudBlobClient, CloudBlob, Void> createImpl(final long length, final PremiumPageBlobTier premiumBlobTier,
+    private StorageRequest<CloudBlobClient, CloudBlob, Void> createImpl(final long length, final String blobTierString,
             final AccessCondition accessCondition, final BlobRequestOptions options) {
         final StorageRequest<CloudBlobClient, CloudBlob, Void> putRequest = new StorageRequest<CloudBlobClient, CloudBlob, Void>(
                 options, this.getStorageUri()) {
@@ -553,7 +548,7 @@ public final class CloudPageBlob extends CloudBlob {
             public HttpURLConnection buildRequest(CloudBlobClient client, CloudBlob blob, OperationContext context)
                     throws Exception {
                 return BlobRequest.putBlob(blob.getTransformedAddress(context).getUri(this.getCurrentLocation()),
-                        options, context, accessCondition, blob.properties, BlobType.PAGE_BLOB, length, premiumBlobTier);
+                        options, context, accessCondition, blob.properties, BlobType.PAGE_BLOB, length, blobTierString);
             }
 
             @Override
@@ -577,11 +572,17 @@ public final class CloudPageBlob extends CloudBlob {
 
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options, true);
                 blob.getProperties().setLength(length);
-                blob.getProperties().setPremiumPageBlobTier(premiumBlobTier);
-                if (premiumBlobTier != null) {
-                    blob.getProperties().setBlobTierInferred(false);
+
+                if(EnumUtils.isValidEnum(PremiumPageBlobTier.class, blobTierString)){
+                    blob.getProperties().setPremiumPageBlobTier(PremiumPageBlobTier.parse(blobTierString));
+                    if (blobTierString != null) {
+                        blob.getProperties().setBlobTierInferred(false);
+                    }
                 }
+
 
                 return null;
             }
@@ -1154,8 +1155,8 @@ public final class CloudPageBlob extends CloudBlob {
 
         PageRange range = new PageRange(offset, offset + length - 1);
 
-        this.putPagesFromURIInternal(range, copySource, sourceOffset, length, md5, accessCondition,
-                sourceAccessCondition, options, opContext);
+        this.putPagesFromURIInternal(range, copySource, sourceOffset == null ? 0 : sourceOffset, length, md5,
+                accessCondition, sourceAccessCondition, options, opContext);
     }
 
     /**
@@ -1232,6 +1233,9 @@ public final class CloudPageBlob extends CloudBlob {
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 blob.updateSequenceNumberFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options, true);
+
                 return null;
             }
         };
@@ -1324,6 +1328,9 @@ public final class CloudPageBlob extends CloudBlob {
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 blob.updateSequenceNumberFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options, true);
+
                 return null;
             }
         };
@@ -1768,6 +1775,7 @@ public final class CloudPageBlob extends CloudBlob {
     public void uploadPremiumPageBlobTier(final PremiumPageBlobTier premiumBlobTier, BlobRequestOptions options,
             OperationContext opContext) throws StorageException {
         assertNoWriteOperationForSnapshot();
+
         Utility.assertNotNull("premiumBlobTier", premiumBlobTier);
 
         if (opContext == null) {
@@ -1777,7 +1785,8 @@ public final class CloudPageBlob extends CloudBlob {
         options = BlobRequestOptions.populateAndApplyDefaults(options, BlobType.PAGE_BLOB, this.blobServiceClient);
 
         ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.uploadBlobTierImpl(premiumBlobTier.toString(), options), options.getRetryPolicyFactory(), opContext);
+                this.uploadBlobTierImpl(premiumBlobTier.toString(), null /* rehydratePriority */, options),
+                options.getRetryPolicyFactory(), opContext);
         this.properties.setPremiumPageBlobTier(premiumBlobTier);
         this.properties.setBlobTierInferred(false);
     }

@@ -576,7 +576,7 @@ public class CloudQueueTests {
             }
         }
         finally {
-            queue.delete();
+            queue.deleteIfExists(); // Cannot simply delete or it will throw a "queue being deleted" error.
         }
     }
 

@@ -307,6 +307,11 @@ final class BlobConstants {
     public static final String DELETED_TIME = "DeletedTime";
 
     /**
+     * The header that specifies the rehydrate priority header.
+     */
+    public static final String REHYDRATE_PRIORITY_HEADER = Constants.PREFIX_FOR_STORAGE_HEADER + "rehydrate-priority";
+
+    /**
      * XML element for blob properties, indicate remaining retention days.
      */
     public static final String REMAINING_RETENTION_DAYS = "RemainingRetentionDays";

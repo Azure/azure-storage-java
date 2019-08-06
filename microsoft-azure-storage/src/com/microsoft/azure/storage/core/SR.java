@@ -37,6 +37,9 @@ public class SR {
     public static final String CANNOT_CREATE_SAS_FOR_SNAPSHOTS = "Cannot create Shared Access Signature via references to blob snapshots. Please perform the given operation on the root blob instead.";
     public static final String CANNOT_CREATE_SAS_WITHOUT_ACCOUNT_KEY = "Cannot create Shared Access Signature unless the Account Key credentials are used by the ServiceClient.";
     public static final String CANNOT_TRANSFORM_NON_HTTPS_URI_WITH_HTTPS_ONLY_CREDENTIALS = "Cannot use HTTP with credentials that only support HTTPS.";
+    public static final String CLIENT_PROVIDED_KEY_BAD_HASH = "Hash returned from Client-Provided Key request did not match sent key's hash.";
+    public static final String CLIENT_PROVIDED_KEY_ENCRYPTION_FAILURE = "Error processing request with client provided key.";
+    public static final String CLIENT_PROVIDED_KEY_REQUIRES_HTTPS = "Cannot use client-provided key requests without HTTPS.";
     public static final String CONTAINER = "container";
     public static final String CONTENT_LENGTH_MISMATCH = "An incorrect number of bytes was read from the connection. The connection may have been closed.";
     public static final String COPY_SIZE_GREATER_THAN_100MB = "Invalid copy length, length must be less than or equal to 100 MB in size.";
@@ -78,6 +81,7 @@ public class SR {
     public static final String FILE_ENDPOINT_NOT_CONFIGURED = "No file endpoint configured.";
     public static final String FILE_HASH_MISMATCH = "File hash mismatch (integrity check failed), Expected value is %s, retrieved %s.";
     public static final String FILE_MD5_NOT_POSSIBLE = "MD5 cannot be calculated for an existing file because it would require reading the existing data. Please disable StoreFileContentMD5.";
+    public static final String FILE_PERMISSION_FILE_PERMISSION_KEY_INVALID = "File permission and file permission key cannot both be set";
     public static final String INCORRECT_STREAM_LENGTH = "An incorrect stream length was specified, resulting in an authentication failure. Please specify correct length, or -1.";
     public static final String INPUT_STREAM_SHOULD_BE_MARKABLE = "Input stream must be markable.";
     public static final String INVALID_ACCOUNT_NAME = "Invalid account name.";

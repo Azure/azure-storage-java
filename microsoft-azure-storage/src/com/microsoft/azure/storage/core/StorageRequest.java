@@ -20,16 +20,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.security.InvalidKeyException;
 
-import com.microsoft.azure.storage.AccessCondition;
-import com.microsoft.azure.storage.LocationMode;
-import com.microsoft.azure.storage.OperationContext;
-import com.microsoft.azure.storage.RequestOptions;
-import com.microsoft.azure.storage.RequestResult;
-import com.microsoft.azure.storage.ServiceClient;
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.StorageExtendedErrorInformation;
-import com.microsoft.azure.storage.StorageLocation;
-import com.microsoft.azure.storage.StorageUri;
+import com.microsoft.azure.storage.*;
+import com.microsoft.azure.storage.blob.BlobRequestOptions;
 
 /**
  * RESERVED FOR INTERNAL USE. A class which encapsulate the execution of a given storage operation.
@@ -313,9 +305,9 @@ public abstract class StorageRequest<C, P, R> {
         return StorageException.translateException(this, null, opContext);
     }
 
-    public static final void signBlobQueueAndFileRequest(HttpURLConnection request, ServiceClient client,
+    public static final String signBlobQueueAndFileRequest(HttpURLConnection request, ServiceClient client,
             long contentLength, OperationContext context) throws InvalidKeyException, StorageException {
-        StorageCredentialsHelper.signBlobQueueAndFileRequest(client.getCredentials(), request, contentLength, context);
+        return StorageCredentialsHelper.signBlobQueueAndFileRequest(client.getCredentials(), request, contentLength, context);
     }
 
     public static final void signTableRequest(HttpURLConnection request, ServiceClient client, long contentLength,
@@ -406,6 +398,16 @@ public abstract class StorageRequest<C, P, R> {
      *            the requestOptions to set
      */
     protected final void setRequestOptions(final RequestOptions requestOptions) {
+        // client-provided key requests must use HTTPS
+        if (requestOptions instanceof BlobRequestOptions) {
+            BlobRequestOptions blobOptions = (BlobRequestOptions)requestOptions;
+            if (blobOptions.getCustomerProvidedKey() != null &&
+                    this.storageUri != null &&
+                    !this.storageUri.getPrimaryUri().getScheme().equals(Constants.HTTPS)) {
+                throw new IllegalStateException(SR.CLIENT_PROVIDED_KEY_REQUIRES_HTTPS);
+            }
+        }
+
         this.requestOptions = requestOptions;
     }
 
@@ -518,6 +520,15 @@ public abstract class StorageRequest<C, P, R> {
      *            the storageUri value
      */
     public void setStorageUri(StorageUri storageUri) {
+        // client-provided key requests must use HTTPS
+        if (this.requestOptions instanceof BlobRequestOptions) {
+            BlobRequestOptions blobOptions = (BlobRequestOptions)this.requestOptions;
+            if (blobOptions.getCustomerProvidedKey() != null &&
+                    !storageUri.getPrimaryUri().getScheme().equals("https")) {
+                throw new IllegalStateException(SR.CLIENT_PROVIDED_KEY_REQUIRES_HTTPS);
+            }
+        }
+
         this.storageUri = storageUri;
     }
 

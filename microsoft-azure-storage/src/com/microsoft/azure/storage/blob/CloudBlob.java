@@ -16,6 +16,7 @@ package com.microsoft.azure.storage.blob;
 
 import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.core.*;
+import org.apache.commons.lang3.EnumUtils;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -656,7 +657,7 @@ public abstract class CloudBlob implements ListBlobItem {
     public final String startCopy(final URI source, final AccessCondition sourceAccessCondition,
                                   final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException {
-        return this.startCopy(source,null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(source,null /* blobTierString */, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
@@ -668,8 +669,8 @@ public abstract class CloudBlob implements ListBlobItem {
      * @param source
      *            A <code>java.net.URI</code> The source URI.  URIs for resources outside of Azure
      *            may only be copied into block blobs.
-     * @param premiumPageBlobTier
-     *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
+     * @param blobTierString
+     *            A String which represents the tier of the blob.
      * @param sourceAccessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the source.
      * @param destinationAccessCondition
@@ -690,10 +691,10 @@ public abstract class CloudBlob implements ListBlobItem {
      *
      */
     @DoesServiceRequest
-    protected final String startCopy(final URI source, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
+    protected final String startCopy(final URI source, final String blobTierString, final AccessCondition sourceAccessCondition,
                                      final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException {
-        return startCopy(source, null /* contentMd5 */, false /* syncCopy */, premiumPageBlobTier, sourceAccessCondition,
+        return startCopy(source, null /* contentMd5 */, false /* syncCopy */, blobTierString, sourceAccessCondition,
                 destinationAccessCondition, options, opContext);
     }
 
@@ -711,8 +712,8 @@ public abstract class CloudBlob implements ListBlobItem {
      *            <code>null</code> or empty.
      * @param syncCopy
      *            A <code>boolean</code> which indicates if the copy should be done synchronously on the service.
-     * @param premiumPageBlobTier
-     *            A {@link PremiumPageBlobTier} object which represents the tier of the blob.
+     * @param blobTierString
+     *            A String which represents the tier of the blob.
      * @param sourceAccessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the source.
      * @param destinationAccessCondition
@@ -733,8 +734,52 @@ public abstract class CloudBlob implements ListBlobItem {
      *
      */
     @DoesServiceRequest
-    protected final String startCopy(final URI source, String contentMd5, boolean syncCopy, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
+    protected final String startCopy(final URI source, String contentMd5, boolean syncCopy, final String blobTierString, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
+            throws StorageException {
+        return startCopy(source, null /* contentMd5 */, false /* syncCopy */, blobTierString, null /* rehydratePriority*/, sourceAccessCondition, destinationAccessCondition, options, opContext);
+    }
+
+    /**
+     * Requests the service to start copying a URI's contents, properties, and metadata to a new blob, using the
+     * specified premium page blob tier, rehydrate priority, access conditions, lease ID, request options, and operation context.
+     * <p>
+     * Note: Setting the premiumPageBlobTier is only supported for premium accounts.
+     * </p>
+     * @param source
+     *            A <code>java.net.URI</code> The source URI.  URIs for resources outside of Azure
+     *            may only be copied into block blobs.
+     * @param contentMd5
+     *            An optional hash value used to ensure transactional integrity for the operation. May be
+     *            <code>null</code> or empty.
+     * @param syncCopy
+     *            A <code>boolean</code> which indicates if the copy should be done synchronously on the service.
+     * @param blobTierString
+     *            A <code>String</code> object which represents the tier of the blob.
+     * @param rehydratePriority
+     *            A {@link RehydratePriority} object which represents the rehydrate priority.
+     * @param sourceAccessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the source.
+     * @param destinationAccessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the destination.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request.
+     *            Specifying <code>null</code> will use the default request options from the associated
+     *            service client ({@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation.
+     *            This object is used to track requests to the storage service, and to provide additional
+     *            runtime information about the operation.
+     *
+     * @return A <code>String</code> which represents the copy ID associated with the copy operation.
+     *
+     * @throws StorageException
+     *            If a storage service error occurred.
+     *
+     */
+    @DoesServiceRequest
+    protected final String startCopy(final URI source, String contentMd5, boolean syncCopy, final String blobTierString, final RehydratePriority rehydratePriority, final AccessCondition sourceAccessCondition,
+                                     final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException {
         if (opContext == null) {
             opContext = new OperationContext();
@@ -744,12 +789,13 @@ public abstract class CloudBlob implements ListBlobItem {
         options = BlobRequestOptions.populateAndApplyDefaults(options, this.properties.getBlobType(), this.blobServiceClient);
 
         return ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.startCopyImpl(source, contentMd5, syncCopy, false /* incrementalCopy */, premiumPageBlobTier, sourceAccessCondition, destinationAccessCondition, options),
+                this.startCopyImpl(source, contentMd5, syncCopy, false /* incrementalCopy */, blobTierString, rehydratePriority, sourceAccessCondition, destinationAccessCondition, options),
                 options.getRetryPolicyFactory(), opContext);
     }
 
     protected StorageRequest<CloudBlobClient, CloudBlob, String> startCopyImpl(
-            final URI source, final String contentMd5, final boolean syncCopy, final boolean incrementalCopy, final PremiumPageBlobTier premiumPageBlobTier, final AccessCondition sourceAccessCondition,
+            final URI source, final String contentMd5, final boolean syncCopy, final boolean incrementalCopy,
+            final String blobTierString, final RehydratePriority rehydratePriority, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, final BlobRequestOptions options) {
 
         final StorageRequest<CloudBlobClient, CloudBlob, String> putRequest =
@@ -761,7 +807,7 @@ public abstract class CloudBlob implements ListBlobItem {
                 // toASCIIString() must be used in order to appropriately encode the URI
                 return BlobRequest.copyFrom(blob.getTransformedAddress(context).getUri(this.getCurrentLocation()),
                         options, context, sourceAccessCondition, destinationAccessCondition, source.toASCIIString(),
-                        blob.snapshotID, incrementalCopy, syncCopy, contentMd5, premiumPageBlobTier);
+                        blob.snapshotID, incrementalCopy, syncCopy, contentMd5, blobTierString, rehydratePriority);
             }
 
             @Override
@@ -783,11 +829,19 @@ public abstract class CloudBlob implements ListBlobItem {
                     return null;
                 }
 
+                this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                // TODO uncomment when copy blob with CPK is ready
+                // validateCPKHeaders(this, options);
+
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 blob.properties.setCopyState(BlobResponse.getCopyState(this.getConnection()));
-                blob.properties.setPremiumPageBlobTier(premiumPageBlobTier);
-                if (premiumPageBlobTier != null) {
-                    blob.properties.setBlobTierInferred(false);
+
+                if(EnumUtils.isValidEnum(PremiumPageBlobTier.class, blobTierString)){
+                    blob.properties.setPremiumPageBlobTier(PremiumPageBlobTier.parse(blobTierString));
+                    if (blobTierString != null) {
+                        blob.properties.setBlobTierInferred(false);
+                    }
                 }
 
                 return blob.properties.getCopyState().getCopyId();
@@ -909,6 +963,14 @@ public abstract class CloudBlob implements ListBlobItem {
                     this.setNonExceptionedRetryableFailure(true);
                     return null;
                 }
+
+                this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                // we also check if metadata was passed because if it wasn't we won't get the headers back
+                if (metadata != null) {
+                    validateCPKHeaders(this, options, true);
+                }
+
                 CloudBlob snapshot = null;
                 final String snapshotTime = BlobResponse.getSnapshotTime(this.getConnection());
                 if (blob instanceof CloudBlockBlob) {
@@ -1112,7 +1174,7 @@ public abstract class CloudBlob implements ListBlobItem {
         }
     }
 
-    private StorageRequest<CloudBlobClient, CloudBlob, Void> deleteImpl(
+    StorageRequest<CloudBlobClient, CloudBlob, Void> deleteImpl(
             final DeleteSnapshotsOption deleteSnapshotsOption, final AccessCondition accessCondition,
             final BlobRequestOptions options) {
         final StorageRequest<CloudBlobClient, CloudBlob, Void> deleteRequest = new StorageRequest<CloudBlobClient, CloudBlob, Void>(
@@ -1395,6 +1457,8 @@ public abstract class CloudBlob implements ListBlobItem {
                                     .getBlobType()), Constants.HeaderConstants.HTTP_UNUSED_306, null, null);
                 }
 
+                // when in use, CPK headers are NOT returned on this REST request, so we don't validate them
+
                 blob.properties = retrievedAttributes.getProperties();
                 blob.metadata = retrievedAttributes.getMetadata();
 
@@ -1504,6 +1568,10 @@ public abstract class CloudBlob implements ListBlobItem {
                     this.setNonExceptionedRetryableFailure(true);
                     return null;
                 }
+
+                this.getResult().setServiceEncrypted(BaseResponse.isServerEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options, false);
 
                 if (!this.getArePropertiesPopulated()) {
                     final BlobAttributes retrievedAttributes = BlobResponse.getBlobAttributes(this.getConnection(),
@@ -2797,14 +2865,15 @@ public abstract class CloudBlob implements ListBlobItem {
         return putRequest;
     }
 
-    protected StorageRequest<CloudBlobClient, CloudBlob, Void> uploadBlobTierImpl(final String blobTierString, final BlobRequestOptions options) {
+    StorageRequest<CloudBlobClient, CloudBlob, Void> uploadBlobTierImpl(final String blobTierString,
+            final String rehydratePriority, final BlobRequestOptions options) {
         final StorageRequest<CloudBlobClient, CloudBlob, Void> setTierRequest = new StorageRequest<CloudBlobClient, CloudBlob, Void>(
                 options, this.getStorageUri()) {
 
             @Override
             public HttpURLConnection buildRequest(CloudBlobClient client, CloudBlob blob, OperationContext context)
                     throws Exception {
-                return BlobRequest.setBlobTier(blob.getTransformedAddress(context).getUri(this.getCurrentLocation()), options, context, blobTierString);
+                return BlobRequest.setBlobTier(blob.getTransformedAddress(context).getUri(this.getCurrentLocation()), options, context, blobTierString, rehydratePriority);
             }
 
             @Override
@@ -2823,6 +2892,9 @@ public abstract class CloudBlob implements ListBlobItem {
 
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                // TODO uncomment when set tier with CPK is ready
+                // validateCPKHeaders(this, options);
 
                 blob.getProperties().setBlobTierInferred(false);
 
@@ -3079,6 +3151,9 @@ public abstract class CloudBlob implements ListBlobItem {
 
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options, true);
+
                 return null;
             }
         };
@@ -3302,5 +3377,43 @@ public abstract class CloudBlob implements ListBlobItem {
         };
 
         return headRequest;
+    }
+
+    /**
+     * If the request options contain a CPK, validate the associated response headers.
+     *
+     * @param request
+     *          The storage request to check the response of.
+     * @param options
+     *          The blob options used on the request.
+     * @param upload
+     *          Whether this was an upload or if we're just retrieving data.
+     * @param <T>
+     *          CloudBlob type.
+     * @param <R>
+     *          The response type of the request.
+     *
+     * @throws StorageException
+     *          Throws if CPK was used in the request and the response failed validation.
+     */
+    protected static <T extends CloudBlob, R> void validateCPKHeaders(
+            StorageRequest<CloudBlobClient, T, R> request,
+            BlobRequestOptions options,
+            boolean upload) throws StorageException {
+        BlobCustomerProvidedKey key;
+        if ((key = options.getCustomerProvidedKey()) != null) {
+            if (!key.getKeySHA256().equals(request.getResult().getEncryptionKeySHA256())) {
+                throw new StorageException(
+                        StorageErrorCodeStrings.CLIENT_PROVIDED_KEY_ERROR,
+                        SR.CLIENT_PROVIDED_KEY_BAD_HASH, null);
+            }
+            if (upload
+                    ? !request.getResult().isRequestServiceEncrypted()
+                    : !request.getResult().isServiceEncrypted()) {
+                throw new StorageException(
+                        StorageErrorCodeStrings.CLIENT_PROVIDED_KEY_ERROR,
+                        SR.CLIENT_PROVIDED_KEY_ENCRYPTION_FAILURE, null);
+            }
+        }
     }
 }

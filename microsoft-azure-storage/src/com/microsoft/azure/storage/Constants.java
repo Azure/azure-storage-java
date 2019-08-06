@@ -370,6 +370,41 @@ public final class Constants {
         public static final String CACHE_CONTROL_HEADER = PREFIX_FOR_STORAGE_HEADER + "blob-cache-control";
 
         /**
+         * The key header for client-provided key encryption.
+         */
+        public static final String CLIENT_PROVIDED_ENCRYPTION_SUCCESS = PREFIX_FOR_STORAGE_HEADER + "request-server-encrypted";
+
+        /**
+         * The key header for client-provided key encryption.
+         */
+        public static final String CLIENT_PROVIDED_ENCRYPTION_KEY = PREFIX_FOR_STORAGE_HEADER + "encryption-key";
+
+        /**
+         * The key hash header for client-provided key encryption
+         */
+        public static final String CLIENT_PROVIDED_ENCRYPTION_KEY_HASH = PREFIX_FOR_STORAGE_HEADER + "encryption-key-sha256";
+
+        /**
+         * The encryption algorithm header for client-provided key encryption.
+         */
+        public static final String CLIENT_PROVIDED_ENCRYPTION_ALGORITHM = PREFIX_FOR_STORAGE_HEADER + "encryption-algorithm";
+
+        /**
+         * The key header for client-provided key encryption.
+         */
+        public static final String CLIENT_PROVIDED_ENCRYPTION_KEY_SOURCE = PREFIX_FOR_STORAGE_HEADER + "source-encryption-key";
+
+        /**
+         * The key hash header for client-provided key encryption
+         */
+        public static final String CLIENT_PROVIDED_ENCRYPTION_KEY_HASH_SOURCE = PREFIX_FOR_STORAGE_HEADER + "source-encryption-key-sha256";
+
+        /**
+         * The encryption algorithm header for client-provided key encryption.
+         */
+        public static final String CLIENT_PROVIDED_ENCRYPTION_ALGORITHM_SOURCE = PREFIX_FOR_STORAGE_HEADER + "source-encryption-algorithm";
+
+        /**
          * The header that indicates the client request ID.
          */
         public static final String CLIENT_REQUEST_ID_HEADER = PREFIX_FOR_STORAGE_HEADER + "client-request-id";
@@ -383,6 +418,11 @@ public final class Constants {
          * The ContentEncoding header.
          */
         public static final String CONTENT_ENCODING = "Content-Encoding";
+
+        /**
+         * The ContentID header.
+         */
+        public static final String CONTENT_ID = "Content-ID";
 
         /**
          * The ContentLangauge header.
@@ -403,6 +443,11 @@ public final class Constants {
          * The ContentRange header.
          */
         public static final String CONTENT_RANGE = "Content-Range";
+
+        /**
+         * The ContentTransferEncoding header.
+         */
+        public static final String CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding";
 
         /**
          * The ContentType header.
@@ -700,7 +745,7 @@ public final class Constants {
         /**
          * The current storage version header value.
          */
-        public static final String TARGET_STORAGE_VERSION = "2018-11-09";
+        public static final String TARGET_STORAGE_VERSION = "2019-02-02";
 
         /**
          * The header that specifies the next visible time for a queue message.
@@ -720,12 +765,17 @@ public final class Constants {
         /**
          * Specifies the value to use for UserAgent header.
          */
-        public static final String USER_AGENT_VERSION = "8.3.0";
+        public static final String USER_AGENT_VERSION = "8.4.0";
 
         /**
          * The default type for content-type and accept
          */
         public static final String XML_TYPE = "application/xml";
+
+        /**
+         * Specifies the JSON content type
+         */
+        public static final String JSON_TYPE = "application/json";
     }
 
     /**
@@ -1037,6 +1087,11 @@ public final class Constants {
      * XML element for the archive status.
      */
     public static final String ARCHIVE_STATUS = "ArchiveStatus";
+
+    /**
+     * Maximum number of requests that can be batched together.
+     */
+    public static final int BATCH_MAX_REQUESTS = 256;
 
     /**
      * Buffer width used to copy data to output streams.

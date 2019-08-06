@@ -177,7 +177,7 @@ public final class CloudBlockBlob extends CloudBlob {
      */
     @DoesServiceRequest
     public final String startCopy(final CloudBlockBlob sourceBlob) throws StorageException, URISyntaxException {
-        return this.startCopy(sourceBlob, null /* contentMd5 */, false /* syncCopy */, null /* sourceAccessCondition */,
+        return this.startCopy(sourceBlob, null /* contentMd5 */, false /* syncCopy */, null /* standardBlobTier */, null /* rehydratePriority */, null /* sourceAccessCondition */,
                 null /* destinationAccessCondition */, null /* options */, null /* opContext */);
     }
 
@@ -211,15 +211,7 @@ public final class CloudBlockBlob extends CloudBlob {
     public final String startCopy(final CloudBlockBlob sourceBlob, final AccessCondition sourceAccessCondition,
                                   final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException, URISyntaxException {
-        Utility.assertNotNull("sourceBlob", sourceBlob);
-
-        URI source = sourceBlob.getSnapshotQualifiedUri();
-        if (sourceBlob.getServiceClient() != null && sourceBlob.getServiceClient().getCredentials() != null)
-        {
-            source = sourceBlob.getServiceClient().getCredentials().transformUri(sourceBlob.getSnapshotQualifiedUri());
-        }
-
-        return this.startCopy(sourceBlob, null /* contentMd5 */, false /* syncCopy */, sourceAccessCondition, destinationAccessCondition, options, opContext);
+        return this.startCopy(sourceBlob, null /* contentMd5 */, false /* syncCopy */, null /* standardBlobTier */, null /* rehydratePriority */, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
@@ -257,6 +249,48 @@ public final class CloudBlockBlob extends CloudBlob {
     public final String startCopy(final CloudBlockBlob sourceBlob, String contentMd5, boolean syncCopy, final AccessCondition sourceAccessCondition,
             final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
             throws StorageException, URISyntaxException {
+        return this.startCopy(sourceBlob, contentMd5, syncCopy, null /* blobTierString */, null  /* rehydratePriority */, sourceAccessCondition, destinationAccessCondition, options, opContext);
+    }
+
+    /**
+     * Requests the service to start copying a block blob's contents, properties, and metadata to a new block blob,
+     * using the blob tier, rehydrate priority, specified access conditions, lease ID, request options, operation context.
+     *
+     * @param sourceBlob
+     *            A <code>CloudBlockBlob</code> object that represents the source blob to copy.
+     * @param contentMd5
+     *            An optional hash value used to ensure transactional integrity for the operation. May be
+     *            <code>null</code> or empty.
+     * @param syncCopy
+     *            A <code>boolean</code> to enable synchronous server copy of blobs.
+     * @param rehydratePriority
+     *            An {@link RehydratePriority} object that represents the rehydrate priority.
+     * @param standardBlobTier
+     *            An {@link StandardBlobTier} object that represents the tier of the blob.
+     * @param sourceAccessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the source blob.
+     * @param destinationAccessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the destination blob.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @return A <code>String</code> which represents the copy ID associated with the copy operation.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     * @throws URISyntaxException
+     *
+     */
+    @DoesServiceRequest
+    public final String startCopy(final CloudBlockBlob sourceBlob, String contentMd5, boolean syncCopy,
+            final StandardBlobTier standardBlobTier, RehydratePriority rehydratePriority, final AccessCondition sourceAccessCondition,
+            final AccessCondition destinationAccessCondition, BlobRequestOptions options, OperationContext opContext)
+            throws StorageException, URISyntaxException {
         Utility.assertNotNull("sourceBlob", sourceBlob);
 
         URI source = sourceBlob.getSnapshotQualifiedUri();
@@ -265,8 +299,7 @@ public final class CloudBlockBlob extends CloudBlob {
             source = sourceBlob.getServiceClient().getCredentials().transformUri(sourceBlob.getSnapshotQualifiedUri());
         }
 
-        return this.startCopy(source, contentMd5, syncCopy, null /* premiumPageBlobTier */, sourceAccessCondition,
-                destinationAccessCondition, options, opContext);
+        return this.startCopy(source, contentMd5, syncCopy, standardBlobTier == null? null: standardBlobTier.toString(), rehydratePriority, sourceAccessCondition, destinationAccessCondition, options, opContext);
     }
 
     /**
@@ -320,7 +353,7 @@ public final class CloudBlockBlob extends CloudBlob {
        Utility.assertNotNull("sourceFile", sourceFile);
        return this.startCopy(
                sourceFile.getServiceClient().getCredentials().transformUri(sourceFile.getUri()),
-               null /* premiumPageBlobTier */, sourceAccessCondition, destinationAccessCondition, options, opContext);
+               null /* blobTierString */, sourceAccessCondition, destinationAccessCondition, options, opContext);
    }
 
     /**
@@ -364,6 +397,34 @@ public final class CloudBlockBlob extends CloudBlob {
     @DoesServiceRequest
     public void commitBlockList(final Iterable<BlockEntry> blockList, final AccessCondition accessCondition,
             BlobRequestOptions options, OperationContext opContext) throws StorageException {
+        this.commitBlockList(blockList, null /* standardBlobTier*/, accessCondition, options, opContext);
+    }
+
+    /**
+     * Commits a block list to the storage service using the specified lease ID, request options, and operation context.
+     * In order to be written as part of a blob, a block must have been successfully written to the server in a prior
+     * uploadBlock operation.
+     *
+     * @param blockList
+     *            An enumerable collection of {@link BlockEntry} objects that represents the list block items being
+     *            committed. The size field is ignored.
+     * @param accessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the blob.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     *
+     * @throws StorageException
+     *             If a storage service error occurred.
+     */
+    @DoesServiceRequest
+    public void commitBlockList(final Iterable<BlockEntry> blockList, StandardBlobTier standardBlobTier, final AccessCondition accessCondition,
+                                BlobRequestOptions options, OperationContext opContext) throws StorageException {
         assertNoWriteOperationForSnapshot();
 
         if (opContext == null) {
@@ -371,15 +432,15 @@ public final class CloudBlockBlob extends CloudBlob {
         }
 
         options = BlobRequestOptions.populateAndApplyDefaults(options, BlobType.BLOCK_BLOB, this.blobServiceClient);
-        
+
         ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.commitBlockListImpl(blockList, accessCondition, options, opContext),
+                this.commitBlockListImpl(blockList, accessCondition, options, opContext, standardBlobTier == null? null: standardBlobTier.toString()),
                 options.getRetryPolicyFactory(), opContext);
     }
 
     private StorageRequest<CloudBlobClient, CloudBlob, Void> commitBlockListImpl(final Iterable<BlockEntry> blockList,
-            final AccessCondition accessCondition, final BlobRequestOptions options, final OperationContext opContext)
-            throws StorageException {
+            final AccessCondition accessCondition, final BlobRequestOptions options, final OperationContext opContext,
+            final String blobTierString) throws StorageException {
 
         byte[] blockListBytes;
         try {
@@ -401,7 +462,7 @@ public final class CloudBlockBlob extends CloudBlob {
                     this.setLength(descriptor.getLength());
                     return BlobRequest.putBlockList(
                             blob.getTransformedAddress(context).getUri(this.getCurrentLocation()), options, context,
-                            accessCondition, blob.properties);
+                            accessCondition, blob.properties, blobTierString);
                 }
 
                 @Override
@@ -429,6 +490,9 @@ public final class CloudBlockBlob extends CloudBlob {
 
                     blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                     this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                    this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                    validateCPKHeaders(this, options, true);
+
                     return null;
                 }
 
@@ -676,6 +740,37 @@ public final class CloudBlockBlob extends CloudBlob {
     @DoesServiceRequest
     public void upload(final InputStream sourceStream, final long length, final AccessCondition accessCondition,
             BlobRequestOptions options, OperationContext opContext) throws StorageException, IOException {
+        this.upload(sourceStream, length, null /* standardBlobTier */, accessCondition, options, opContext);
+    }
+
+    /**
+     * Uploads the source stream data to the blob, using the specified lease ID, request options, and operation context.
+     * If the blob already exists on the service, it will be overwritten.
+     *
+     * @param sourceStream
+     *            An {@link InputStream} object that represents the input stream to write to the block blob.
+     * @param length
+     *            A <code>long</code> which represents the length, in bytes, of the stream data, or -1 if unknown.
+     * @param standardBlobTier
+     *            An String that represents the tier of the blob.
+     * @param accessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the blob.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @throws IOException
+     *             If an I/O error occurred.
+     * @throws StorageException
+     *             If a storage service error occurred.
+     */
+    @DoesServiceRequest
+    public void upload(final InputStream sourceStream, final long length, final StandardBlobTier standardBlobTier, final AccessCondition accessCondition,
+                       BlobRequestOptions options, OperationContext opContext) throws StorageException, IOException {
         if (length < -1) {
             throw new IllegalArgumentException(SR.STREAM_LENGTH_NEGATIVE);
         }
@@ -702,7 +797,7 @@ public final class CloudBlockBlob extends CloudBlob {
         else {
             inputDataStream = sourceStream;
         }
-        
+
         // Initial check - skip the PutBlob operation if the input stream isn't markable, or if the length is known to
         // be greater than the threshold.
         boolean skipPutBlob = !inputDataStream.markSupported() || descriptor.getLength() > options.getSingleBlobPutThresholdInBytes();
@@ -715,19 +810,19 @@ public final class CloudBlockBlob extends CloudBlob {
         // If we're not yet skipping PutBlob and we need to encrypt, encrypt the data and check that the encrypted
         // data is under the threshold.
         // Note this will abort at
-        // options.getSingleBlobPutThresholdInBytes() bytes and return -1.        
+        // options.getSingleBlobPutThresholdInBytes() bytes and return -1.
         if (!skipPutBlob && options.getEncryptionPolicy() != null) {
             class GettableByteArrayOutputStream extends ByteArrayOutputStream {
                 public byte[] getByteArray() {
                     return this.buf;
                 }
             }
-            
+
             Cipher cipher = options.getEncryptionPolicy().createAndSetEncryptionContext(this.getMetadata(), false /* noPadding */);
             GettableByteArrayOutputStream targetStream = new GettableByteArrayOutputStream();
             long byteCount = Utility.encryptStreamIfUnderThreshold(inputDataStream, targetStream, cipher, descriptor.getLength(),
                     options.getSingleBlobPutThresholdInBytes() + 1 /*abandon if the operation hits this limit*/);
-            
+
             if (byteCount >= 0)
             {
                 inputDataStream = new ByteArrayInputStream(targetStream.getByteArray());
@@ -738,7 +833,7 @@ public final class CloudBlockBlob extends CloudBlob {
                 skipPutBlob = true;
             }
         }
-        
+
         // If we're not yet skipping PutBlob, and the length is still unknown or we need to
         // set md5, then analyze the stream.
         // Note this read will abort at
@@ -749,15 +844,15 @@ public final class CloudBlockBlob extends CloudBlob {
             // If the stream is of unknown length or we need to calculate
             // the MD5, then we we need to read the stream contents first
 
-            descriptor = Utility.analyzeStream(inputDataStream, descriptor.getLength(), 
-                    options.getSingleBlobPutThresholdInBytes() + 1 /*abandon if the operation hits this limit*/, 
+            descriptor = Utility.analyzeStream(inputDataStream, descriptor.getLength(),
+                    options.getSingleBlobPutThresholdInBytes() + 1 /*abandon if the operation hits this limit*/,
                     true /* rewindSourceStream */, options.getStoreBlobContentMD5());
 
             if (descriptor.getMd5() != null && options.getStoreBlobContentMD5()) {
                 this.properties.setContentMD5(descriptor.getMd5());
             }
-            
-            // If the data is over the threshold, skip PutBlob.  
+
+            // If the data is over the threshold, skip PutBlob.
             if (descriptor.getLength() == -1 || descriptor.getLength() > options.getSingleBlobPutThresholdInBytes())
             {
                 skipPutBlob = true;
@@ -766,7 +861,7 @@ public final class CloudBlockBlob extends CloudBlob {
 
         // By now, the skipPutBlob is completely correct.
         if (!skipPutBlob) {
-            this.uploadFullBlob(inputDataStream, descriptor.getLength(), accessCondition, options, opContext);
+            this.uploadFullBlob(inputDataStream, descriptor.getLength(), standardBlobTier, accessCondition, options, opContext);
         }
         else {
             int totalBlocks = (int) Math.ceil((double) length / (double) this.streamWriteSizeInBytes);
@@ -785,10 +880,10 @@ public final class CloudBlockBlob extends CloudBlob {
             }
 
             boolean useOpenWrite = options.getEncryptionPolicy() != null
-                                   || !inputDataStream.markSupported()
-                                   || this.streamWriteSizeInBytes < Constants.MIN_LARGE_BLOCK_SIZE
-                                   || options.getStoreBlobContentMD5()
-                                   || descriptor.getLength() == -1;
+                    || !inputDataStream.markSupported()
+                    || this.streamWriteSizeInBytes < Constants.MIN_LARGE_BLOCK_SIZE
+                    || options.getStoreBlobContentMD5()
+                    || descriptor.getLength() == -1;
 
             // there are two known issues with the uploadFromMultiStream logic
             // 1. The same block ids are being used for each batch of uploads.
@@ -909,6 +1004,8 @@ public final class CloudBlockBlob extends CloudBlob {
      *            A <code>InputStream</code> object that represents the source stream to upload.
      * @param length
      *            The length, in bytes, of the stream, or -1 if unknown.
+     * @param standardBlobTier
+     *            An {@link StandardBlobTier} object that represents the tier of the blob.
      * @param accessCondition
      *            An {@link AccessCondition} object that represents the access conditions for the blob.
      * @param options
@@ -924,8 +1021,7 @@ public final class CloudBlockBlob extends CloudBlob {
      */
     @DoesServiceRequest
     protected final void uploadFullBlob(final InputStream sourceStream, final long length,
-            final AccessCondition accessCondition, final BlobRequestOptions options, final OperationContext opContext)
-            throws StorageException {
+                                        final StandardBlobTier standardBlobTier, final AccessCondition accessCondition, final BlobRequestOptions options, final OperationContext opContext) throws StorageException {
         assertNoWriteOperationForSnapshot();
 
         // Mark sourceStream for current position.
@@ -937,13 +1033,13 @@ public final class CloudBlockBlob extends CloudBlob {
         }
 
         ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                uploadFullBlobImpl(sourceStream, length, accessCondition, options, opContext),
+                uploadFullBlobImpl(sourceStream, length, accessCondition, options, opContext, standardBlobTier == null ? null : standardBlobTier.toString()),
                 options.getRetryPolicyFactory(), opContext);
     }
 
     private StorageRequest<CloudBlobClient, CloudBlob, Void> uploadFullBlobImpl(final InputStream sourceStream,
             final long length, final AccessCondition accessCondition, final BlobRequestOptions options,
-            final OperationContext opContext) {
+            final OperationContext opContext, final String blobTierString) {
         final StorageRequest<CloudBlobClient, CloudBlob, Void> putRequest = new StorageRequest<CloudBlobClient, CloudBlob, Void>(
                 options, this.getStorageUri()) {
 
@@ -954,7 +1050,7 @@ public final class CloudBlockBlob extends CloudBlob {
                 this.setLength(length);
                 return BlobRequest.putBlob(blob.getTransformedAddress(opContext).getUri(this.getCurrentLocation()),
                         options, opContext, accessCondition, blob.properties, blob.properties.getBlobType(),
-                        this.getLength());
+                        this.getLength(), blobTierString);
             }
 
             @Override
@@ -978,6 +1074,9 @@ public final class CloudBlockBlob extends CloudBlob {
 
                 blob.updateEtagAndLastModifiedFromResponse(this.getConnection());
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options, true);
+
                 return null;
             }
 
@@ -1184,6 +1283,9 @@ public final class CloudBlockBlob extends CloudBlob {
                 }
 
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options, true);
+
                 return null;
             }
 
@@ -1358,6 +1460,9 @@ public final class CloudBlockBlob extends CloudBlob {
                 }
 
                 this.getResult().setRequestServiceEncrypted(BaseResponse.isServerRequestEncrypted(this.getConnection()));
+                this.getResult().setEncryptionKeySHA256(BaseResponse.getEncryptionKeyHash(this.getConnection()));
+                validateCPKHeaders(this, options, true);
+
                 return null;
             }
         };
@@ -1404,8 +1509,71 @@ public final class CloudBlockBlob extends CloudBlob {
      */
     public void uploadText(final String content, final String charsetName, final AccessCondition accessCondition,
             BlobRequestOptions options, OperationContext opContext) throws StorageException, IOException {
+        this.uploadText(content, charsetName, null /* standardBlobTier */, accessCondition, options, opContext);
+    }
+
+    /**
+     * Uploads a blob from a string using the specified encoding. If the blob already exists on the service, it will be
+     * overwritten.
+     *
+     * @param content
+     *            A <code>String</code> which represents the content that will be uploaded to the blob.
+     * @param charsetName
+     *            A <code>String</code> which represents the name of the charset to use to encode the content.
+     *            If null, the platform's default encoding is used.
+     * @param standardBlobTier
+     *           An {@link StandardBlobTier} object that represents the tier of the blob.
+     * @param accessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the blob.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @throws StorageException
+     *             If a storage service error occurred.
+     * @throws IOException
+     */
+    public void uploadText(final String content, final String charsetName, final StandardBlobTier standardBlobTier, final AccessCondition accessCondition,
+                           BlobRequestOptions options, OperationContext opContext) throws StorageException, IOException {
         byte[] bytes = (charsetName == null) ? content.getBytes() : content.getBytes(charsetName);
-        this.uploadFromByteArray(bytes, 0, bytes.length, accessCondition, options, opContext);
+        this.uploadFromByteArray(bytes, 0, bytes.length, standardBlobTier, accessCondition, options, opContext);
+    }
+
+    /**
+     * Uploads a blob from data in a byte array. If the blob already exists on the service, it will be overwritten.
+     *
+     * @param buffer
+     *            A <code>byte</code> array which represents the data to write to the blob.
+     * @param offset
+     *            A <code>int</code> which represents the offset of the byte array from which to start the data upload.
+     * @param length
+     *            An <code>int</code> which represents the number of bytes to upload from the input buffer.
+     * @param standardBlobTier
+     *            An {@link StandardBlobTier} object that represents the tier of the blob.
+     * @param accessCondition
+     *            An {@link AccessCondition} object that represents the access conditions for the blob.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object that represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @throws StorageException
+     *             If a storage service error occurred.
+     * @throws IOException
+     */
+    public void uploadFromByteArray(final byte[] buffer, final int offset, final int length,
+                                    final StandardBlobTier standardBlobTier, final AccessCondition accessCondition, BlobRequestOptions options, OperationContext opContext)
+            throws StorageException, IOException {
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(buffer, offset, length);
+        this.upload(inputStream, length, standardBlobTier, accessCondition, options, opContext);
+        inputStream.close();
     }
 
     /**
@@ -1502,7 +1670,31 @@ public final class CloudBlockBlob extends CloudBlob {
     @DoesServiceRequest
     public void uploadStandardBlobTier(final StandardBlobTier standardBlobTier, BlobRequestOptions options,
                                    OperationContext opContext) throws StorageException {
+        this.uploadStandardBlobTier(standardBlobTier, null /* rehydratePriority */, options, opContext);
+    }
+
+    /**
+     * Sets the tier on a block blob on a standard storage account.
+     * @param standardBlobTier
+     *            A {@link StandardBlobTier} object which represents the tier of the blob.
+     * @param rehydratePriority
+     *            A {@link RehydratePriority} object which represents the rehydrate priority.
+     * @param options
+     *            A {@link BlobRequestOptions} object that specifies any additional options for the request. Specifying
+     *            <code>null</code> will use the default request options from the associated service client (
+     *            {@link CloudBlobClient}).
+     * @param opContext
+     *            An {@link OperationContext} object which represents the context for the current operation. This object
+     *            is used to track requests to the storage service, and to provide additional runtime information about
+     *            the operation.
+     * @throws StorageException
+     *             If a storage service error occurred.
+     */
+    @DoesServiceRequest
+    public void uploadStandardBlobTier(final StandardBlobTier standardBlobTier, RehydratePriority rehydratePriority,
+            BlobRequestOptions options, OperationContext opContext) throws StorageException {
         assertNoWriteOperationForSnapshot();
+
         Utility.assertNotNull("standardBlobTier", standardBlobTier);
 
         if (opContext == null) {
@@ -1512,7 +1704,9 @@ public final class CloudBlockBlob extends CloudBlob {
         options = BlobRequestOptions.populateAndApplyDefaults(options, BlobType.BLOCK_BLOB, this.blobServiceClient);
 
         ExecutionEngine.executeWithRetry(this.blobServiceClient, this,
-                this.uploadBlobTierImpl(standardBlobTier.toString(), options), options.getRetryPolicyFactory(), opContext);
+                this.uploadBlobTierImpl(standardBlobTier.toString(),
+                        rehydratePriority == null ? null : rehydratePriority.toString(), options),
+                options.getRetryPolicyFactory(), opContext);
     }
 
     /**

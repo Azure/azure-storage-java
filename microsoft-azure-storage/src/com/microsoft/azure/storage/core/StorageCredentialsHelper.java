@@ -95,6 +95,10 @@ public final class StorageCredentialsHelper {
 
     /**
      * Signs a request using the specified operation context under either the Shared Key or Token authentication scheme.
+     *
+     * While this method places the signature on the request, it also returns the signature it set. This is because
+     * {@link java.net.HttpURLConnection} does not let you read an authorization header once set, and batch needs to
+     * set this signature elsewhere. Non-batch-related functions can ignore this return value.
      * 
      * @param request
      *            An <code>HttpURLConnection</code> object that represents the request to sign.
@@ -104,16 +108,21 @@ public final class StorageCredentialsHelper {
      *            An {@link OperationContext} object that represents the context for the current operation. This object
      *            is used to track requests to the storage service, and to provide additional runtime information about
      *            the operation.
+     *
+     * @return
+     *            The value of the authorization signature applied to the request.
      * 
      * @throws InvalidKeyException
      *             If the given key is invalid.
      * @throws StorageException
      *             If a storage service error occurred.
      */
-    public static void signBlobQueueAndFileRequest(final StorageCredentials creds,
+    public static String signBlobQueueAndFileRequest(final StorageCredentials creds,
             final java.net.HttpURLConnection request, final long contentLength, OperationContext opContext)
             throws InvalidKeyException, StorageException {
-        
+
+        String authHeaderValue = null;
+
         if (creds.getClass().equals(StorageCredentialsAccountAndKey.class)) {
             opContext = opContext == null ? new OperationContext() : opContext;
             request.setRequestProperty(Constants.HeaderConstants.DATE, Utility.getGMTTime());
@@ -124,19 +133,25 @@ public final class StorageCredentialsHelper {
             final String computedBase64Signature = StorageCredentialsHelper.computeHmac256(creds, stringToSign);
 
             Logger.trace(opContext, LogConstants.SIGNING, stringToSign);
+
+            authHeaderValue = String.format("%s %s:%s",
+                    "SharedKey", creds.getAccountName(), computedBase64Signature);
             
-            request.setRequestProperty(Constants.HeaderConstants.AUTHORIZATION,
-                    String.format("%s %s:%s", "SharedKey", creds.getAccountName(), computedBase64Signature));
+            request.setRequestProperty(Constants.HeaderConstants.AUTHORIZATION, authHeaderValue);
+
         } else if (creds.getClass().equals(StorageCredentialsToken.class)) {
             // the token is set as a header to authenticate the HTTPS requests
             if (request instanceof HttpsURLConnection) {
-                request.setRequestProperty(Constants.HeaderConstants.AUTHORIZATION,
-                        String.format("%s %s", Constants.HeaderConstants.BEARER, ((StorageCredentialsToken)creds).getToken()));
+
+                authHeaderValue = String.format("%s %s", Constants.HeaderConstants.BEARER, ((StorageCredentialsToken)creds).getToken());
+                request.setRequestProperty(Constants.HeaderConstants.AUTHORIZATION, authHeaderValue);
             }
             else {
                 throw new IllegalArgumentException("Token credential is only supported for HTTPS requests.");
             }
         }
+
+        return authHeaderValue;
     }
     
     /**

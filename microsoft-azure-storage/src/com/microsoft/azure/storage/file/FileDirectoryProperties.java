@@ -15,6 +15,7 @@
 package com.microsoft.azure.storage.file;
 
 import java.util.Date;
+import java.util.EnumSet;
 
 import com.microsoft.azure.storage.AccessCondition;
 
@@ -37,6 +38,74 @@ public final class FileDirectoryProperties {
      * Represents the directory's server-side encryption status.
      */
     private boolean serverEncrypted;
+
+    /**
+     * The following package private properties are set-able file SMB properties. This is by design.
+     * There are two variables - one normal variable and one toSet variable  to account for the statefulness of our
+     * objects and the fact that the service requires each SMB property header.
+     *
+     * When a user wants to set a new SMB property, they call the setter method, which sets the toSet variable.
+     * Upon calling the Directory.Create or Directory.SetProperties methods, the toSet variable is checked and set if it has been set to a value.
+     * The service then returns the properties, that are then populated in the normal variable when updating SMB properties
+     * and each of the toSet variables are set back to null.
+     */
+
+    /**
+     * Represents the directory's permission key.
+     */
+    String filePermissionKey;
+
+    /**
+     * Represents the directory's permission key to set.
+     */
+    String filePermissionKeyToSet;
+
+    /**
+     * Represents the file system attributes for files and directories.
+     * If not set, indicates preservation of existing values.
+     */
+    EnumSet<NtfsAttributes> ntfsAttributes;
+
+    /**
+     * Represents the file system attributes to set for files and directories.
+     * If not set, indicates preservation of existing values.
+     */
+    EnumSet<NtfsAttributes> ntfsAttributesToSet;
+
+    /**
+     * Represents the creation time for the directory.
+     */
+    String creationTime;
+
+    /**
+     * Represents the creation time to set for the directory.
+     */
+    String creationTimeToSet;
+
+    /**
+     * Represents the last-write time for the directory.
+     */
+    String lastWriteTime;
+
+    /**
+     * Represents the last-write time to set for the directory.
+     */
+    String lastWriteTimeToSet;
+
+    /**
+     * Represents the change time for the directory.
+     */
+    private String changeTime;
+
+    /**
+     * Represents the directory's id.
+     */
+    private String fileId;
+
+    /**
+     * Represents the directory's parent id.
+     */
+    private String parentId;
 
     /**
      * Gets the ETag value of the directory.
@@ -73,6 +142,70 @@ public final class FileDirectoryProperties {
     }
 
     /**
+     * Gets the directory's permission key.
+     *
+     * @return A <code>String</code> which specifies the directory's permission key.
+     */
+    public String getFilePermissionKey() {
+        return this.filePermissionKeyToSet == null ? this.filePermissionKey : this.filePermissionKeyToSet;
+    }
+
+    /**
+     * Gets the file system attributes for files and directories.
+     * If not set, indicates preservation of existing values.
+     *
+     * @return A {@link NtfsAttributes} object which represents the file system attributes.
+     */
+    public EnumSet<NtfsAttributes> getNtfsAttributes() {
+        return this.ntfsAttributesToSet == null ? this.ntfsAttributes : this.ntfsAttributesToSet;
+    }
+
+    /**
+     * Gets the creation time for the directory.
+     *
+     * @return A <code>String</code> object which represents the creation time.
+     */
+    public String getCreationTime() {
+        return this.creationTimeToSet == null ? this.creationTime : this.creationTimeToSet;
+    }
+
+    /**
+     * Gets the last write time for the directory.
+     *
+     * @return A <code>String</code> object which represents the last write time.
+     */
+    public String getLastWriteTime() {
+        return this.lastWriteTimeToSet == null ? this.lastWriteTime : this.lastWriteTimeToSet;
+    }
+
+    /**
+     * Gets the change time for the directory.
+     *
+     * @return A <code>String</code> object which represents the change time.
+     */
+    public String getChangeTime() {
+        return this.changeTime;
+    }
+
+    /**
+     * Gets the directory's id.
+     *
+     * @return A <code>String</code> which specifies the directory's id.
+     */
+    public String getFileId() {
+        return this.fileId;
+    }
+
+    /**
+     * Gets the directory's parent id.
+     *
+     * @return A <code>String</code> which specifies the directory's parent id.
+     */
+    public String getParentId() {
+        return this.parentId;
+    }
+
+    /**
      * Sets the ETag value on the directory.
      * 
      * @param etag
@@ -100,5 +233,76 @@ public final class FileDirectoryProperties {
      */
     protected void setLastModified(final Date lastModified) {
         this.lastModified = lastModified;
+    }
+
+    /**
+     * Sets the directory's permission key.
+     *
+     * @param filePermissionKey
+     *        A <code>String</code> which specifies the directory permission key to set.
+     */
+    public void setFilePermissionKey(String filePermissionKey) {
+        this.filePermissionKeyToSet = filePermissionKey;
+    }
+
+    /**
+     * Sets the file system attributes for files and directories.
+     * If not set, indicates preservation of existing values.
+     *
+     * @param ntfsAttributes
+     *        A {@link NtfsAttributes} which specifies the file system attributes to set.
+     */
+    public void setNtfsAttributes(EnumSet<NtfsAttributes> ntfsAttributes) {
+        this.ntfsAttributesToSet = ntfsAttributes;
+    }
+
+    /**
+     * Sets the creation time for the directory.
+     *
+     * @param creationTime
+     *            A <code>String</code> object which specifies the creation time to set.
+     */
+    public void setCreationTime(String creationTime) {
+        this.creationTimeToSet = creationTime;
+    }
+
+    /**
+     * Sets the last write time for the directory.
+     *
+     * @param lastWriteTime
+     *            A <code>String</code> object which specifies the last write time to set.
+     */
+    public void setLastWriteTime(String lastWriteTime) {
+        this.lastWriteTimeToSet = lastWriteTime;
+    }
+
+    /**
+     * Sets the change time for the directory.
+     *
+     * @param changeTime
+     *            A <code>String</code> object which specifies the change time to set.
+     */
+    protected void setChangeTime(String changeTime) {
+        this.changeTime = changeTime;
+    }
+
+    /**
+     * Sets the directory's id.
+     *
+     * @param fileId
+     *        A <code>String</code> which specifies the id to set.
+     */
+    protected void setFileId(String fileId) {
+        this.fileId = fileId;
+    }
+
+    /**
+     * Sets the directory's parent id.
+     *
+     * @param parentId
+     *        A <code>String</code> which specifies the parent id to set.
+     */
+    protected void setParentId(String parentId) {
+        this.parentId = parentId;
     }
 }
