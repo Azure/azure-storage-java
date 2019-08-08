@@ -174,12 +174,16 @@ public final class BaseRequest {
 
         // Get the proxy settings
         Proxy proxy = OperationContext.getDefaultProxy();
-        String username = null;
-        String password = null;
+        String username = OperationContext.getDefaultProxyUsername();
+        String password = OperationContext.getDefaultProxyPassword();
         if (opContext != null && opContext.getProxy() != null) {
             proxy = opContext.getProxy();
-            username = opContext.getProxyUsername();
-            password = opContext.getProxyPassword();
+            if (opContext.getProxyUsername() != null) {
+                username = opContext.getProxyUsername();
+            }
+            if (opContext.getProxyPassword() != null) {
+                password = opContext.getProxyPassword();
+            }
         }
 
         // Set up connection, optionally with proxy settings
