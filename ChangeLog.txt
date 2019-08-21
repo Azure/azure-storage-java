@@ -1,3 +1,7 @@
+2019.08.15 Version 8.5.0
+ * Support for HTTP proxy with Basic auth.
+ * Support for HTTP proxy with Digest auth.
+
 2019.08.05 Version 8.4.0
  * Support for 2019-02-02 REST version. Please see our REST API documentation and blogs for information about the related added features.
  * Added support for setting rehydrate priority for SetBlobTier and CopyBlob APIs.
