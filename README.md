@@ -101,7 +101,9 @@ public class BlobSample {
             // Upload an image file.
             CloudBlockBlob blob = container.getBlockBlobReference("image1.jpg");
             File sourceFile = new File("c:\\myimages\\image1.jpg");
-            blob.upload(new FileInputStream(sourceFile), sourceFile.length());
+            try (FileInputStream sourceStream = new FileInputStream(sourceFile)) {
+                blob.upload(sourceStream, sourceFile.length());
+            }
 
             // Download the image file.
             File destinationFile = new File(sourceFile.getParentFile(), "image1Download.tmp");
