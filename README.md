@@ -1,19 +1,16 @@
 # Microsoft Azure Storage SDK v8 for Java
 
-## Note: On 9/24/18 v8 of the Java SDK will move to the legacy branch and master will contain v10+.
-
-This project provides a client library in Java that makes it easy to consume Microsoft Azure Storage services. For documentation, please see the Microsoft Azure [Java Developer Center](http://azure.microsoft.com/en-us/develop/java/) and the [Java client library reference for Azure Storage](https://docs.microsoft.com/en-us/java/api/overview/azure/storage).
-
-This README page is a reference to the SDK v8. For the new asynchronous SDK v10, go to [Storage SDK v10 for Java](https://github.com/Azure/azure-storage-java/tree/vNext).
+This project provides a client library in Java that makes it easy to consume Microsoft Azure Storage services. For documentation, please see the Microsoft Azure [Java Developer Center](http://azure.microsoft.com/develop/java/) and the [Java client library reference for Azure Storage](https://docs.microsoft.com/java/api/overview/azure/storage).
 
 | SDK Name      | Version       | Description | Maven/API Reference Links |
 | ------------- | ------------- | ----------- | ----- |
-| [Storage SDK v10 for Java](https://github.com/Azure/azure-storage-java/tree/vNext)  | v10 GA  | The next generation async Storage SDK (Blob only) | [Maven](https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage-blob) - [Reference](https://docs.microsoft.com/en-us/java/api/overview/azure/storage/client?view=azure-java-preview) |
+| [Storage SDK v12 (preview) for Java](https://github.com/Azure/azure-sdk-for-java/tree/master/sdk/storage)  | v12 preview  | The next generation client library for Java | [Maven](https://search.maven.org/search?q=g:com.azure) - [Reference](https://docs.microsoft.com/java/api/overview/azure/storage) |
 | [Storage SDK v8 for Java](https://github.com/Azure/azure-storage-java)  | v8  | Legacy Storage SDK (sync only) | [Maven](https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage) - [Reference](https://docs.microsoft.com/en-us/java/api/overview/azure/storage/client?view=azure-java-stable)|
 | [Storage SDK for Android](https://github.com/Azure/azure-storage-android) | v2 | Storage SDK for Android | [Maven](https://mvnrepository.com/artifact/com.microsoft.azure.android/azure-storage-android) - [Reference](http://azure.github.io/azure-storage-android/)
 | [Azure Management Libraries for Java](https://github.com/Azure/azure-libraries-for-java) | v1 | Management libraries including Storage Resource Provider APIs | [Maven](https://mvnrepository.com/artifact/com.microsoft.azure/azure-mgmt-resources) - [Reference](http://azure.github.io/azure-storage-android/)|
 
-# Features
+# Features in v8 SDK
+
   * Blob
       * Create/Read/Update/Delete containers
       * Create/Read/Update/Delete blobs
