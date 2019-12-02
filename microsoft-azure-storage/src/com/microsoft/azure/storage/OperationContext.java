@@ -46,9 +46,29 @@ public final class OperationContext {
     private static Proxy proxyDefault;
 
     /**
+     * Represents a username to be used by default for a proxy when making a request.
+     */
+    private static String proxyDefaultUsername = null;
+
+    /**
+     * Represents a password to be used by default for a proxy when making a request.
+     */
+    private static String proxyDefaultPassword = null;
+
+    /**
      * Represents a proxy to be used when making a request.
      */
     private Proxy proxy;
+
+    /**
+     * Represents a username for a proxy when making a request.
+     */
+    private String proxyUsername = null;
+
+    /**
+     * Represents a password for a proxy when making a request.
+     */
+    private String proxyPassword = null;
 
     /**
      * Represents the operation latency, in milliseconds, from the client's perspective. This may include any potential
@@ -239,6 +259,26 @@ public final class OperationContext {
      */
     public Proxy getProxy() {
         return this.proxy;
+    }
+
+    /**
+     * Gets a username for the authenticated proxy which will be used when making a request.
+     * Default is <code>null</code>. To set a username use {@link #setProxyUsername(String)}
+     *
+     * @return A {@link String} to use when making a request.
+     */
+    public String getProxyUsername() {
+        return proxyUsername != null ? proxyUsername : getDefaultProxyUsername();
+    }
+
+    /**
+     * Gets the password for the authenticated proxy which will be used when making a request.
+     * Default is <code>null</code>. To set a password to use {@link #setProxyPassword(String)}
+     *
+     * @return A {@link String} to use when making a request.
+     */
+    public String getProxyPassword() {
+        return proxyPassword != null ? proxyPassword : getDefaultProxyPassword();
     }
 
     /**
@@ -447,6 +487,28 @@ public final class OperationContext {
     }
 
     /**
+     * Sets a username for an authenticated proxy which will be used when making a request.
+     * Default is <code>null</code>.
+     *
+     * @param username
+     *            A {@link java.lang.String} to use when making a request.
+     */
+    public void setProxyUsername(final String username) {
+        this.proxyUsername = username;
+    }
+
+    /**
+     * Sets a password for an authenticated proxy which will be used when making a request.
+     * Default is <code>null</code>.
+     *
+     * @param password
+     *            A {@link java.lang.String} to use when making a request.
+     */
+    public void setProxyPassword(final String password) {
+        this.proxyPassword = password;
+    }
+
+    /**
      * Sets any additional headers for the request, for example, for proxy or logging information.
      * 
      * @param userHeaders
@@ -618,5 +680,47 @@ public final class OperationContext {
      */
     public static void setDefaultProxy(Proxy defaultProxy) {
         OperationContext.proxyDefault = defaultProxy;
+    }
+
+    /**
+     * Gets a default username for the authenticated proxy which will be used when making a request.
+     * Default is <code>null</code>. To set a username use {@link #setDefaultProxyUsername(String)}
+     *
+     * @return A {@link String} to use when making a request.
+     */
+    public static String getDefaultProxyUsername() {
+        return OperationContext.proxyDefaultUsername;
+    }
+
+    /**
+     * Gets the default password for the authenticated proxy which will be used when making a request.
+     * Default is <code>null</code>. To set a password to use {@link #setProxyPassword(String)}
+     *
+     * @return A {@link String} to use when making a request.
+     */
+    public static String getDefaultProxyPassword() {
+        return OperationContext.proxyDefaultPassword;
+    }
+
+    /**
+     * Sets a default username for an authenticated proxy which will be used when making a request.
+     * Default is <code>null</code>.
+     *
+     * @param username
+     *            A {@link java.lang.String} to use when making a request.
+     */
+    public static void setDefaultProxyUsername(final String username) {
+        OperationContext.proxyDefaultUsername = username;
+    }
+
+    /**
+     * Sets a default password for an authenticated proxy which will be used when making a request.
+     * Default is <code>null</code>.
+     *
+     * @param password
+     *            A {@link java.lang.String} to use when making a request.
+     */
+    public static void setDefaultProxyPassword(final String password) {
+        OperationContext.proxyDefaultPassword = password;
     }
 }

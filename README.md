@@ -39,7 +39,7 @@ To get the binaries of this library as distributed by Microsoft, ready for use w
 <dependency>
 	<groupId>com.microsoft.azure</groupId>
 	<artifactId>azure-storage</artifactId>
-	<version>8.4.0</version>
+	<version>8.5.0</version>
 </dependency>
 ```
 
@@ -101,7 +101,9 @@ public class BlobSample {
             // Upload an image file.
             CloudBlockBlob blob = container.getBlockBlobReference("image1.jpg");
             File sourceFile = new File("c:\\myimages\\image1.jpg");
-            blob.upload(new FileInputStream(sourceFile), sourceFile.length());
+            try (FileInputStream sourceStream = new FileInputStream(sourceFile)) {
+                blob.upload(sourceStream, sourceFile.length());
+            }
 
             // Download the image file.
             File destinationFile = new File(sourceFile.getParentFile(), "image1Download.tmp");

@@ -16,11 +16,13 @@ package com.microsoft.azure.storage.core;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.PasswordAuthentication;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -186,14 +188,36 @@ public final class BaseRequest {
 
         // Get the proxy settings
         Proxy proxy = OperationContext.getDefaultProxy();
+        String username = OperationContext.getDefaultProxyUsername();
+        String password = OperationContext.getDefaultProxyPassword();
         if (opContext != null && opContext.getProxy() != null) {
             proxy = opContext.getProxy();
+            if (opContext.getProxyUsername() != null) {
+                username = opContext.getProxyUsername();
+            }
+            if (opContext.getProxyPassword() != null) {
+                password = opContext.getProxyPassword();
+            }
         }
 
         // Set up connection, optionally with proxy settings
         final HttpURLConnection retConnection;
         if (proxy != null) {
             retConnection = (HttpURLConnection) resourceUrl.openConnection(proxy);
+            if (username != null && password != null) {
+                String authString = "Basic " + Utility.safeEncode(username + ":" + password);
+                final String authUsername = username;
+                final String authPassword = password;
+                retConnection.setRequestProperty("Proxy-Authorization", authString);
+                Authenticator.setDefault(new Authenticator() {
+                    @Override
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        PasswordAuthentication passwordAuthentication =
+                                new PasswordAuthentication (authUsername, authPassword.toCharArray());
+                        return passwordAuthentication;
+                    }
+                });
+            }
         }
         else {
             retConnection = (HttpURLConnection) resourceUrl.openConnection();
