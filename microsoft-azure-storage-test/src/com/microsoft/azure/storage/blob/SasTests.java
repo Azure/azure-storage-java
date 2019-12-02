@@ -460,6 +460,47 @@ public class SasTests {
     }
 
     @Test
+    @Category(SlowTests.class)
+    public void testBlobSaSWithSharedAccessBlobHeadersPreserveRaw() throws InvalidKeyException,
+            IllegalArgumentException, StorageException, URISyntaxException, InterruptedException {
+        SharedAccessBlobPolicy sp = createSharedAccessPolicy(EnumSet.of(SharedAccessBlobPermissions.READ,
+                SharedAccessBlobPermissions.WRITE, SharedAccessBlobPermissions.LIST), 300);
+        BlobContainerPermissions perms = new BlobContainerPermissions();
+
+        perms.getSharedAccessPolicies().put("readperm", sp);
+        this.container.uploadPermissions(perms);
+        Thread.sleep(30000);
+
+        SharedAccessBlobHeaders headers = new SharedAccessBlobHeaders(true);
+        headers.setCacheControl("no%20cache");
+        headers.setContentDisposition("inline; filename=\"My Image.jpg\"; filename*=UTF-8''My%20Image.jpg");
+        headers.setContentEncoding("gzip%20");
+        headers.setContentLanguage("da%20");
+        headers.setContentType("text/html; charset=utf%208");
+
+        CloudBlockBlob sasBlob = new CloudBlockBlob(new URI(this.blob.getUri().toString() + "?"
+                + this.blob.generateSharedAccessSignature(null, headers, "readperm")));
+        OperationContext context = new OperationContext();
+
+        context.getSendingRequestEventHandler().addListener(new StorageEvent<SendingRequestEvent>() {
+
+            @Override
+            public void eventOccurred(SendingRequestEvent eventArg) {
+                HttpURLConnection connection = (HttpURLConnection) eventArg.getConnectionObject();
+                assertEquals("no%20cache", connection.getHeaderField(Constants.HeaderConstants.CACHE_CONTROL));
+                assertEquals("inline; filename=\"My Image.jpg\"; filename*=UTF-8''My%20Image.jpg",
+                        connection.getHeaderField(Constants.HeaderConstants.CONTENT_DISPOSITION));
+                assertEquals("gzip%20", connection.getHeaderField(Constants.HeaderConstants.CONTENT_ENCODING));
+                assertEquals("da%20", connection.getHeaderField(Constants.HeaderConstants.CONTENT_LANGUAGE));
+                assertEquals("text/html; charset=utf%208",
+                        connection.getHeaderField(Constants.HeaderConstants.CONTENT_TYPE));
+            }
+        });
+
+        sasBlob.download(new ByteArrayOutputStream(), null, null, context);
+    }
+
+    @Test
     public void testAppendBlobCopyWithSasAndSnapshot()
             throws URISyntaxException, StorageException, InterruptedException, IOException, InvalidKeyException {
         String blobName = BlobTestHelper.generateRandomBlobNameWithPrefix("testblob");
