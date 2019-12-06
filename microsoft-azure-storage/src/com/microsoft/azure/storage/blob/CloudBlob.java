@@ -2207,7 +2207,45 @@ public abstract class CloudBlob implements ListBlobItem {
     public String generateSharedAccessSignature(
             final SharedAccessBlobPolicy policy, final SharedAccessBlobHeaders headers,
             final String groupPolicyIdentifier, final IPRange ipRange, final SharedAccessProtocols protocols)
-            throws InvalidKeyException, StorageException {
+            throws StorageException, InvalidKeyException {
+        return this.generateSharedAccessSignature(policy, headers, groupPolicyIdentifier, ipRange, protocols, false);
+    }
+
+    /**
+     * Returns a shared access signature for the blob using the specified group policy identifier and operation context.
+     * Note this does not contain the leading "?".
+     *
+     * @param policy
+     *            A <code>{@link SharedAccessPolicy}</code> object that represents the access policy for the shared
+     *            access signature.
+     * @param headers
+     *            A <code>{@link SharedAccessBlobHeaders}</code> object that represents the optional header values to
+     *            set for a blob accessed with this shared access signature.
+     * @param groupPolicyIdentifier
+     *            A <code>String</code> that represents the container-level access policy.
+     * @param ipRange
+     *            A {@link IPRange} object containing the range of allowed IP addresses.
+     * @param protocols
+     *            A {@link SharedAccessProtocols} representing the allowed Internet protocols.
+     * @param skipDecoding
+     *            A <code>boolean</code> to indicate that the query parameters should not be decoded before being
+     *            signed. This should only be used if the customer is sure the values passed are in the desired format.
+     *            This may be useful in some scenarios where the client is used to generate a sas to a third party that
+     *            will not be using this sdk to make the requests.
+     *
+     * @return A <code>String</code> that represents the shared access signature.
+     *
+     * @throws IllegalArgumentException
+     *             If the credentials are invalid or the blob is a snapshot.
+     * @throws InvalidKeyException
+     *             If the credentials are invalid.
+     * @throws StorageException
+     *             If a storage service error occurred.
+     */
+    public String generateSharedAccessSignature(
+            final SharedAccessBlobPolicy policy, final SharedAccessBlobHeaders headers,
+            final String groupPolicyIdentifier, final IPRange ipRange, final SharedAccessProtocols protocols,
+            boolean skipDecoding) throws InvalidKeyException, StorageException {
         
         if (!StorageCredentialsHelper.canCredentialsSignRequest(this.blobServiceClient.getCredentials())) {
             throw new IllegalArgumentException(SR.CANNOT_CREATE_SAS_WITHOUT_ACCOUNT_KEY);
@@ -2218,7 +2256,7 @@ public abstract class CloudBlob implements ListBlobItem {
         final String signature = SharedAccessSignatureHelper.generateSharedAccessSignatureHashForBlobAndFile(
                 policy, headers, groupPolicyIdentifier, resourceName, ipRange, protocols, this.blobServiceClient,
                 this.isSnapshot() ? Constants.QueryConstants.BLOB_SNAPSHOT_SERVICE : Constants.QueryConstants.BLOB_RESOURCE,
-                this.getSnapshotID());
+                this.getSnapshotID(), skipDecoding);
 
         final UriQueryBuilder builder = SharedAccessSignatureHelper.generateSharedAccessSignatureForBlobAndFile(
                 policy, headers, groupPolicyIdentifier,

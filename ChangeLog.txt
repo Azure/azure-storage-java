@@ -1,3 +1,6 @@
+2019.12.06 Version 8.6.0
+ * Added the skipDecode flag to the generate sas method on CloudBlob. This flag allows the customer to skip the url decode that happens by default on the string to sign right before signing. This resolves some problems with custom values for some of the query parameters when used with third party clients.
+
 2019.12.02 Version 8.5.0
  * Support for HTTP proxy with Basic auth.
  * Support for HTTP proxy with Digest auth.
