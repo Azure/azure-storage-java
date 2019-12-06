@@ -309,6 +309,38 @@ public class SharedAccessSignatureHelper {
             SharedAccessHeaders headers, final String accessPolicyIdentifier, final String resourceName,
             final IPRange ipRange, final SharedAccessProtocols protocols, final ServiceClient client,
             final String service, final String snapshotId) throws InvalidKeyException, StorageException {
+        return generateSharedAccessSignatureHashForBlobAndFile(policy, headers, accessPolicyIdentifier, resourceName,
+                ipRange,protocols, client, service, snapshotId, false);
+    }
+
+    /**
+     * Get the signature hash embedded inside the Shared Access Signature for the blob or file service.
+     *
+     * @param policy
+     *            The shared access policy to hash.
+     * @param headers
+     *            The optional header values to set for a blob or file accessed with this shared access signature.
+     * @param accessPolicyIdentifier
+     *            An optional identifier for the policy.
+     * @param resourceName
+     *            The resource name.
+     * @param ipRange
+     *            The range of IP addresses to hash.
+     * @param protocols
+     *            The Internet protocols to hash.
+     * @param client
+     *            The ServiceClient associated with the object.
+     * @param skipDecoding
+     *            Skip decoding the string to sign before signing.
+     *
+     * @return The signature hash embedded inside the Shared Access Signature.
+     * @throws InvalidKeyException
+     * @throws StorageException
+     */
+    public static String generateSharedAccessSignatureHashForBlobAndFile(final SharedAccessPolicy policy,
+            SharedAccessHeaders headers, final String accessPolicyIdentifier, final String resourceName,
+            final IPRange ipRange, final SharedAccessProtocols protocols, final ServiceClient client,
+            final String service, final String snapshotId, boolean skipDecoding) throws InvalidKeyException, StorageException {
         
         String stringToSign = generateSharedAccessSignatureStringToSign(
                 policy, resourceName, ipRange, protocols, accessPolicyIdentifier);
@@ -341,7 +373,7 @@ public class SharedAccessSignatureHelper {
                 contentLanguage == null ? Constants.EMPTY_STRING : contentLanguage,
                 contentType == null ? Constants.EMPTY_STRING : contentType);
         
-        return generateSharedAccessSignatureHashHelper(stringToSign, client.getCredentials());
+        return generateSharedAccessSignatureHashHelper(stringToSign, client.getCredentials(), skipDecoding);
     }
 
     /**
@@ -692,12 +724,34 @@ public class SharedAccessSignatureHelper {
      */
     private static String generateSharedAccessSignatureHashHelper(String stringToSign, final StorageCredentials creds)
             throws StorageException, InvalidKeyException {
+        return generateSharedAccessSignatureHashHelper(stringToSign, creds, false);
+    }
+
+    /**
+     * Get the signature hash embedded inside the Shared Access Signature.
+     *
+     * @param stringToSign
+     *            The string to decode and hash
+     * @param creds
+     *            Reference to the {@link StorageCredentials}.
+     * @param skipDecoding
+     *            Skip decoding the string to sign before signing.
+     *
+     * @return The signature hash embedded inside the Shared Access Signature.
+     *
+     * @throws InvalidKeyException
+     * @throws StorageException
+     */
+    private static String generateSharedAccessSignatureHashHelper(String stringToSign, final StorageCredentials creds,
+            boolean skipDecoding) throws StorageException, InvalidKeyException {
         
         Utility.assertNotNull("credentials", creds);
     
         Logger.trace(null, LogConstants.SIGNING, stringToSign);
 
-        stringToSign = Utility.safeDecode(stringToSign);
+        if (!skipDecoding) {
+            stringToSign = Utility.safeDecode(stringToSign);
+        }
         return StorageCredentialsHelper.computeHmac256(creds, stringToSign);
     }
 
