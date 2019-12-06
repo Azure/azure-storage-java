@@ -33,8 +33,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
 import java.util.*;
@@ -498,6 +500,35 @@ public class SasTests {
         });
 
         sasBlob.download(new ByteArrayOutputStream(), null, null, context);
+    }
+
+    @Test
+    @Category(SlowTests.class)
+    public void testBlobSaSWithSharedAccessBlobHeadersSkipDecode() throws InvalidKeyException,
+            IllegalArgumentException, StorageException, URISyntaxException, InterruptedException, IOException {
+        SharedAccessBlobPolicy sp = createSharedAccessPolicy(EnumSet.of(SharedAccessBlobPermissions.READ,
+                SharedAccessBlobPermissions.WRITE, SharedAccessBlobPermissions.LIST), 300);
+
+        SharedAccessBlobHeaders headers = new SharedAccessBlobHeaders();
+        headers.setCacheControl("no%20cache");
+        headers.setContentDisposition("inline; filename=\"My Image.jpg\"; filename*=UTF-8''My%20Image.jpg");
+        headers.setContentEncoding("gzip%20");
+        headers.setContentLanguage("da%20");
+        headers.setContentType("image/png");
+
+        String sasToken = this.blob.generateSharedAccessSignature(sp, headers, null, null, null, true);
+        URL url = new URL(this.blob.getUri() + "?" + sasToken);
+
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+        assertEquals(200, connection.getResponseCode());
+        assertEquals("no%20cache", connection.getHeaderField(Constants.HeaderConstants.CACHE_CONTROL));
+        assertEquals("inline; filename=\"My Image.jpg\"; filename*=UTF-8''My%20Image.jpg",
+                connection.getHeaderField(Constants.HeaderConstants.CONTENT_DISPOSITION));
+        assertEquals("gzip%20", connection.getHeaderField(Constants.HeaderConstants.CONTENT_ENCODING));
+        assertEquals("da%20", connection.getHeaderField(Constants.HeaderConstants.CONTENT_LANGUAGE));
+        assertEquals("image/png",
+                connection.getHeaderField(Constants.HeaderConstants.CONTENT_TYPE));
     }
 
     @Test
