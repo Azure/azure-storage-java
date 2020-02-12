@@ -2644,7 +2644,8 @@ public abstract class CloudBlob implements ListBlobItem {
     }
 
     /**
-     * Opens a blob input stream to download the blob using the specified request options and operation context.
+     * Opens a blob input stream to download the blob using the specified request options and operation context. If
+     * the blob is decrypted as it is downloaded, the final MD5 validation will be skipped.
      * <p>
      * Use {@link #setStreamMinimumReadSizeInBytes(int)} to configure the read size.
      *
