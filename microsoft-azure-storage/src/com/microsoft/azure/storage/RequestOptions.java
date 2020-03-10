@@ -106,6 +106,10 @@ public abstract class RequestOptions {
         if (modifiedOptions.requireEncryption() == null) {
             modifiedOptions.setRequireEncryption(false);
         }
+
+        if (modifiedOptions.disableHttpsSocketKeepAlive() == null) {
+            modifiedOptions.setDisableHttpsSocketKeepAlive(false);
+        }
     }
 
     /**
