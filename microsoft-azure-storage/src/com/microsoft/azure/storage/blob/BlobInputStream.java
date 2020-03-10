@@ -302,10 +302,19 @@ public final class BlobInputStream extends InputStream {
         try {
             final byte[] byteBuffer = new byte[readLength];
 
-            this.parentBlobRef.downloadRangeInternal(this.currentAbsoluteReadPosition, (long) readLength, byteBuffer,
-                    0, this.accessCondition, this.options, this.opContext);
+            int numBytes = this.parentBlobRef.downloadRangeInternal(this.currentAbsoluteReadPosition, (long) readLength,
+                    byteBuffer, 0, this.accessCondition, this.options, this.opContext);
 
-            this.currentBuffer = new ByteArrayInputStream(byteBuffer);
+            /*
+            In the case of client-side decryption, we may get fewer bytes than we request at the end of the blob when
+            we remove padding. We want to ensure our data is the correct size, even in this case. Also, in this case,
+            we can no longer validate the MD5 because it was calculated on the ciphertext on upload, but this
+            inputstream calculates it on the plaintext.
+             */
+            if (numBytes < readLength && this.options.getEncryptionPolicy() != null) {
+                this.validateBlobMd5 = false;
+            }
+            this.currentBuffer = new ByteArrayInputStream(byteBuffer, 0, numBytes);
             this.bufferSize = readLength;
             this.bufferStartOffset = this.currentAbsoluteReadPosition;
         }

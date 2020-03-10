@@ -1,3 +1,8 @@
+XXXX.XX.XX Version X.X.X
+ * Fixed a bug in BlobInputStream that would return extra zeros at the end of the stream if the data was encrypted using client-side encryption.
+ * MD5 checks on BlobInputStream are skipped if data being downloaded is also being decrypted via client-side encryption, even if disableMd5Calculation is set to false. Previously this check would always fail as MD5 is calculated on cipher text on upload but was calculated on plaintext on download.
+ * Added a workaround to a JDK bug that would ignore connection timeouts on retries, causing hangs in some scenarios. This requires defaulting setting https keep-alive on all sockets. It can be disabled via BlobRequestOptions.
+
 2019.12.06 Version 8.6.0
  * Added the skipDecode flag to the generate sas method on CloudBlob. This flag allows the customer to skip the url decode that happens by default on the string to sign right before signing. This resolves some problems with custom values for some of the query parameters when used with third party clients.
 

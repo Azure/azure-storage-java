@@ -283,10 +283,7 @@ public class TestHelper {
         }
 
         next = dst.read();
-        while (next != -1) {
-            assertEquals(0, next);
-            next = dst.read();
-        }
+        assertEquals(next, -1);
     }
 
     public static void assertStreamsAreEqualAtIndex(ByteArrayInputStream src, ByteArrayInputStream dst, int srcIndex,
