@@ -27,12 +27,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import com.microsoft.azure.storage.*;
-import com.microsoft.azure.storage.blob.BlobBatchOperation;
-import com.microsoft.azure.storage.blob.BlobRequestOptions;
-import com.microsoft.azure.storage.blob.CloudBlobClient;
+import com.microsoft.azure.storage.Constants;
+import com.microsoft.azure.storage.OperationContext;
+import com.microsoft.azure.storage.RequestOptions;
+import com.microsoft.azure.storage.StorageException;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import static com.microsoft.azure.storage.Constants.QueryConstants.PROPERTIES;
 
@@ -221,6 +223,14 @@ public final class BaseRequest {
         }
         else {
             retConnection = (HttpURLConnection) resourceUrl.openConnection();
+        }
+
+        /*
+        If we are using https, check if we should enable socket keep-alive timeouts to work around JVM bug.
+         */
+        if (retConnection instanceof HttpsURLConnection && !options.disableHttpsSocketKeepAlive()) {
+            HttpsURLConnection httpsConnection = ((HttpsURLConnection) retConnection);
+            httpsConnection.setSSLSocketFactory(new KeepAliveSocketFactory(httpsConnection.getSSLSocketFactory()));
         }
 
         /*
