@@ -308,9 +308,8 @@ public abstract class RequestOptions {
      * <p>
      * The default is set in the client and is by default false, indicating encryption is not required. You can change
      * the value on this request by setting this property. You can also change the value on the
-     *      * {@link ServiceClient#getDefaultRequestOptions()} object so that all subsequent requests made via the
-     *      service
-     *      * client will use the appropriate value.
+     * {@link ServiceClient#getDefaultRequestOptions()} object so that all subsequent requests made via the
+     * service client will use the appropriate value.
      * 
      * @param requireEncryption
      *            A value to indicate whether all data written and read must be encrypted.
