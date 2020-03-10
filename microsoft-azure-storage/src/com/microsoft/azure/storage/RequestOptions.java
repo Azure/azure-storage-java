@@ -57,6 +57,11 @@ public abstract class RequestOptions {
     private Boolean requireEncryption;
 
     /**
+     * A value to indicate whether we should disable socket keep-alive.
+     */
+    private Boolean disableHttpsSocketKeepAlive;
+
+    /**
      * Creates an instance of the <code>RequestOptions</code> class.
      */
     public RequestOptions() {
@@ -78,6 +83,7 @@ public abstract class RequestOptions {
             this.setMaximumExecutionTimeInMs(other.getMaximumExecutionTimeInMs());
             this.setOperationExpiryTimeInMs(other.getOperationExpiryTimeInMs());
             this.setRequireEncryption(other.requireEncryption());
+            this.setDisableHttpsSocketKeepAlive(other.disableHttpsSocketKeepAlive());
         }
     }
 
@@ -99,6 +105,10 @@ public abstract class RequestOptions {
         
         if (modifiedOptions.requireEncryption() == null) {
             modifiedOptions.setRequireEncryption(false);
+        }
+
+        if (modifiedOptions.disableHttpsSocketKeepAlive() == null) {
+            modifiedOptions.setDisableHttpsSocketKeepAlive(false);
         }
     }
 
@@ -131,6 +141,10 @@ public abstract class RequestOptions {
                 && modifiedOptions.getOperationExpiryTimeInMs() == null && setStartTime) {
             modifiedOptions.setOperationExpiryTimeInMs(new Date().getTime()
                     + modifiedOptions.getMaximumExecutionTimeInMs());
+        }
+
+        if (modifiedOptions.disableHttpsSocketKeepAlive() == null) {
+            modifiedOptions.setDisableHttpsSocketKeepAlive(clientOptions.disableHttpsSocketKeepAlive());
         }
     }
 
@@ -178,16 +192,27 @@ public abstract class RequestOptions {
     public Integer getMaximumExecutionTimeInMs() {
         return this.maximumExecutionTimeInMs;
     }
-    
+
     /**
      * Gets a value to indicate whether all data written and read must be encrypted. Use <code>true</code> to
      * encrypt/decrypt data for transactions; otherwise, <code>false</code>. For more
      * information about require encryption defaults, see {@link #setRequireEncryption(Boolean)}.
-     * 
+     *
      * @return A value to indicate whether all data written and read must be encrypted.
      */
     public Boolean requireEncryption() {
         return this.requireEncryption;
+    }
+
+    /**
+     * Gets a value to indicate whether https socket keep-alive should be disabled. Use <code>true</code> to disable
+     * keep-alive; otherwise, <code>false</code>. For more information about disableHttpsSocketKeepAlive defaults, see
+     * {@link ServiceClient#getDefaultRequestOptions()}
+     *
+     * @return A value to indicate whther https socket keep-alive should be disabled.
+     */
+    public Boolean disableHttpsSocketKeepAlive() {
+        return this.disableHttpsSocketKeepAlive;
     }
 
     /**
@@ -283,14 +308,36 @@ public abstract class RequestOptions {
      * <p>
      * The default is set in the client and is by default false, indicating encryption is not required. You can change
      * the value on this request by setting this property. You can also change the value on the
-     * {@link ServiceClient#getDefaultRequestOptions()} object so that all subsequent requests made via the service
-     * client will use the appropriate value.
+     * {@link ServiceClient#getDefaultRequestOptions()} object so that all subsequent requests made via the
+     * service client will use the appropriate value.
      * 
      * @param requireEncryption
      *            A value to indicate whether all data written and read must be encrypted.
      */
     public void setRequireEncryption(Boolean requireEncryption) {
         this.requireEncryption = requireEncryption;
+    }
+
+    /**
+     * Sets a value to indicate whether https socket keep-alive should be disabled. Use <code>true</code> to disable
+     * keep-alive; otherwise, <code>false</code>
+     * <p>
+     * The default is set in the client and is by default false, indicating that https socket keep-alive will be
+     * enabled. You can change the value on this request by setting this property. You can also change the value on
+     * on the {@link ServiceClient#getDefaultRequestOptions()} object so that all subsequent requests made via the
+     * service client will use the appropriate value.
+     * <p>
+     * Setting keep-alive on https sockets is to work around a bug in the JVM where connection timeouts are not honored
+     * on retried requests. In those cases, we use socket keep-alive as a fallback. Unfortunately, the timeout value
+     * must be taken from a JVM property rather than configured locally. Therefore, in rare cases the JVM has configured
+     * aggressively short keep-alive times, it may be beneficial to disable the use of keep-alives lest they interfere
+     * with long running data transfer operations.
+     *
+     * @param disableHttpsSocketKeepAlive
+     *           A value to indicate whether https socket keep-alive should be disabled.
+     */
+    public void setDisableHttpsSocketKeepAlive(Boolean disableHttpsSocketKeepAlive) {
+        this.disableHttpsSocketKeepAlive = disableHttpsSocketKeepAlive;
     }
 
     /**
