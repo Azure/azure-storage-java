@@ -25,8 +25,6 @@
 		</license>
 	</licenses>
 
-	>
-
 	<distributionManagement>
 		<relocation>
 			<groupId>com.azure</groupId>
