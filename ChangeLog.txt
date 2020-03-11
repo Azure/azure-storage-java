@@ -1,4 +1,4 @@
-XXXX.XX.XX Version X.X.X
+2020.03.10 Version 8.6.1
  * Fixed a bug in BlobInputStream that would return extra zeros at the end of the stream if the data was encrypted using client-side encryption.
  * MD5 checks on BlobInputStream are skipped if data being downloaded is also being decrypted via client-side encryption, even if disableMd5Calculation is set to false. Previously this check would always fail as MD5 is calculated on cipher text on upload but was calculated on plaintext on download.
  * Added a workaround to a JDK bug that would ignore connection timeouts on retries, causing hangs in some scenarios. This requires defaulting setting https keep-alive on all sockets. It can be disabled via BlobRequestOptions.
