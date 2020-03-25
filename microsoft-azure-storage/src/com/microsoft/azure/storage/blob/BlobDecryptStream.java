@@ -60,8 +60,8 @@ class BlobDecryptStream extends BlobOutputStream {
     }
 
     @Override
-    void abortAndClose() throws IOException {
-        this.cryptoStream.close();
+    void abort() throws IOException {
+        // no-op. This method is used in the case of aborting uploads, and decrypt streams are on downloads.
     }
 
     @Override

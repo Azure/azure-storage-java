@@ -145,6 +145,11 @@ final class BlobOutputStreamInternal extends BlobOutputStream {
     private final ThreadPoolExecutor threadExecutor;
 
     /**
+     * Indicates whether the stream has been aborted and therefore closing will skip committing data.
+     */
+    private boolean aborted;
+
+    /**
      * Initializes a new instance of the BlobOutputStream class.
      * 
      * @param parentBlob
@@ -314,17 +319,20 @@ final class BlobOutputStreamInternal extends BlobOutputStream {
             this.checkStreamState();
 
             // flush any remaining data
-            this.flush();
+            if (!this.aborted) {
+                this.flush();
+            }
 
             // shut down the ExecutorService.
             this.threadExecutor.shutdown();
 
             // try to commit the blob
-            try {
-                this.commit();
-            }
-            catch (final StorageException e) {
-                throw Utility.initIOException(e);
+            if (!this.aborted) {
+                try {
+                    this.commit();
+                } catch (final StorageException e) {
+                    throw Utility.initIOException(e);
+                }
             }
         }
         finally {
@@ -340,18 +348,8 @@ final class BlobOutputStreamInternal extends BlobOutputStream {
     }
 
     @Override
-    public void abortAndClose() throws IOException {
-        try {
-            this.checkStreamState();
-
-            this.threadExecutor.shutdown();
-        } finally {
-            this.lastError = new IOException(SR.STREAM_CLOSED);
-
-            if (!this.threadExecutor.isShutdown()) {
-                this.threadExecutor.shutdown();
-            }
-        }
+    public void abort() throws IOException {
+        this.aborted = true;
     }
 
     /**

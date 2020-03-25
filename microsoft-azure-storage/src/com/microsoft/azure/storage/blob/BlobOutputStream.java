@@ -113,8 +113,8 @@ public abstract class BlobOutputStream extends OutputStream {
     public abstract void close() throws IOException;
 
     /**
-     * Closes the output stream without committing the data to the service, typically to be used in cases of errors or
-     * exceptions in the data source.
+     * Signals to the BlobOutputStream that it is being aborted and should not commit the data to the service on
+     * closing, typically to be used in cases of errors or exceptions in the data source.
      */
-    abstract void abortAndClose() throws IOException;
+    abstract void abort() throws IOException;
 }

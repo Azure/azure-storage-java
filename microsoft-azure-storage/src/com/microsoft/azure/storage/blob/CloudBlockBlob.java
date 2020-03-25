@@ -893,20 +893,21 @@ public final class CloudBlockBlob extends CloudBlob {
             useOpenWrite = true;
             if (useOpenWrite) {
                 final BlobOutputStream writeStream = this.openOutputStream(accessCondition, options, opContext);
-                if (options.getCommitWriteOnInputStreamException()) {
-                    try {
-                        writeStream.write(inputDataStream, length);
-                    } finally {
-                        writeStream.close();
+                /*
+                We want to give the customer the option to skip the commit on close in case of input stream failures.
+                While we catch all exceptions here, both from reading the IS and writing to the service, any write which
+                fails in such a way as to throw effectively aborts the upload anyway, so calling abort in all cases
+                achieves the intended behavior.
+                 */
+                try {
+                    writeStream.write(inputDataStream, length);
+                } catch (Exception e) {
+                    if (!options.getCommitWriteOnInputStreamException()) {
+                        writeStream.abort();
                     }
-                } else {
-                    try {
-                        writeStream.write(inputDataStream, length);
-                        writeStream.close();
-                    } catch (Exception e) {
-                        writeStream.abortAndClose();
-                        throw e;
-                    }
+                    throw e;
+                } finally {
+                    writeStream.close();
                 }
             }
             else {
