@@ -769,8 +769,9 @@ public final class CloudBlockBlob extends CloudBlob {
      *             If a storage service error occurred.
      */
     @DoesServiceRequest
-    public void upload(final InputStream sourceStream, final long length, final StandardBlobTier standardBlobTier, final AccessCondition accessCondition,
-                       BlobRequestOptions options, OperationContext opContext) throws StorageException, IOException {
+    public void upload(final InputStream sourceStream, final long length, final StandardBlobTier standardBlobTier,
+            final AccessCondition accessCondition, BlobRequestOptions options,
+            OperationContext opContext) throws StorageException, IOException {
         if (length < -1) {
             throw new IllegalArgumentException(SR.STREAM_LENGTH_NEGATIVE);
         }
@@ -892,11 +893,20 @@ public final class CloudBlockBlob extends CloudBlob {
             useOpenWrite = true;
             if (useOpenWrite) {
                 final BlobOutputStream writeStream = this.openOutputStream(accessCondition, options, opContext);
-                try {
-                    writeStream.write(inputDataStream, length);
-                }
-                finally {
-                    writeStream.close();
+                if (options.getCommitWriteOnInputStreamException()) {
+                    try {
+                        writeStream.write(inputDataStream, length);
+                    } finally {
+                        writeStream.close();
+                    }
+                } else {
+                    try {
+                        writeStream.write(inputDataStream, length);
+                        writeStream.close();
+                    } catch (Exception e) {
+                        writeStream.abortAndClose();
+                        throw e;
+                    }
                 }
             }
             else {

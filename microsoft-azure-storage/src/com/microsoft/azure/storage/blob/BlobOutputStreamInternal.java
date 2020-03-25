@@ -339,6 +339,21 @@ final class BlobOutputStreamInternal extends BlobOutputStream {
         }
     }
 
+    @Override
+    public void abortAndClose() throws IOException {
+        try {
+            this.checkStreamState();
+
+            this.threadExecutor.shutdown();
+        } finally {
+            this.lastError = new IOException(SR.STREAM_CLOSED);
+
+            if (!this.threadExecutor.isShutdown()) {
+                this.threadExecutor.shutdown();
+            }
+        }
+    }
+
     /**
      * Commits the blob, for block blob this uploads the block list.
      * 

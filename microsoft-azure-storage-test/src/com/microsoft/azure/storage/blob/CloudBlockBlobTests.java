@@ -2755,6 +2755,71 @@ public class CloudBlockBlobTests {
         stream.close();
     }
 
+    private static class ExceptionInputStream extends InputStream {
+        private final byte[] data;
+        int index = 0;
+        boolean firstRead = true;
+
+        ExceptionInputStream(byte[] data) {
+            this.data = data;
+        }
+
+        @Override
+        public int read() throws IOException {
+            return 0;
+        }
+
+        @Override
+        public int read(byte[] arr, int offset, int len) throws IOException {
+            if (firstRead) {
+                // Fill either half the incoming buffer or use half the data, whichever is smaller.
+                // For safe partial write.
+                int size = Math.min(data.length, len) / 2;
+                if (len >= 0) System.arraycopy(data, index, arr, offset, size);
+                firstRead = false;
+                return size;
+            } else {
+                throw new IOException();
+            }
+        }
+    }
+
+    @Test
+    public void testCommitOnInputStreamException() throws StorageException, IOException, URISyntaxException {
+        final int blobSize = 2 * Constants.DEFAULT_MINIMUM_READ_SIZE_IN_BYTES; // so BlobInputStream doesn't read entire blob at once.
+
+        CloudBlobContainer container = BlobTestHelper.getRandomContainerReference();
+        container.createIfNotExists();
+        CloudBlockBlob blob = container.getBlockBlobReference(BlobTestHelper.generateRandomBlobNameWithPrefix(""));
+
+        BlobRequestOptions options = new BlobRequestOptions();
+
+        // Upload with no commit on failure.
+        byte[] data = TestHelper.getRandomBuffer(blobSize);
+        InputStream is = new ExceptionInputStream(data);
+        options.setCommitWriteOnInputStreamException(false);
+
+        try {
+            blob.upload(is, blobSize, null, null, options, null);
+            fail();
+        } catch(IOException e) {
+            assertFalse(blob.exists());
+        }
+
+        // Upload with commit on failure.
+        is = new ExceptionInputStream(data);
+        options = new BlobRequestOptions(); // Test the default. Should be true.
+
+        try {
+            blob.upload(is, blobSize, null, null, options, null);
+            fail();
+        } catch (IOException e) {
+            assertTrue(blob.exists());
+        }
+
+        container.delete();
+    }
+
     @Test
     public void testPutGetBlobCPK() throws URISyntaxException, StorageException, IOException {
         // load CPK into options

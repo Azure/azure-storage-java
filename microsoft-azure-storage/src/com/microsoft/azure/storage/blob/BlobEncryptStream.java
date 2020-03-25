@@ -159,4 +159,9 @@ final class BlobEncryptStream extends BlobOutputStream {
         this.cipherStream.close();
     }
 
+    @Override
+    void abortAndClose() throws IOException {
+        this.cipherStream.close();
+    }
+
 }

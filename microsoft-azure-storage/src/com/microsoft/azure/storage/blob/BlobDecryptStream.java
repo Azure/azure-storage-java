@@ -60,6 +60,11 @@ class BlobDecryptStream extends BlobOutputStream {
     }
 
     @Override
+    void abortAndClose() throws IOException {
+        this.cryptoStream.close();
+    }
+
+    @Override
     public void write(byte[] data, int offset, int length) throws IOException {
         // Keep buffering until we have 16 bytes of IV.
         if (this.bufferIV && this.position < 16)

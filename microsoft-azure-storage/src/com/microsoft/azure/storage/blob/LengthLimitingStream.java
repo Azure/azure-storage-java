@@ -81,4 +81,9 @@ public class LengthLimitingStream extends BlobOutputStream {
         // no op
     }
 
+    @Override
+    void abortAndClose() throws IOException {
+        // no op
+    }
+
 }
