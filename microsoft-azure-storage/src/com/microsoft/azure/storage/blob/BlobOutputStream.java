@@ -111,4 +111,10 @@ public abstract class BlobOutputStream extends OutputStream {
     @Override
     @DoesServiceRequest
     public abstract void close() throws IOException;
+
+    /**
+     * Signals to the BlobOutputStream that it is being aborted and should not commit the data to the service on
+     * closing, typically to be used in cases of errors or exceptions in the data source.
+     */
+    abstract void abort() throws IOException;
 }
