@@ -108,7 +108,7 @@ public abstract class RequestOptions {
         }
 
         if (modifiedOptions.disableHttpsSocketKeepAlive() == null) {
-            modifiedOptions.setDisableHttpsSocketKeepAlive(false);
+            modifiedOptions.setDisableHttpsSocketKeepAlive(true);
         }
     }
 
@@ -209,7 +209,7 @@ public abstract class RequestOptions {
      * keep-alive; otherwise, <code>false</code>. For more information about disableHttpsSocketKeepAlive defaults, see
      * {@link ServiceClient#getDefaultRequestOptions()}
      *
-     * @return A value to indicate whther https socket keep-alive should be disabled.
+     * @return A value to indicate whether https socket keep-alive should be disabled.
      */
     public Boolean disableHttpsSocketKeepAlive() {
         return this.disableHttpsSocketKeepAlive;
@@ -322,16 +322,16 @@ public abstract class RequestOptions {
      * Sets a value to indicate whether https socket keep-alive should be disabled. Use <code>true</code> to disable
      * keep-alive; otherwise, <code>false</code>
      * <p>
-     * The default is set in the client and is by default false, indicating that https socket keep-alive will be
-     * enabled. You can change the value on this request by setting this property. You can also change the value on
+     * The default is set in the client and is by default true, indicating that https socket keep-alive will be
+     * disabled. You can change the value on this request by setting this property. You can also change the value on
      * on the {@link ServiceClient#getDefaultRequestOptions()} object so that all subsequent requests made via the
      * service client will use the appropriate value.
      * <p>
      * Setting keep-alive on https sockets is to work around a bug in the JVM where connection timeouts are not honored
-     * on retried requests. In those cases, we use socket keep-alive as a fallback. Unfortunately, the timeout value
-     * must be taken from a JVM property rather than configured locally. Therefore, in rare cases the JVM has configured
-     * aggressively short keep-alive times, it may be beneficial to disable the use of keep-alives lest they interfere
-     * with long running data transfer operations.
+     * on retried requests. In those cases, you may choose to use socket keep-alive as a fallback. Unfortunately, the
+     * timeout value must be taken from a JVM property rather than configured locally. Therefore, in rare cases the JVM
+     * has configured aggressively short keep-alive times, it may not be beneficial to enable the use of keep-alives
+     * lest they interfere with long running data transfer operations.
      *
      * @param disableHttpsSocketKeepAlive
      *           A value to indicate whether https socket keep-alive should be disabled.

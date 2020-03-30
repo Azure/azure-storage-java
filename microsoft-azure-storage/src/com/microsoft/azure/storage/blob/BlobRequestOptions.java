@@ -89,7 +89,15 @@ public final class BlobRequestOptions extends RequestOptions {
      * Default is false.
      */
     private boolean skipEtagLocking = false;
-    
+
+    /**
+     * A <code>boolean</code> that defines the behavior for handling exceptions when reading from the
+     * <code>InputStream</code> and using <code>openWrite</code>. If <code>true</code> the data that has been read from
+     * the stream up to the point of the exception will be flushed and a new blob will be committed with that data.
+     * Otherwise, the upload will be aborted and no data will be committed.
+     */
+     private boolean commitWriteOnInputStreamException = true;
+
     /**
      * Creates an instance of the <code>BlobRequestOptions</code> class.
      */
@@ -119,6 +127,7 @@ public final class BlobRequestOptions extends RequestOptions {
             //this.setSourceCustomerProvidedKey(other.getSourceCustomerProvidedKey());
             this.setValidateEncryptionPolicy(other.getValidateEncryptionPolicy());
             this.setSkipEtagLocking(other.getSkipEtagLocking());
+            this.setCommitWriteOnInputStreamException(other.getCommitWriteOnInputStreamException());
         }
     }
 
@@ -363,6 +372,20 @@ public final class BlobRequestOptions extends RequestOptions {
     }
 
     /**
+     * A <code>boolean</code> that defines the behavior for handling exceptions when reading from the
+     * <code>InputStream</code> and using <code>openWrite</code>. If <code>true</code> the data that has been read from
+     * the stream up to the point of the exception will be flushed and a new blob will be committed with that data.
+     * Otherwise, the upload will be aborted and no data will be committed.
+     *
+     * For more information about defaults, see {@link #setCommitWriteOnInputStreamException(boolean)}.
+     *
+     * @return <code>true</code> if data will be committed upon an exception; otherwise, <code>false</code>.
+     */
+    public boolean getCommitWriteOnInputStreamException() {
+        return this.commitWriteOnInputStreamException;
+    }
+
+    /**
      * Sets whether a conditional failure should be absorbed on a retry attempt for the request. This option 
      * is only used by {@link CloudAppendBlob} in upload and openWrite methods. By default, it is set to 
      * <code>false</code>. Set this to <code>true</code> only for single writer scenario.
@@ -526,6 +549,21 @@ public final class BlobRequestOptions extends RequestOptions {
      */
     public void setSkipEtagLocking(boolean skipEtagLocking) {
         this.skipEtagLocking = skipEtagLocking;
+    }
+
+    /**
+     * A <code>boolean</code> that defines the behavior for handling exceptions when reading from the
+     * <code>InputStream</code> and using <code>openWrite</code>. If <code>true</code> the data that has been read from
+     * the stream up to the point of the exception will be flushed and a new blob will be committed with that data.
+     * Otherwise, the upload will be aborted and no data will be committed.
+     *
+     * The default value is <code>true</code>.
+     *
+     * @param commitWriteOnInputStreamException
+     *          Use <code>true</code> if data will be committed upon an exception; otherwise, <code>false</code>.
+     */
+    public void setCommitWriteOnInputStreamException(boolean commitWriteOnInputStreamException) {
+        this.commitWriteOnInputStreamException = commitWriteOnInputStreamException;
     }
 
     /**

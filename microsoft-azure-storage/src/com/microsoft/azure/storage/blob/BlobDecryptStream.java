@@ -60,6 +60,11 @@ class BlobDecryptStream extends BlobOutputStream {
     }
 
     @Override
+    void abort() throws IOException {
+        // no-op. This method is used in the case of aborting uploads, and decrypt streams are on downloads.
+    }
+
+    @Override
     public void write(byte[] data, int offset, int length) throws IOException {
         // Keep buffering until we have 16 bytes of IV.
         if (this.bufferIV && this.position < 16)

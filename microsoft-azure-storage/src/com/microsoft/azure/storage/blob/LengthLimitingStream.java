@@ -81,4 +81,9 @@ public class LengthLimitingStream extends BlobOutputStream {
         // no op
     }
 
+    @Override
+    void abort() throws IOException {
+        // no op. Abort is only used to abort uploads and this type is only used on download paths.
+    }
+
 }

@@ -769,8 +769,9 @@ public final class CloudBlockBlob extends CloudBlob {
      *             If a storage service error occurred.
      */
     @DoesServiceRequest
-    public void upload(final InputStream sourceStream, final long length, final StandardBlobTier standardBlobTier, final AccessCondition accessCondition,
-                       BlobRequestOptions options, OperationContext opContext) throws StorageException, IOException {
+    public void upload(final InputStream sourceStream, final long length, final StandardBlobTier standardBlobTier,
+            final AccessCondition accessCondition, BlobRequestOptions options,
+            OperationContext opContext) throws StorageException, IOException {
         if (length < -1) {
             throw new IllegalArgumentException(SR.STREAM_LENGTH_NEGATIVE);
         }
@@ -892,10 +893,20 @@ public final class CloudBlockBlob extends CloudBlob {
             useOpenWrite = true;
             if (useOpenWrite) {
                 final BlobOutputStream writeStream = this.openOutputStream(accessCondition, options, opContext);
+                /*
+                We want to give the customer the option to skip the commit on close in case of input stream failures.
+                While we catch all exceptions here, both from reading the IS and writing to the service, any write which
+                fails in such a way as to throw effectively aborts the upload anyway, so calling abort in all cases
+                achieves the intended behavior.
+                 */
                 try {
                     writeStream.write(inputDataStream, length);
-                }
-                finally {
+                } catch (Exception e) {
+                    if (!options.getCommitWriteOnInputStreamException()) {
+                        writeStream.abort();
+                    }
+                    throw e;
+                } finally {
                     writeStream.close();
                 }
             }

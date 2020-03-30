@@ -45,6 +45,8 @@ final class BlobEncryptStream extends BlobOutputStream {
      * Holds the cipher stream.
      */
     private CipherOutputStream cipherStream;
+
+    private BlobOutputStreamInternal blobStream;
     
     /**
      * Initializes a new instance of the BlobEncryptStream class for a CloudBlockBlob
@@ -70,8 +72,7 @@ final class BlobEncryptStream extends BlobOutputStream {
         this.options = options;
         
         this.options.setValidateEncryptionPolicy(false);
-        BlobOutputStreamInternal blobStream = 
-                new BlobOutputStreamInternal(blockBlob, accessCondition, options, opContext);
+        blobStream = new BlobOutputStreamInternal(blockBlob, accessCondition, options, opContext);
         this.cipherStream = new CipherOutputStream(blobStream, cipher);
     }
 
@@ -157,6 +158,11 @@ final class BlobEncryptStream extends BlobOutputStream {
     @Override
     public void close() throws IOException {
         this.cipherStream.close();
+    }
+
+    @Override
+    void abort() throws IOException {
+        this.blobStream.abort();
     }
 
 }
