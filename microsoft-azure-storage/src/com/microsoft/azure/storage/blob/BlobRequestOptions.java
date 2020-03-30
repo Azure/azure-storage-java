@@ -377,6 +377,8 @@ public final class BlobRequestOptions extends RequestOptions {
      * the stream up to the point of the exception will be flushed and a new blob will be committed with that data.
      * Otherwise, the upload will be aborted and no data will be committed.
      *
+     * For more information about defaults, see {@link #setCommitWriteOnInputStreamException(boolean)}.
+     *
      * @return <code>true</code> if data will be committed upon an exception; otherwise, <code>false</code>.
      */
     public boolean getCommitWriteOnInputStreamException() {
@@ -554,6 +556,8 @@ public final class BlobRequestOptions extends RequestOptions {
      * <code>InputStream</code> and using <code>openWrite</code>. If <code>true</code> the data that has been read from
      * the stream up to the point of the exception will be flushed and a new blob will be committed with that data.
      * Otherwise, the upload will be aborted and no data will be committed.
+     *
+     * The default value is <code>true</code>.
      *
      * @param commitWriteOnInputStreamException
      *          Use <code>true</code> if data will be committed upon an exception; otherwise, <code>false</code>.
