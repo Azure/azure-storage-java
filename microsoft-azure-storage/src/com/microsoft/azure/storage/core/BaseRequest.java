@@ -230,7 +230,7 @@ public final class BaseRequest {
          */
         if (retConnection instanceof HttpsURLConnection && !options.disableHttpsSocketKeepAlive()) {
             HttpsURLConnection httpsConnection = ((HttpsURLConnection) retConnection);
-            httpsConnection.setSSLSocketFactory(new KeepAliveSocketFactory(httpsConnection.getSSLSocketFactory()));
+            httpsConnection.setSSLSocketFactory(KeepAliveSocketFactory.getInstance());
         }
 
         /*
