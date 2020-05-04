@@ -1,3 +1,6 @@
+2020.05.04 Version 8.6.4
+ * Converted the httpsKeepAliveSocketFactory into a singleton for performance improvements.
+
 2020.03.30 Version 8.6.3
  * Added the commitWriteOnInputStreamException option to BlobRequestOptions, which will allow the user to configure whether any data staged through openWrite when using the upload(InputStream, long) method will be committed upon failures in the InputStream.
  * Disabled httpsKeepAlive by default as it can introduce some perf issues. 
