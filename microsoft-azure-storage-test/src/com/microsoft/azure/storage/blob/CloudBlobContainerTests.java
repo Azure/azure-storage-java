@@ -22,8 +22,14 @@ import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.xml.parsers.SAXParser;
 
 import com.microsoft.azure.storage.*;
+import com.microsoft.azure.storage.core.Utility;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -539,6 +545,49 @@ public class CloudBlobContainerTests {
         } while (token != null);
 
         assertTrue(blobNames.size() == 0);
+    }
+
+    @Test
+    @Category({DevFabricTests.class, DevStoreTests.class})
+    public void testSAXParserConcurrency() throws Exception {
+        final int totalCount = 200000;
+        final int numThreads = 200;
+        final AtomicInteger currentCount = new AtomicInteger(0);
+        final AtomicInteger pending = new AtomicInteger(0);
+        final AtomicInteger failureCount = new AtomicInteger(0);
+        ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(numThreads);
+
+        do {
+            final int count = currentCount.incrementAndGet();
+            pending.incrementAndGet();
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    pending.decrementAndGet();
+                    if (count > totalCount) {
+                        return;
+                    }
+                    try {
+                        SAXParser parser = Utility.getSAXParser();
+                        if (!parser.isNamespaceAware()) {
+                            failureCount.incrementAndGet();
+                        }
+                        assertEquals(true, parser.isNamespaceAware());
+                    } catch (Exception e) {
+                        fail(e.toString());
+                    }
+                }
+            });
+
+            assertEquals(0, failureCount.get());
+
+            while (pending.get() > numThreads * 2) {
+                Thread.sleep(10);
+            }
+        } while (currentCount.get() < totalCount);
+        executor.shutdown();
+        executor.awaitTermination(1, TimeUnit.MINUTES);
+        executor.shutdownNow();
     }
 
     /**
