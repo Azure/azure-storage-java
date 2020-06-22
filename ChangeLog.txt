@@ -1,3 +1,6 @@
+2020.06.22 Version 7.0.1
+* Fixed a race condition in XML parsing logic that in narrow situations could cause the parser to be initialized incorrectly resulting in an erroneously empty list result.
+
 2018.02.05 Version 7.0.0
  * Support for 2017-07-29 REST version. Please see our REST api documentation and blogs for information about the related added features.
  * Added support for soft delete feature. If a delete retention policy is enabled through the set service properties API, then blobs or snapshots can be deleted softly and retained for a specified number of days, before being permanently removed by garbage collection.
