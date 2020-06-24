@@ -129,9 +129,8 @@ public final class Utility {
      * Thread local for SAXParser.
      */
     private static final ThreadLocal<SAXParser> saxParserThreadLocal = new ThreadLocal<SAXParser>() {
-        SAXParserFactory factory;
         @Override public SAXParser initialValue() {
-            factory = SAXParserFactory.newInstance();
+            SAXParserFactory factory = SAXParserFactory.newInstance();
             factory.setNamespaceAware(true);
             try {
                 return factory.newSAXParser();
