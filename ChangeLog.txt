@@ -1,3 +1,6 @@
+2020.06.22 Version 8.6.5
+ * Fixed a race condition in XML parsing logic that in narrow situations could cause the parser to be initialized incorrectly resulting in an erroneously empty list result.
+
 2020.05.04 Version 8.6.4
  * Converted the httpsKeepAliveSocketFactory into a singleton for performance improvements.
 
