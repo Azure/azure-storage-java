@@ -18,15 +18,15 @@
   <TenantConfiguration>
     <TenantName>ProductionTenant</TenantName>
     <TenantType>Cloud</TenantType>
-    <AccountName>[ACCOUNT NAME HERE]</AccountName>
-    <AccountKey>[ACCOUNT KEY HERE]</AccountKey>
-    <BlobServiceEndpoint>http://[ACCOUNT].blob.core.windows.net</BlobServiceEndpoint>
-    <QueueServiceEndpoint>http://[ACCOUNT].queue.core.windows.net</QueueServiceEndpoint>
-    <TableServiceEndpoint>http://[ACCOUNT].table.core.windows.net</TableServiceEndpoint>
-    <FileServiceEndpoint>http://[ACCOUNT].file.core.windows.net</FileServiceEndpoint>
-    <BlobServiceSecondaryEndpoint>http://[ACCOUNT]-secondary.blob.core.windows.net</BlobServiceSecondaryEndpoint>
-    <QueueServiceSecondaryEndpoint>http://[ACCOUNT]-secondary.queue.core.windows.net</QueueServiceSecondaryEndpoint>
-    <TableServiceSecondaryEndpoint>http://[ACCOUNT]-secondary.table.core.windows.net</TableServiceSecondaryEndpoint>
+    <AccountName>xclientdev3</AccountName>
+    <AccountKey>3kvaatQpW5aSR+WqTIF31hgxmVWlMbkCuI1vl11elXAVUgZQ1rraM/d625Hh0I9rUc2NC949CJJj0yWyRNggjQ==</AccountKey>
+    <BlobServiceEndpoint>http://xclientdev3.blob.core.windows.net</BlobServiceEndpoint>
+    <QueueServiceEndpoint>http://xclientdev3.queue.core.windows.net</QueueServiceEndpoint>
+    <TableServiceEndpoint>http://xclientdev3.table.core.windows.net</TableServiceEndpoint>
+    <FileServiceEndpoint>http://xclientdev3.file.core.windows.net</FileServiceEndpoint>
+    <BlobServiceSecondaryEndpoint>http://xclientdev3-secondary.blob.core.windows.net</BlobServiceSecondaryEndpoint>
+    <QueueServiceSecondaryEndpoint>http://xclientdev3-secondary.queue.core.windows.net</QueueServiceSecondaryEndpoint>
+    <TableServiceSecondaryEndpoint>http://xclientdev3-secondary.table.core.windows.net</TableServiceSecondaryEndpoint>
     <ActiveDirectoryApplicationId>[APPLICATION_ID]</ActiveDirectoryApplicationId>
     <ActiveDirectoryApplicationSecret>[APPLICATION_SECRET]</ActiveDirectoryApplicationSecret>
     <ActiveDirectoryTenantId>[TENANT_ID]</ActiveDirectoryTenantId>
