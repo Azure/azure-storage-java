@@ -466,7 +466,7 @@ public final class BlobRequestOptions extends RequestOptions {
     /**
      * Sets the threshold size used for writing a single blob to use.
      * <p>
-     * The default threshold size is set in the client and is by default 32MB. You can change the threshold size on this
+     * The default threshold size is set in the client and is by default 132MB. You can change the threshold size on this
      * request by setting this property. You can also change the value on the
      * {@link CloudBlobClient#getDefaultRequestOptions()} object so that all subsequent requests made via the service
      * client will use that threshold size.
