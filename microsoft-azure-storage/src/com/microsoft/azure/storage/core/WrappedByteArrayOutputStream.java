@@ -46,4 +46,14 @@ public class WrappedByteArrayOutputStream extends OutputStream {
         this.buffer[this.offset] = (byte) b;
         this.offset++;
     }
+
+    @Override
+    public void write(byte[] b, int off, int len) throws IOException {
+        if (this.offset + len > this.buffer.length) {
+            throw new IOException(SR.CONTENT_LENGTH_MISMATCH);
+        }
+
+        System.arraycopy(b, off, this.buffer, this.offset, len);
+        this.offset += len;
+    }
 }
