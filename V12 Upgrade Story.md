@@ -48,4 +48,4 @@ It has always been our intention and highest priority to provide the best experi
 
 # Thank you
 
-Thank you for your feedback in the past and going forward. We apologize for any inconvenience this has caused. However, we strongly believe that these updates will allow a path towards greater success. Please feel free to contact us at ascl [at] microsoft [dot] com, or on Github with any suggestions.
+Thank you for your feedback in the past and going forward. We apologize for any inconvenience this has caused. However, we strongly believe that these updates will allow a path towards greater success. Please feel free to contact us on Github with any suggestions.
