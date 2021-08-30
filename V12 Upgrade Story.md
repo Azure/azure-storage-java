@@ -42,7 +42,7 @@ Listening to your feedback in conjunction with an effort to unify the Azure SDK 
 It has always been our intention and highest priority to provide the best experience and tools for our customers. While we have made some mistakes in the recent past, we are still committed to this goal. Every effort we make is ultimately to empower you to build your products better. To that end, you may expect from us:
 
 - A more stable API. Going forward, we will be making a concerted effort to minimize even minor breaks. This new API surface represents the sum of our learnings and discussions with you and is our long-term strategy.
-- Support for your existing applications. Security fixes and bugfixes will continue to be made in every version of the library. Features will continue to be added to both the v8 style and the v12 style API surfaces in concert with the Azure Storage Service.
+- Prioritizing v12. New development, bug fixes, and support for service features will be added to v12 exclusively; only security patches will be made to any version prior to v12. 
 - Rapid and honest communication over Github.  It will remain a priority for us to answer questions on Github and discuss bugs/feature requests. We are also happy to discuss contributions. A strong community of support and collaboration is important to us.
 - Making upgrade as easy as possible. We will be providing more detailed documentation about the upgrade paths, including several samples that give a side-by-side comparison for v8 and v12 code. Furthermore, because we are shipping v12 in a different package and artifact (com.azure vs com.microsoft.azure), side-by-side loading should be very simple to do so customers can upgrade at their own pace.
 
