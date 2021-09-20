@@ -59,7 +59,7 @@ final class BlobResponse extends BaseResponse {
      * @throws URISyntaxException
      */
     public static BlobAttributes getBlobAttributes(final HttpURLConnection request, final StorageUri resourceURI,
-            final String snapshotID) throws URISyntaxException, ParseException {
+            final String snapshotID) throws URISyntaxException, ParseException, StorageException {
 
         final String blobType = request.getHeaderField(BlobConstants.BLOB_TYPE_HEADER);
         final BlobAttributes attributes = new BlobAttributes(BlobType.parse(blobType));
@@ -268,7 +268,7 @@ final class BlobResponse extends BaseResponse {
      * @throws URISyntaxException
      * @throws ParseException
      */
-    public static CopyState getCopyState(final HttpURLConnection request) throws URISyntaxException, ParseException {
+    public static CopyState getCopyState(final HttpURLConnection request) throws URISyntaxException, ParseException, StorageException {
         String copyStatusString = request.getHeaderField(Constants.HeaderConstants.COPY_STATUS);
         if (!Utility.isNullOrEmpty(copyStatusString)) {
             final CopyState copyState = new CopyState();
@@ -286,7 +286,7 @@ final class BlobResponse extends BaseResponse {
 
             final String copySourceString = request.getHeaderField(Constants.HeaderConstants.COPY_SOURCE);
             if (!Utility.isNullOrEmpty(copySourceString)) {
-                copyState.setSource(new URI(copySourceString));
+                copyState.setSource(new URI(Utility.safeEncode(copySourceString)));
             }
 
             final String copyCompletionTimeString =
