@@ -1989,6 +1989,11 @@ public abstract class CloudBlob implements ListBlobItem {
      */
     public void downloadToFile(final String path, final AccessCondition accessCondition, BlobRequestOptions options,
             OperationContext opContext) throws StorageException, IOException {
+        File file = new File(path);
+        File parentFile = file.getParentFile();
+        if (!parentFile.exists()) {
+            parentFile.mkdirs();
+        }
         OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(path));
         try {
             this.download(outputStream, accessCondition, options, opContext);
