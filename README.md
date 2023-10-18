@@ -1,7 +1,10 @@
-# Microsoft Azure Storage SDK for Java
-## If you would like to access our latest Java SDK, please refer to the Storage SDK v12 for Java link in the table below. If you would like more information on our decision to upgrade our Java SDK and the path forward, please refer to [this document](https://github.com/Azure/azure-storage-java/blob/master/V12%20Upgrade%20Story.md). If you would like more information on Azure's burgeoning effort to coordinate the development of the SDKs across services, of which this change is a part, please refer to [this article](https://azure.microsoft.com/en-us/blog/previewing-azure-sdks-following-new-azure-sdk-api-standards/).
+# Microsoft Azure Storage SDK for Java (Deprecated)
 
-## We will continue to respond to issues here, but prefer that you post them on the [v12 repo](https://github.com/azure/azure-sdk-for-java). Thank you for your patience. We look forward to continuing to work together with you.
+This project will be in [Community Support](https://azure.github.io/azure-sdk/policies_support.html#package-lifecycle) until 13 September 2024. After this date the project and associated client libraries will be retired permanently. For more details on the retirement and alternatives to using this project, visit [Retirement notice: The legacy Azure Storage Java client libraries will be retired on 13 September 2024](https://azure.microsoft.com/updates/retirement-notice-the-legacy-azure-storage-java-client-libraries-will-be-retired-on-13-september-2024/).
+
+---
+
+## If you would like to access our latest Java SDK, please refer to the Storage SDK v12 for Java link in the table below. If you would like more information on our decision to upgrade our Java SDK and the path forward, please refer to [this document](https://github.com/Azure/azure-storage-java/blob/master/V12%20Upgrade%20Story.md). If you would like more information on Azure's burgeoning effort to coordinate the development of the SDKs across services, of which this change is a part, please refer to [this article](https://azure.microsoft.com/en-us/blog/previewing-azure-sdks-following-new-azure-sdk-api-standards/).
 
 | SDK Name      | Version       | Description | Maven/API Reference Links |
 | ------------- | ------------- | ----------- | ----- |
